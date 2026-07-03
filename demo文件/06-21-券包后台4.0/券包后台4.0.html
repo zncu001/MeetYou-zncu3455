@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>灵感管理后台 · 券包后台4.0</title>
+<style>
+  :root{
+    --side:#3d444f;--side-sub:#353b46;--side-text:#c7ccd5;--pink:#ff6c91;--pink-dark:#d56497;
+    --bg:#f5f7fa;--surface:#fff;--text:#303133;--text2:#606266;--text3:#909399;--text4:#c0c4cc;
+    --line:#e4e7ed;--line2:#ebeef5;--danger:#f56c6c;--primary:#409eff;--success:#36c887;
+    --radius:4px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+  .app{display:flex;min-height:100vh;}
+
+  /* ─── 侧边栏 ─── */
+  .sidebar{width:210px;background:var(--side);color:var(--side-text);flex-shrink:0;}
+  .brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .logo{width:32px;height:32px;border-radius:4px;background:#f5c518;display:flex;align-items:center;justify-content:center;}
+  .logo svg{width:32px;height:32px;display:block;}
+  .nav{padding:6px 0;}
+  .nav-item{height:42px;padding:0 16px;display:flex;align-items:center;gap:10px;color:var(--side-text);font-size:13px;}
+  .nav-item .ico{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .nav-item .ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+  .nav-item .caret{margin-left:auto;color:#8a919c;font-size:11px;}
+  .nav-item.open{color:#fff;}
+  .nav-item.open .caret{transform:rotate(180deg);}
+  .nav-sub{background:var(--side-sub);}
+  .nav-sub .nav-item{padding-left:44px;}
+  .nav-sub .active{background:var(--pink-dark);color:#fff;}
+
+  /* ─── 主区域 ─── */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{height:50px;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;gap:14px;padding:0 18px;}
+  .burger{font-size:18px;color:var(--text2);}
+  .crumb{font-size:13px;color:var(--text3);display:flex;gap:6px;align-items:center;}
+  .crumb b{color:var(--text);font-weight:500;}
+  .avatar{margin-left:auto;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ffc1cf,#ff8aa9);border:2px solid #ffd5e0;}
+  .body{flex:1;padding:18px 22px 80px;overflow:auto;}
+
+  /* ─── 卡片 / 表单基础 ─── */
+  .card{background:#fff;border:1px solid var(--line2);border-radius:2px;margin-bottom:14px;}
+  .group-title{font-size:14px;font-weight:600;color:var(--text);padding:14px 18px 10px;display:flex;align-items:center;gap:8px;}
+  .group-title::before{content:"";width:3px;height:14px;background:var(--pink);border-radius:2px;}
+  .form{padding:6px 18px 22px;}
+  .row{display:flex;align-items:flex-start;padding:8px 0;min-height:38px;}
+  .row-center{align-items:center;}
+  .row-center .label{padding-top:0;}
+  .label{width:130px;flex-shrink:0;text-align:right;padding-top:8px;padding-right:12px;color:var(--text2);font-size:13px;line-height:1.4;}
+  .req{color:var(--danger);margin-right:2px;}
+  .ctrl{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+  .input,.select{height:32px;border:1px solid var(--line);border-radius:var(--radius);padding:0 11px;color:var(--text);background:#fff;outline:none;font-size:13px;}
+  .input::placeholder{color:var(--text4);}
+  .input:focus,.select:focus{border-color:var(--pink);}
+  .input.sm{width:120px;flex-shrink:0;}
+  .input.md{width:220px;}
+  .input.long{width:680px;max-width:100%;}
+  .select{appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22><path d=%22M1 1l4 4 4-4%22 stroke=%22%23999%22 fill=%22none%22 stroke-width=%221.4%22 stroke-linecap=%22round%22/></svg>') no-repeat right 10px center;padding-right:28px;}
+  .inline{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .radios,.checks{display:flex;flex-wrap:wrap;gap:18px 22px;align-items:center;}
+  .radio,.check{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2);}
+  .radio input,.check input{accent-color:var(--pink);width:14px;height:14px;}
+  .checks-col{flex-direction:column;align-items:flex-start;gap:8px;padding-top:6px;}
+  .help{color:var(--text3);font-size:12px;line-height:1.6;}
+  .help-red{color:var(--danger);font-size:12px;line-height:1.6;}
+  .hidden{display:none!important;}
+
+  /* ─── 问号气泡 ─── */
+  .qmark{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--pink);color:#fff;font-size:10px;cursor:help;flex-shrink:0;}
+  .qmark-tip{position:relative;}
+  .qmark-bubble{
+    position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
+    background:rgba(48,49,51,.92);color:#fff;font-size:12px;line-height:1.6;
+    padding:8px 12px;border-radius:4px;pointer-events:none;
+    opacity:0;visibility:hidden;transition:opacity .15s;z-index:200;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);white-space:normal;width:240px;
+    text-align:left;
+  }
+  .qmark-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(48,49,51,.92);}
+  .qmark-tip:hover .qmark-bubble{opacity:1;visibility:visible;}
+  .label-hint-wrap{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;}
+
+  /* ─── 标题区展开区域（粉色左竖线提示） ─── */
+  .title-zone-block{
+    border-left:2px solid var(--pink);
+    padding-left:0;background:linear-gradient(90deg,#fff7fa 0%,#fff 48px);
+  }
+
+  /* ─── 上传按钮 ─── */
+  .upload-btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid var(--line);background:#fff;color:var(--text2);font-size:13px;border-radius:var(--radius);cursor:pointer;}
+  .upload-btn:hover{border-color:var(--pink);color:var(--pink);}
+  .btn-add{display:inline-flex;align-items:center;justify-content:center;background:var(--pink);color:#fff;border:none;height:30px;padding:0 12px;border-radius:var(--radius);font-size:13px;cursor:pointer;}
+  .btn-add:hover{background:#ff5783;}
+
+  /* ─── 模板卡片 ─── */
+  .template-options{display:flex;gap:12px;flex-wrap:wrap;max-width:780px;}
+  .template-card{width:260px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:12px;cursor:pointer;}
+  .template-card:hover{border-color:var(--pink);}
+  .template-card.on{border-color:var(--pink);background:#fff7fa;box-shadow:0 0 0 1px rgba(255,108,145,.12);}
+  .template-card .radio{font-weight:600;color:var(--text);}
+  .template-card p{margin-top:8px;color:var(--text3);font-size:12px;line-height:1.6;}
+  .template-preview{margin-top:10px;border:1px solid #ffd2df;border-radius:8px;overflow:hidden;background:#fff;}
+  .coupon-top{padding:8px;text-align:center;color:var(--pink);}
+  .coupon-top .name{font-size:11px;color:#999;}
+  .coupon-top .money{font-size:24px;font-weight:700;}
+  .coupon-bottom{background:linear-gradient(180deg,#ff78a4,#ff2f7a);padding:10px;text-align:center;color:#fff;}
+  .coupon-btn{display:inline-flex;border:1px solid rgba(255,255,255,.85);border-radius:18px;height:28px;align-items:center;justify-content:center;padding:0 24px;font-size:13px;}
+
+  /* ─── 红包列表 ─── */
+  .tbl{width:100%;border-collapse:collapse;background:#fff;font-size:13px;margin-top:8px;}
+  .tbl th{background:#fafbfc;color:var(--text2);font-weight:500;text-align:center;padding:10px 8px;border-bottom:1px solid var(--line2);font-size:12px;white-space:nowrap;}
+  .tbl td{padding:12px 8px;border-bottom:1px solid var(--line2);text-align:center;color:var(--text2);}
+  .tbl .empty{padding:36px 0;color:var(--text4);}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px;}
+  .op-link:hover{text-decoration:underline;}
+  .drag-handle{color:var(--text4);cursor:grab;font-size:14px;user-select:none;}
+
+  /* ─── 弹窗 ─── */
+  .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-mask.show{display:flex;}
+  .modal-lg{background:#fff;width:min(1180px,96vw);max-height:90vh;border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+  .mh{padding:14px 20px;border-bottom:1px solid var(--line2);font-size:15px;font-weight:600;display:flex;align-items:center;flex-shrink:0;}
+  .close{margin-left:auto;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:0 4px;}
+  .mb{padding:16px 20px;overflow:auto;flex:1;}
+  .mf{padding:12px 20px 16px;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
+  .filter-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 24px;margin-bottom:12px;}
+  .filter-item label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;}
+  .filter-item .input,.filter-item .select{width:100%;}
+  .filter-actions{display:flex;gap:10px;margin-bottom:8px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 16px;border-radius:var(--radius);font-size:13px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--text2);}
+  .btn:hover{border-color:var(--pink);color:var(--pink);}
+  .btn-primary{background:linear-gradient(180deg,#ff8aa9,#ff6c91);border:none;color:#fff;}
+  .btn-primary:hover{filter:brightness(1.03);color:#fff;}
+  .modal-type-hint{color:var(--text3);font-size:13px;margin-bottom:10px;line-height:1.5;}
+  .modal-type-hint.is-warn{color:var(--danger);}
+  .modal-warn{color:var(--danger);font-size:13px;margin-bottom:10px;min-height:20px;}
+  .modal-warn:empty{display:none;}
+  .tbl-modal th{font-size:12px;padding:8px 6px;}
+  .tbl-modal td{padding:8px 6px;font-size:12px;text-align:left;}
+  .tbl-modal td:first-child,.tbl-modal th:first-child{text-align:center;width:44px;}
+  .cell-ellipsis{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pagination{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 0 0;font-size:13px;color:var(--text2);}
+  .page-num{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;font-size:13px;}
+  .page-num.on{background:var(--pink);border-color:var(--pink);color:#fff;}
+
+  /* ─── 底部操作栏 ─── */
+  .footbar{position:fixed;bottom:0;left:210px;right:0;height:58px;background:#fff;border-top:1px solid var(--line2);display:flex;align-items:center;justify-content:center;gap:14px;z-index:10;}
+  .btn-save,.btn-cancel{height:34px;padding:0 24px;border:none;border-radius:var(--radius);color:#fff;cursor:pointer;font-size:13px;}
+  .btn-save{background:linear-gradient(180deg,#5bd49a,#37c787);}
+  .btn-cancel{background:linear-gradient(180deg,#ffb1c4,#ff8aa9);}
+
+  /* ─── 已领取分组样式 ─── */
+  .subsection-row{
+    display:flex;align-items:center;gap:0;padding:10px 0 6px;
+    border-bottom:1px solid var(--line2);margin-bottom:2px;
+  }
+  .subsection-label{
+    font-size:12px;font-weight:600;color:var(--text2);
+    display:flex;align-items:center;gap:6px;
+  }
+  .subsection-label .dot{width:6px;height:6px;border-radius:50%;background:var(--pink);flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── 侧边栏 ─── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 32 32"><rect width="32" height="32" fill="#f5c518"/><circle cx="16" cy="13" r="8" fill="#ff6c91" opacity=".95"/><circle cx="16" cy="13" r="5.5" fill="#f5c518"/><path d="M16 7.5v11M11 13h10" stroke="#ff6c91" stroke-width=".8" opacity=".6"/><text x="16" y="27" text-anchor="middle" fill="#fff" font-size="4.5" font-family="cursive">Meet you</text></svg>
+      </span>
+      <span>灵感管理后台</span>
+    </div>
+    <nav class="nav">
+      <div class="nav-item"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="4" rx="1"/><rect x="15" y="4" width="6" height="4" rx="1"/><rect x="9" y="16" width="6" height="4" rx="1"/><path d="M6 8v3h3v2h6v-2h3V8M12 13v3"/></svg></span>商城管理<span class="caret">▾</span></div>
+      <div class="nav-item"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 4v17"/><path d="M4 4h13l-2 4 2 4H4"/></svg></span>推广管理<span class="caret">▾</span></div>
+      <div class="nav-item open"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 4v17"/><path d="M4 4h13l-2 4 2 4H4"/></svg></span>返现首页管理<span class="caret">▾</span></div>
+      <div class="nav-sub">
+        <div class="nav-item active">功能营销管理</div>
+        <div class="nav-item">信息流管理</div>
+      </div>
+      <div class="nav-item"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 4v17"/><path d="M4 4h13l-2 4 2 4H4"/></svg></span>搜索中间页管理<span class="caret">▾</span></div>
+      <div class="nav-item"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M4.9 19.1l2.1-2.1M16.9 7.1l2.1-2.1"/></svg></span>打卡领补贴管理<span class="caret">▾</span></div>
+      <div class="nav-item"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 4v17"/><path d="M4 4h13l-2 4 2 4H4"/></svg></span>营销-营销页管理<span class="caret">▾</span></div>
+      <div class="nav-item"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span>资源位管理<span class="caret">▾</span></div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <span class="burger">≡</span>
+      <div class="crumb"><b>首页</b> / 返现首页管理 / 功能营销管理 / <b>功能详情</b></div>
+      <div class="avatar"></div>
+    </div>
+
+    <div class="body">
+
+      <!-- ─── 基础信息 ─── -->
+      <div class="card">
+        <div class="group-title">基础信息</div>
+        <div class="form">
+          <div class="row"><div class="label"><span class="req">*</span>功能类型：</div><div class="ctrl"><select class="select" style="width:260px;"><option selected>返现红包发放功能</option><option>优惠券</option><option>banner 图</option><option>外链跳转</option></select></div></div>
+          <div class="row"><div class="label"><span class="req">*</span>名称：</div><div class="ctrl"><input class="input long" placeholder="仅用于后台记录，前台不可见" /></div></div>
+          <div class="row"><div class="label"><span class="req">*</span>排序：</div><div class="ctrl"><input class="input md" placeholder="越大展示越靠前" /></div></div>
+        </div>
+      </div>
+
+      <!-- ─── 功能信息 ─── -->
+      <div class="card">
+        <div class="group-title">功能信息</div>
+        <div class="form">
+
+          <div class="row row-center">
+            <div class="label"><span class="req">*</span>发放类型：</div>
+            <div class="ctrl">
+              <div class="radios">
+                <label class="radio"><input type="radio" name="distType" value="single" checked />单个发放</label>
+                <label class="radio"><input type="radio" name="distType" value="pack" />券包发放</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══════ 单个发放 ══════ -->
+          <div id="modeSingle">
+
+            <!-- 是否配置标题区 -->
+            <div class="row row-center">
+              <div class="label" style="width:160px;white-space:nowrap;">
+                <span class="label-hint-wrap">
+                  是否配置标题区
+                  <span class="qmark qmark-tip">?
+                    <span class="qmark-bubble">
+                      <b>标题区</b>：红包卡片顶部的文字标题模块。勾选后可配置标题、副标题、标题图片，在该红包所有状态下均展示。
+                    </span>
+                  </span>：
+                </span>
+              </div>
+              <div class="ctrl">
+                <label class="check"><input type="checkbox" id="singleTitleCheck" onchange="onSingleTitleToggle()" /></label>
+              </div>
+            </div>
+
+            <!-- 标题区字段（默认隐藏） -->
+            <div id="singleTitleFields" class="title-zone-block hidden">
+              <div class="row"><div class="label">标题：</div><div class="ctrl"><input class="input long" placeholder="请输入标题，如「返现红包」" /></div></div>
+              <div class="row"><div class="label">副标题：</div><div class="ctrl"><input class="input long" placeholder="请输入副标题" /></div></div>
+              <div class="row">
+                <div class="label">标题图片：</div>
+                <div class="ctrl">
+                  <div class="inline"><button type="button" class="upload-btn">上传图片</button><button type="button" class="upload-btn">暗黑模式</button></div>
+                  <p class="help">可选。上传后以图片替代纯文字标题展示；若同时填写文字标题，以图片优先展示。</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 关联红包 -->
+            <div class="row">
+              <div class="label">关联返现红包：</div>
+              <div class="ctrl">
+                <div><button type="button" class="btn-add" id="btnLinkRedpack">＋ 关联红包</button></div>
+                <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th>拖拽</th><th>红包ID</th><th>红包名称</th><th>记录名称</th><th>红包金额</th><th>适用商城</th><th>金额门槛</th><th>红包可领取时间</th><th>红包可使用时间</th><th>操作</th></tr></thead><tbody id="linkedList"><tr><td colspan="10" class="empty">暂无数据</td></tr></tbody></table></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══════ 券包发放 ══════ -->
+          <div id="modePack" class="hidden">
+
+            <!-- 未领取图片素材 -->
+            <div class="row">
+              <div class="label"><span class="req">*</span>未领取图片素材：</div>
+              <div class="ctrl">
+                <div class="inline">
+                  <button type="button" class="upload-btn">上传图片</button>
+                  <button type="button" class="upload-btn">暗黑模式</button>
+                </div>
+                <p class="help">用户未领取时展示的整张素材图。未领取态不展示标题区，以图片素材为主视觉。</p>
+              </div>
+            </div>
+
+            <!-- 已领取配置项 -->
+            <div style="padding:14px 0 6px 0;margin-left:0;">
+              <div style="font-size:13.5px;font-weight:600;color:var(--text);">已领取配置项</div>
+              <div class="help" style="margin-top:3px;">以下配置在红包被领取后生效展示</div>
+            </div>
+
+            <!-- 是否配置标题区 -->
+            <div class="row row-center">
+              <div class="label" style="width:160px;white-space:nowrap;">
+                <span class="label-hint-wrap">
+                  是否配置标题区
+                  <span class="qmark qmark-tip">?
+                      <span class="qmark-bubble">
+                        <b>标题区</b>：券包领取后顶部的文字标题模块。勾选后可配置标题、副标题、标题图片；未领取时不展示。
+                      </span>
+                    </span>：
+                </span>
+              </div>
+              <div class="ctrl">
+                <label class="check"><input type="checkbox" id="packTitleCheck" onchange="onPackTitleToggle()" /></label>
+              </div>
+            </div>
+
+            <!-- 标题区字段（默认隐藏） -->
+            <div id="packTitleFields" class="title-zone-block hidden">
+              <div class="row"><div class="label">标题：</div><div class="ctrl"><input class="input long" placeholder="请输入标题，如「平台加返红包」" /></div></div>
+              <div class="row"><div class="label">副标题：</div><div class="ctrl"><input class="input long" placeholder="请输入副标题，如「叠加返现到账 可提现」" /></div></div>
+              <div class="row">
+                <div class="label">标题图片：</div>
+                <div class="ctrl">
+                  <div class="inline"><button type="button" class="upload-btn">上传图片</button><button type="button" class="upload-btn">暗黑模式</button></div>
+                  <p class="help">可选。上传后以图片替代纯文字标题展示；若同时填写文字标题，以图片优先展示。</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 红包模板 -->
+            <div class="row">
+              <div class="label"><span class="req">*</span>红包模板：</div>
+              <div class="ctrl">
+                <div class="template-options">
+                  <label class="template-card on" data-template="with">
+                    <div class="radio"><input type="radio" name="claimedTemplate" value="with" checked />模板一：有去使用按钮</div>
+                    <p>领取后展示「去使用」按钮，点击跳转红包配置的地址。</p>
+                    <div class="template-preview"><div class="coupon-top"><div class="name">电商红包</div><div class="money">¥0.50</div><div style="font-size:11px;color:#bbb;">满10可用</div></div><div class="coupon-bottom"><span class="coupon-btn">去使用</span></div></div>
+                  </label>
+                  <label class="template-card" data-template="without">
+                    <div class="radio"><input type="radio" name="claimedTemplate" value="without" />模板二：无去使用按钮</div>
+                    <p>领取后不展示按钮。适用于跳转地址为返现首页的场景。</p>
+                    <div class="template-preview"><div class="coupon-top"><div class="name">电商红包</div><div class="money">¥0.50</div><div style="font-size:11px;color:#bbb;">满10可用</div></div><div class="coupon-bottom" style="color:rgba(255,255,255,.75);font-size:12px;">6.22前有效</div></div>
+                  </label>
+                </div>
+                <span class="help">若关联红包的跳转地址为返现首页，建议选择「无去使用按钮」，避免用户感知为按钮无效。</span>
+              </div>
+            </div>
+
+            <!-- 关联返现红包 -->
+            <div class="row">
+              <div class="label">关联返现红包：</div>
+              <div class="ctrl">
+                <div><button type="button" class="btn-add" id="btnLinkRedpackPack">＋ 关联红包</button></div>
+                <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th>拖拽</th><th>红包ID</th><th>红包名称</th><th>记录名称</th><th>红包金额</th><th>适用商城</th><th>金额门槛</th><th>红包可领取时间</th><th>红包可使用时间</th><th>操作</th></tr></thead><tbody id="linkedListPack"><tr><td colspan="10" class="empty">暂无数据</td></tr></tbody></table></div>
+                <p class="help">同一券包配置内，关联红包每人最多可领取一次，无法重复领取。</p>
+                <p class="help-red hidden" id="packLinkWarn">券包发放类型需关联红包≥2个</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── 定向信息 ─── -->
+      <div class="card">
+        <div class="group-title">定向信息</div>
+        <div class="form">
+          <div class="row row-center"><div class="label">指定人群身份：</div><div class="ctrl"><div class="checks"><label class="check"><input type="checkbox" />经期</label><label class="check"><input type="checkbox" />怀孕</label><label class="check"><input type="checkbox" />备孕</label><label class="check"><input type="checkbox" />辣妈</label><label class="check"><input type="checkbox" />亲友</label></div></div></div>
+          <div class="row row-center"><div class="label">指定人群包：</div><div class="ctrl"><div class="inline"><input class="input long" placeholder="输入表名，不填默认全部用户" /><span class="qmark">?</span></div></div></div>
+          <div class="row row-center"><div class="label">排除人群包：</div><div class="ctrl"><div class="inline"><input class="input long" placeholder="输入表名，不填默认为空" /><span class="qmark">?</span></div></div></div>
+          <div class="row"><div class="label">定制人群：</div><div class="ctrl"><div class="checks checks-col">
+            <label class="check"><input type="checkbox" />返现新用户（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />首次访问用户（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />0单用户群（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />淘宝0单用户群（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />抖音0单用户群（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />返现uid尾号为双号人群（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />返现uid尾号为单号人群（实时）<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />活动人群-可领取现金红包的用户群<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />活动人群-可使用现金红包的用户群<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />活动人群-现金红包待领取的用户群<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />活动人群-现金红包已到账的用户群<span class="qmark">?</span></label>
+            <label class="check"><input type="checkbox" />活动人群-当日已访问过大促活动页面用户群<span class="qmark">?</span></label>
+          </div></div></div>
+          <div class="row"><div class="label">是否定制人群取反：</div><div class="ctrl">
+            <div class="radios"><label class="radio"><input type="radio" name="invert" checked />否</label><label class="radio"><input type="radio" name="invert" />是</label></div>
+            <p class="help-red">说明：选择「是」后，定向人群为所选定制人群以外的用户群。</p>
+            <p class="help-red">举例：定制人群=首次访问用户（实时），【是否定制人群取反=是】，则定向【非首次访问用户群（实时）】</p>
+          </div></div>
+          <div class="row row-center"><div class="label">测试账号：</div><div class="ctrl"><div class="inline"><input class="input long" placeholder="输入 uid；若人群包/排除包/定制人群均未配置，则仅填入 uid 可见" /><span class="qmark">?</span></div></div></div>
+          <div class="row"><div class="label">指定实验可见：</div><div class="ctrl"><input class="input long" placeholder="配置格式为 A-B（A 表示实验 id，B 表示分组 id），英文逗号隔开" /></div></div>
+          <div class="row"><div class="label">排除实验：</div><div class="ctrl"><input class="input long" placeholder="配置格式为 A-B（A 表示实验 id，B 表示分组 id），英文逗号隔开" /></div></div>
+          <div class="row"><div class="label"><span class="req">*</span>平台和版本：</div><div class="ctrl">
+            <div class="inline" style="margin-bottom:8px;"><label class="check"><input type="checkbox" />iOS</label><input class="input sm" placeholder="请输入版本" /><span style="color:var(--text3);">~</span><input class="input sm" placeholder="请输入版本" /><span class="qmark">?</span></div>
+            <div class="inline" style="margin-bottom:8px;"><label class="check"><input type="checkbox" />Android</label><input class="input sm" placeholder="请输入版本" /><span style="color:var(--text3);">~</span><input class="input sm" placeholder="请输入版本" /></div>
+            <div class="inline"><label class="check"><input type="checkbox" />Harmony</label><input class="input sm" placeholder="请输入版本" /><span style="color:var(--text3);">~</span><input class="input sm" placeholder="请输入版本" /></div>
+            <p class="help-red">说明：仅适用于 8.96.0.0 及以上版本</p>
+          </div></div>
+          <div class="row"><div class="label"><span class="req">*</span>上线时间：</div><div class="ctrl">
+            <div class="inline"><input class="input md" type="datetime-local" id="onlineStart" value="2026-06-03T00:00" /><span style="color:var(--text3);">至</span><input class="input md" type="datetime-local" id="onlineEnd" /></div>
+            <p class="help-red hidden" id="onlineTimeWarn">上线时间需要晚于所有关联红包的可领取时间</p>
+          </div></div>
+          <div class="row row-center"><div class="label"><span class="req">*</span>状态：</div><div class="ctrl"><div class="radios"><label class="radio"><input type="radio" name="status" checked />上线</label><label class="radio"><input type="radio" name="status" />下线</label></div></div></div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+
+    <div class="footbar">
+      <button type="button" class="btn-save" id="btnSave">✔ 保存</button>
+      <button type="button" class="btn-cancel">✖ 取消</button>
+    </div>
+  </main>
+</div>
+
+<!-- ─── 关联红包弹窗 ─── -->
+<div class="modal-mask" id="modalRedpack">
+  <div class="modal-lg">
+    <div class="mh">关联返现红包<span class="close" id="modalClose">&times;</span></div>
+    <div class="mb">
+      <div class="filter-grid">
+        <div class="filter-item"><label>红包记录名称</label><input class="input" /></div>
+        <div class="filter-item"><label>适用商家</label><select class="select"><option>请选择适用商家</option><option>淘宝</option><option>京东</option><option>抖音</option></select></div>
+        <div class="filter-item"><label>红包可领取时间</label><div class="inline"><input class="input" placeholder="开始时间" style="flex:1;" /><span>~</span><input class="input" placeholder="结束时间" style="flex:1;" /></div></div>
+        <div class="filter-item"><label>红包可核销时间</label><div class="inline"><input class="input" placeholder="开始时间" style="flex:1;" /><span>~</span><input class="input" placeholder="结束时间" style="flex:1;" /></div></div>
+      </div>
+      <div class="filter-actions"><button type="button" class="btn btn-primary">🔍 查询</button><button type="button" class="btn">↻ 重置</button></div>
+      <p class="modal-type-hint hidden" id="modalSingleHint">单个发放类型仅可关联1个红包</p>
+      <p class="modal-type-hint hidden" id="modalPackHint">券包发放类型需关联红包≥2个</p>
+      <div class="modal-warn" id="modalWarn"></div>
+      <div style="overflow-x:auto;"><table class="tbl tbl-modal"><thead><tr><th></th><th>红包ID</th><th>红包名称</th><th>记录名称</th><th>红包金额</th><th>适用商城</th><th>金额门槛</th><th>红包可领取时间</th><th>红包可使用时间</th></tr></thead><tbody id="modalTableBody"></tbody></table></div>
+      <div class="pagination"><span>共 5 条</span><select class="select" style="width:90px;height:28px;"><option>20条/页</option></select><span class="page-num">‹</span><span class="page-num on">1</span><span class="page-num">›</span><span>前往</span><input class="input" style="width:40px;height:28px;text-align:center;" value="1" /><span>页</span></div>
+    </div>
+    <div class="mf"><button type="button" class="btn" id="modalCancel">取消</button><button type="button" class="btn btn-primary" id="modalConfirm">确认关联</button></div>
+  </div>
+</div>
+
+<script>
+  const REDPACK_DATA = [
+    { id:11, name:'惊喜返现红包', record:'618老用户补量红包', amount:'随机金额', mall:'淘宝、京东、唯品会、抖音、拼多多', threshold:'满￥0.00可用', claimTime:'2026-06-04 00:00:00 - 2026-06-21 23:59:59', useTime:'领取后24小时内' },
+    { id:10, name:'618返现红包',  record:'618新用户补量红包', amount:'随机金额', mall:'淘宝、京东、唯品会、抖音、拼多多', threshold:'满￥0.00可用', claimTime:'2026-06-04 00:00:00 - 2026-06-21 23:59:59', useTime:'领取后24小时内' },
+    { id:3,  name:'618返现红包',  record:'抽奖老用户',        amount:'随机金额', mall:'淘宝、京东、唯品会、抖音、拼多多', threshold:'满￥0.00可用', claimTime:'2026-06-04 00:00:00 - 2026-06-21 23:59:59', useTime:'领取后24小时内' },
+    { id:2,  name:'618返现红包',  record:'618抽奖任务',       amount:'随机金额', mall:'淘宝、京东、唯品会、抖音、拼多多', threshold:'满￥0.01可用', claimTime:'2026-06-04 00:00:00 - 2026-06-21 23:59:59', useTime:'领取后24小时内' },
+    { id:1,  name:'618返现红包',  record:'618抽奖任务',       amount:'随机金额', mall:'淘宝、京东、唯品会、抖音、拼多多', threshold:'满￥0.01可用', claimTime:'2026-06-04 00:00:00 - 2026-06-21 23:59:59', useTime:'领取后24小时内' }
+  ];
+
+  const modeSingle = document.getElementById('modeSingle');
+  const modePack   = document.getElementById('modePack');
+  const modal      = document.getElementById('modalRedpack');
+  const modalWarn  = document.getElementById('modalWarn');
+  const linkedList = document.getElementById('linkedList');
+  const linkedListPack = document.getElementById('linkedListPack');
+  const packLinkWarn   = document.getElementById('packLinkWarn');
+  const onlineTimeWarn = document.getElementById('onlineTimeWarn');
+  const onlineStartInput = document.getElementById('onlineStart');
+  const modalTableBody   = document.getElementById('modalTableBody');
+  const modalPackHint    = document.getElementById('modalPackHint');
+  const modalSingleHint  = document.getElementById('modalSingleHint');
+
+  let linkedSingle = null, linkedPack = [], modalSelectedIds = new Set();
+
+  /* ── 标题区 checkbox 切换 ── */
+  function onSingleTitleToggle() {
+    const checked = document.getElementById('singleTitleCheck').checked;
+    document.getElementById('singleTitleFields').classList.toggle('hidden', !checked);
+  }
+  function onPackTitleToggle() {
+    const checked = document.getElementById('packTitleCheck').checked;
+    document.getElementById('packTitleFields').classList.toggle('hidden', !checked);
+  }
+
+  /* ── 发放类型切换 ── */
+  function getDistType() { const c = document.querySelector('input[name="distType"]:checked'); return c ? c.value : 'single'; }
+  function isSingleMode() { return getDistType() === 'single'; }
+
+  document.querySelectorAll('input[name="distType"]').forEach(r => r.addEventListener('change', () => {
+    const single = r.value === 'single' && r.checked;
+    modeSingle.classList.toggle('hidden', !single);
+    modePack.classList.toggle('hidden', single);
+    packLinkWarn.classList.add('hidden');
+    validatePackOnlineTime(false);
+  }));
+
+  /* ── 模板卡片 ── */
+  document.querySelectorAll('.template-card').forEach(card => card.addEventListener('click', () => {
+    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('on'));
+    card.classList.add('on');
+    card.querySelector('input').checked = true;
+  }));
+
+  /* ── 上线时间校验 ── */
+  function parseClaimStart(str) { return new Date(str.split(' - ')[0].trim().replace(/-/g, '/')); }
+  function getLatestClaimStart(list) {
+    return list.reduce((latest, item) => {
+      const d = parseClaimStart(item.claimTime);
+      return !latest || d > latest ? d : latest;
+    }, null);
+  }
+  function validatePackOnlineTime(showWarn) {
+    if (getDistType() !== 'pack' || !linkedPack.length) { onlineTimeWarn.classList.add('hidden'); return true; }
+    if (!onlineStartInput.value) { if (showWarn) onlineTimeWarn.classList.remove('hidden'); return false; }
+    const valid = new Date(onlineStartInput.value) > getLatestClaimStart(linkedPack);
+    if (showWarn && !valid) onlineTimeWarn.classList.remove('hidden');
+    else if (valid) onlineTimeWarn.classList.add('hidden');
+    return valid;
+  }
+  onlineStartInput.addEventListener('input', () => validatePackOnlineTime(false));
+
+  /* ── 弹窗逻辑 ── */
+  function renderModalTable() {
+    modalTableBody.innerHTML = REDPACK_DATA.map(item =>
+      `<tr><td><input type="checkbox" class="rp-check" data-id="${item.id}" ${modalSelectedIds.has(item.id) ? 'checked' : ''} /></td>` +
+      `<td>${item.id}</td><td>${item.name}</td><td class="cell-ellipsis" title="${item.record}">${item.record}</td>` +
+      `<td>${item.amount}</td><td class="cell-ellipsis" title="${item.mall}">${item.mall}</td><td>${item.threshold}</td>` +
+      `<td style="white-space:nowrap;">${item.claimTime}</td><td>${item.useTime}</td></tr>`
+    ).join('');
+    modalTableBody.querySelectorAll('.rp-check').forEach(cb => cb.addEventListener('change', onCheckChange));
+  }
+
+  function onCheckChange(e) {
+    const cb = e.target, id = parseInt(cb.dataset.id, 10);
+    if (isSingleMode()) {
+      if (cb.checked) {
+        if (modalSelectedIds.size > 0 && !modalSelectedIds.has(id)) {
+          cb.checked = false; modalSingleHint.classList.add('is-warn'); return;
+        }
+        modalSelectedIds = new Set([id]); modalSingleHint.classList.remove('is-warn');
+        modalTableBody.querySelectorAll('.rp-check').forEach(o => { if (parseInt(o.dataset.id,10) !== id) o.checked = false; });
+      } else { modalSelectedIds.delete(id); modalSingleHint.classList.remove('is-warn'); }
+      return;
+    }
+    cb.checked ? modalSelectedIds.add(id) : modalSelectedIds.delete(id);
+    modalWarn.textContent = '';
+  }
+
+  function openModal() {
+    modalWarn.textContent = '';
+    modalSingleHint.classList.toggle('hidden', !isSingleMode());
+    modalPackHint.classList.toggle('hidden', isSingleMode());
+    modalSingleHint.classList.remove('is-warn');
+    modalSelectedIds = isSingleMode()
+      ? (linkedSingle ? new Set([linkedSingle.id]) : new Set())
+      : new Set(linkedPack.map(r => r.id));
+    renderModalTable();
+    modal.classList.add('show');
+  }
+
+  function closeModal() {
+    modal.classList.remove('show');
+    modalWarn.textContent = '';
+    modalSingleHint.classList.remove('is-warn');
+  }
+
+  function rowHtml(d, mode) {
+    const fn = mode === 'single' ? 'removeLinkedSingle()' : `removeLinkedPack(${d.id})`;
+    return `<tr><td><span class="drag-handle">⋮⋮</span></td><td>${d.id}</td><td>${d.name}</td>` +
+      `<td>${d.record}</td><td>${d.amount}</td><td>${d.mall}</td><td>${d.threshold}</td>` +
+      `<td style="white-space:nowrap;font-size:12px;">${d.claimTime}</td><td>${d.useTime}</td>` +
+      `<td><span class="op-link" onclick="${fn}">移除</span></td></tr>`;
+  }
+
+  function renderSingle() { linkedList.innerHTML = linkedSingle ? rowHtml(linkedSingle,'single') : '<tr><td colspan="10" class="empty">暂无数据</td></tr>'; }
+  function renderPack()   { linkedListPack.innerHTML = linkedPack.length ? linkedPack.map(d => rowHtml(d,'pack')).join('') : '<tr><td colspan="10" class="empty">暂无数据</td></tr>'; }
+
+  window.removeLinkedSingle = function () { linkedSingle = null; renderSingle(); };
+  window.removeLinkedPack   = function (id) {
+    linkedPack = linkedPack.filter(r => r.id !== id); renderPack();
+    if (linkedPack.length >= 2) packLinkWarn.classList.add('hidden');
+    validatePackOnlineTime(false);
+  };
+
+  document.getElementById('btnLinkRedpack').addEventListener('click', openModal);
+  document.getElementById('btnLinkRedpackPack').addEventListener('click', openModal);
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+
+  document.getElementById('modalConfirm').addEventListener('click', () => {
+    if (modalSelectedIds.size === 0) { modalWarn.textContent = '请先选择红包'; return; }
+    if (isSingleMode()) {
+      linkedSingle = REDPACK_DATA.find(r => r.id === [...modalSelectedIds][0]);
+      renderSingle();
+    } else {
+      linkedPack = REDPACK_DATA.filter(r => modalSelectedIds.has(r.id));
+      renderPack();
+      if (linkedPack.length >= 2) packLinkWarn.classList.add('hidden');
+      validatePackOnlineTime(false);
+    }
+    closeModal();
+  });
+
+  document.getElementById('btnSave').addEventListener('click', () => {
+    if (isSingleMode()) {
+      if (!linkedSingle) { alert('请先关联红包'); return; }
+      alert('保存成功'); return;
+    }
+    if (linkedPack.length < 2) {
+      packLinkWarn.classList.remove('hidden');
+      packLinkWarn.scrollIntoView({ behavior:'smooth', block:'center' }); return;
+    }
+    if (!validatePackOnlineTime(true)) {
+      onlineTimeWarn.scrollIntoView({ behavior:'smooth', block:'center' }); return;
+    }
+    alert('保存成功');
+  });
+
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+</script>
+</body>
+</html>
