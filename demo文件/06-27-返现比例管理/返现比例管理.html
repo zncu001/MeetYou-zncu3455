@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>灵感管理后台 · 返现比例管理</title>
+<style>
+  :root {
+    --side-bg: #303643;
+    --side-hover: rgba(255, 255, 255, .06);
+    --side-active: rgba(255, 255, 255, .1);
+    --side-text: #bfc5ce;
+    --side-text-dim: #8a919c;
+    --pink: #ff6c91;
+    --pink-grad: linear-gradient(180deg, #ff8aa9 0%, #ff6c91 100%);
+    --green-grad: linear-gradient(180deg, #5bd49a 0%, #37c787 100%);
+    --text: #303133;
+    --text-2: #606266;
+    --text-3: #909399;
+    --text-4: #c0c4cc;
+    --line: #e4e7ed;
+    --line-2: #ebeef5;
+    --bg: #f0f2f5;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .app { display: flex; height: 100vh; }
+
+  /* ========= 侧栏 ========= */
+  .sidebar {
+    width: 210px;
+    background: var(--side-bg);
+    color: var(--side-text);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .brand {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+  }
+  .brand .flag {
+    width: 22px;
+    height: 16px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #de2910 0%, #de2910 55%, #ffde00 55%, #ffde00 100%);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand .flag::after {
+    content: "★";
+    position: absolute;
+    left: 3px;
+    top: 1px;
+    color: #ffde00;
+    font-size: 8px;
+    line-height: 1;
+  }
+  .nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0 16px;
+  }
+  .nav::-webkit-scrollbar { width: 4px; }
+  .nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .12); border-radius: 2px; }
+  .nav-item {
+    height: 42px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--side-text);
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--side-hover); color: #fff; }
+  .nav-item.active { background: var(--side-active); color: #fff; }
+  .nav-item .ico {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    flex-shrink: 0;
+    opacity: .9;
+  }
+  .nav-item .ico svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nav-item .caret {
+    margin-left: auto;
+    color: var(--side-text-dim);
+    font-size: 10px;
+    line-height: 1;
+  }
+  /* ========= 主区域 ========= */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  .topbar {
+    height: 50px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .burger { font-size: 18px; color: var(--text-2); cursor: pointer; line-height: 1; }
+  .crumb { font-size: 13px; color: var(--text-3); }
+  .crumb .home { color: var(--pink); cursor: pointer; }
+  .crumb .sep { margin: 0 4px; color: var(--text-4); }
+  .crumb .current { color: var(--text-3); }
+  .user-area {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .user-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f5c518;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .user-logo svg { width: 32px; height: 32px; display: block; }
+  .user-meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .user-meta .name {
+    font-size: 11px;
+    color: var(--text-3);
+    font-family: cursive, "PingFang SC", sans-serif;
+  }
+  .user-meta .caret { font-size: 10px; color: var(--text-4); margin-top: 1px; }
+
+  .body {
+    flex: 1;
+    padding: 14px 16px 20px;
+    overflow: auto;
+    background: var(--bg);
+  }
+
+  /* ========= 筛选区 ========= */
+  .filter-card {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    padding: 16px 18px 14px;
+    margin-bottom: 14px;
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+  }
+  .filter-row + .filter-row { margin-top: 10px; }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-item label {
+    color: var(--text-2);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .input, .select {
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0 11px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+    color: var(--text);
+  }
+  .input::placeholder { color: var(--text-4); }
+  .input:focus, .select:focus { border-color: var(--pink); }
+  .input { width: 160px; }
+  .input.w180 { width: 180px; }
+  .select {
+    width: 160px;
+    appearance: none;
+    color: var(--text-4);
+    background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%23999' fill='none' stroke-width='1.4'/></svg>") no-repeat right 10px center;
+    padding-right: 28px;
+    cursor: pointer;
+  }
+  select.select.enhanced { display: none !important; }
+
+  /* ========= 自定义下拉（灵感后台风格） ========= */
+  .my-select {
+    position: relative;
+    display: inline-block;
+    width: 160px;
+    vertical-align: middle;
+  }
+  .my-select.w180 { width: 180px; }
+  .my-select.w220 { width: 220px; }
+  .my-select.w280 { width: 280px; }
+  .my-select.w360 { width: 360px; }
+  .my-select-trigger {
+    width: 100%;
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0 30px 0 11px;
+    background: #fff;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .my-select-trigger:hover { border-color: #c0c4cc; }
+  .my-select.open .my-select-trigger { border-color: var(--pink); }
+  .my-select-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .my-select-label.is-placeholder { color: var(--text-4); }
+  .my-select-arrow {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    margin-top: -3px;
+    width: 10px;
+    height: 6px;
+    pointer-events: none;
+    transition: transform .2s;
+    color: var(--text-4);
+  }
+  .my-select-arrow svg {
+    width: 10px;
+    height: 6px;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.4;
+  }
+  .my-select.open .my-select-arrow { transform: rotate(180deg); color: var(--text-3); }
+  .my-select-pop {
+    display: none;
+    position: absolute;
+    left: 0;
+    min-width: 100%;
+    width: max-content;
+    max-width: 320px;
+    top: calc(100% + 10px);
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .12);
+    z-index: 200;
+    padding: 6px 0;
+  }
+  .my-select.open .my-select-pop { display: block; }
+  .my-select-pop::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    margin-left: -6px;
+    border: 6px solid transparent;
+    border-bottom-color: #fff;
+  }
+  .my-select-list {
+    list-style: none;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+  }
+  .my-select-list::-webkit-scrollbar { width: 4px; }
+  .my-select-list::-webkit-scrollbar-thumb { background: #dcdfe6; border-radius: 2px; }
+  .my-select-list li {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .my-select-list li:hover { background: #f5f7fa; }
+  .my-select-list li.selected {
+    color: var(--pink);
+    background: transparent;
+  }
+  .my-select-list li.is-placeholder { color: var(--text-4); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 32px;
+    padding: 0 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--pink-grad);
+    border: none;
+    color: #fff;
+  }
+  .btn-green {
+    background: var(--green-grad);
+    border: none;
+    color: #fff;
+  }
+  .btn-export {
+    background: transparent;
+    border: none;
+    color: var(--pink);
+    padding: 0 8px;
+    height: auto;
+    font-size: 13px;
+  }
+  .btn-export:hover { opacity: .85; }
+
+  /* ========= 表格 ========= */
+  .table-card {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .tbl-wrap { overflow-x: auto; }
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 1200px;
+  }
+  .tbl th {
+    background: #fafbfc;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: center;
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--line-2);
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  .tbl td {
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--line-2);
+    text-align: center;
+    color: var(--text-2);
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .tbl tr:hover td { background: #fafcff; }
+  .tbl .pid-val {
+    color: var(--pink);
+    font-size: 12px;
+    word-break: break-all;
+    text-align: left;
+    padding-left: 10px;
+    cursor: pointer;
+  }
+  .tbl .pid-val:hover { text-decoration: underline; }
+  .tbl .biz-module {
+    text-align: left;
+    padding-left: 8px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tbl .time-cell {
+    line-height: 1.45;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .tbl .name-link {
+    color: var(--pink);
+    cursor: pointer;
+    text-align: left;
+    padding-left: 8px;
+  }
+  .tbl .name-link:hover { text-decoration: underline; }
+  .tbl .col-left { text-align: left; padding-left: 8px; }
+  .tbl .ops a {
+    color: var(--pink);
+    cursor: pointer;
+    text-decoration: none;
+    margin: 0 4px;
+  }
+  .tbl .ops a:hover { text-decoration: underline; }
+
+  /* ========= 返现比例列表表格 ========= */
+  .ratio-tbl {
+    table-layout: fixed;
+    min-width: 1320px;
+    border-collapse: collapse;
+  }
+  .ratio-tbl thead th {
+    padding: 12px 14px;
+    vertical-align: middle;
+    line-height: 1.4;
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 500;
+    white-space: nowrap;
+    background: #f5f7fa;
+    border-bottom: 1px solid var(--line);
+  }
+  .ratio-tbl tbody td {
+    padding: 14px 14px;
+    vertical-align: middle;
+    line-height: 1.5;
+    font-size: 13px;
+    color: var(--text-2);
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .ratio-tbl tbody tr:last-child td { border-bottom: none; }
+  .ratio-tbl tbody tr:hover td { background: #fafcff; }
+  .ratio-tbl .c-id { width: 56px; text-align: center; color: var(--text-3); padding-left: 18px; padding-right: 8px; }
+  .ratio-tbl .c-name { width: 172px; text-align: left; padding-left: 20px; padding-right: 16px; }
+  .ratio-tbl .c-mall { width: 112px; text-align: center; padding-left: 10px; padding-right: 10px; }
+  .ratio-tbl .c-amount { width: 100px; text-align: right; font-variant-numeric: tabular-nums; padding-right: 18px; padding-left: 8px; }
+  .ratio-tbl .c-norder { width: 220px; text-align: left; padding-left: 16px; padding-right: 14px; }
+  .ratio-tbl .c-rule { width: 184px; text-align: left; padding-left: 16px; padding-right: 14px; }
+  .ratio-tbl .c-member { width: 76px; text-align: center; padding-left: 8px; padding-right: 8px; }
+  .ratio-tbl .c-range { width: 176px; text-align: left; padding-left: 16px; padding-right: 14px; }
+  .ratio-tbl .c-status { width: 76px; text-align: center; padding-left: 8px; padding-right: 8px; }
+  .ratio-tbl .c-user { width: 76px; text-align: center; padding-left: 8px; padding-right: 8px; }
+  .ratio-tbl .c-ctime { width: 152px; text-align: left; font-size: 12px; color: var(--text-3); white-space: nowrap; padding-left: 16px; padding-right: 12px; }
+  .ratio-tbl .c-ops { width: 132px; text-align: center; padding-right: 16px; padding-left: 8px; }
+  .ratio-tbl th.c-id { padding-left: 18px; }
+  .ratio-tbl th.c-name { text-align: left; padding-left: 20px; }
+  .ratio-tbl th.c-norder,
+  .ratio-tbl th.c-rule,
+  .ratio-tbl th.c-range,
+  .ratio-tbl th.c-ctime { text-align: left; padding-left: 16px; }
+  .ratio-tbl th.c-amount { text-align: right; padding-right: 18px; }
+  .ratio-tbl th.c-ops { padding-right: 20px; }
+  .ratio-tbl .name-link {
+    display: block;
+    color: var(--pink);
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .ratio-tbl .name-link:hover { text-decoration: underline; }
+  .ratio-tbl .cell-empty { color: var(--text-4); }
+  .ratio-tbl .cell-amount::after { content: " 元"; font-size: 12px; color: var(--text-4); }
+  .ratio-tbl .cell-amount.cell-empty::after { content: ""; }
+  .ratio-tbl .n-order {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-2);
+  }
+  .ratio-tbl .rule-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .ratio-tbl .rule-type {
+    color: var(--text);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ratio-tbl .rule-val { color: var(--text-3); }
+  .ratio-tbl .range-cell {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-3);
+  }
+  .ratio-tbl .range-cell .start,
+  .ratio-tbl .range-cell .end {
+    display: block;
+    white-space: nowrap;
+  }
+  .ratio-tbl .range-cell .end { margin-top: 2px; }
+  .ratio-tbl .range-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f4f4f5;
+    color: var(--text-3);
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .ratio-tbl td.c-ops {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .ratio-tbl .ops-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--text-2);
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+  .ratio-tbl .ops-btn:hover {
+    border-color: var(--pink);
+    color: var(--pink);
+    background: #fff7fa;
+    text-decoration: none;
+  }
+  .ratio-tbl .ops-btn-primary {
+    color: var(--pink);
+    border-color: var(--pink);
+    background: #fff;
+  }
+  .ratio-tbl .ops-btn-primary:hover {
+    background: var(--pink);
+    color: #fff;
+    border-color: var(--pink);
+  }
+
+  /* ========= 变更历史弹窗 ========= */
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 4px;
+    width: 720px;
+    max-width: 92vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .15);
+  }
+  .modal-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-2);
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .modal-head .sub {
+    font-weight: 400;
+    color: var(--text-3);
+    font-size: 13px;
+    margin-left: 6px;
+  }
+  .modal-close {
+    cursor: pointer;
+    color: var(--text-3);
+    font-size: 20px;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .modal-body {
+    padding: 0;
+    overflow: auto;
+    flex: 1;
+  }
+  .hist-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .hist-tbl th {
+    background: #fafbfc;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line-2);
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .hist-tbl td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f2f5;
+    color: var(--text-2);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .hist-tbl tr:last-child td { border-bottom: none; }
+  .hist-tbl .col-field { width: 120px; color: var(--text); font-weight: 500; }
+  .hist-tbl .col-before { color: var(--text-3); }
+  .hist-tbl .col-after { color: var(--text); }
+  .hist-tbl .col-time { white-space: nowrap; font-size: 12px; color: var(--text-3); }
+  .hist-empty {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--text-4);
+    font-size: 13px;
+  }
+
+  .badge-on {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #eef9f0;
+    color: #37c787;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+  .badge-off {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f4f4f5;
+    color: #909399;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+  .pager {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    color: var(--text-3);
+    font-size: 13px;
+    border-top: 1px solid #f0f2f5;
+  }
+  .pager .pbtn {
+    min-width: 28px;
+    height: 28px;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .pager .pbtn.on {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: #fff;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ========= 表单页 ========= */
+  .form-card {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .group-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    padding: 14px 18px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .group-title::before {
+    content: "";
+    width: 3px;
+    height: 14px;
+    background: var(--pink);
+    border-radius: 2px;
+  }
+  .group-title .tag-pending {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-3);
+    background: #f4f4f5;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-left: 4px;
+  }
+  .form { padding: 6px 18px 18px; }
+  .form-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 0;
+    min-height: 42px;
+  }
+  .form-label {
+    width: 168px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 7px;
+    padding-right: 12px;
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .form-label .req { color: #f56c6c; margin-right: 2px; }
+  .form-ctrl {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 720px;
+  }
+  .form-ctrl .input,
+  .form-ctrl .select,
+  .form-ctrl .textarea { width: 360px; max-width: 100%; }
+  .form-ctrl .select.has-value { color: var(--text); }
+  .form-help {
+    color: var(--text-3);
+    font-size: 12px;
+    line-height: 1.55;
+    max-width: 560px;
+  }
+  .form-help.warn { color: #b88230; background: #fdf6ec; border: 1px solid #faecd8; padding: 8px 12px; border-radius: var(--radius); }
+  .form-help.red { color: #e54545; font-size: 12px; line-height: 1.6; max-width: 560px; }
+  .form-help.red + .form-help.red { margin-top: 4px; }
+  .n-order-rows { display: flex; flex-direction: column; gap: 10px; }
+  .n-order-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .n-order-row .n-order-label {
+    width: 52px;
+    font-size: 13px;
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+  .n-order-row .input { width: 120px; }
+  .n-order-row .input.is-error { border-color: #e54545; }
+  .n-order-row .n-order-err {
+    font-size: 12px;
+    color: #e54545;
+    display: none;
+  }
+  .n-order-row.has-error .n-order-err { display: inline; }
+  .btn-add-norder {
+    margin-top: 4px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--primary);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn-add-norder:hover { text-decoration: underline; }
+  .radios, .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    align-items: center;
+    padding-top: 4px;
+  }
+  .form-ctrl > .radios { padding-top: 6px; }
+  .radio, .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .radio input, .check input { accent-color: var(--pink); }
+  .checks-col { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .inline-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .textarea {
+    width: 360px;
+    max-width: 100%;
+    min-height: 72px;
+    padding: 8px 11px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    resize: vertical;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+  .textarea:focus { border-color: var(--pink); }
+  .sub-table {
+    width: 100%;
+    max-width: 640px;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .sub-table th {
+    background: #fafbfc;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid var(--line-2);
+    font-size: 12px;
+  }
+  .sub-table td {
+    padding: 6px 8px;
+    border: 1px solid var(--line-2);
+    vertical-align: middle;
+  }
+  .sub-table .input { width: 100%; height: 30px; }
+  .sub-table .select { width: 100%; height: 30px; color: var(--text-2); }
+  .btn-sm {
+    height: 28px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--pink);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+  }
+  .order-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .order-grid .order-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
+  .order-grid .order-cell label {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .order-grid .order-cell .input {
+    width: 72px;
+    text-align: center;
+  }
+  .footbar {
+    position: fixed;
+    bottom: 0;
+    left: 210px;
+    right: 0;
+    height: 58px;
+    background: #fff;
+    border-top: 1px solid var(--line-2);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 10;
+  }
+  .footbar.show { display: flex; }
+  .btn-save {
+    background: var(--green-grad);
+    border: none;
+    color: #fff;
+    height: 34px;
+    padding: 0 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .btn-cancel-form {
+    background: linear-gradient(180deg, #ffb1c4, #ff8aa9);
+    border: none;
+    color: #fff;
+    height: 34px;
+    padding: 0 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .body.has-footbar { padding-bottom: 72px; }
+  .select.w220 { width: 220px; }
+  .select.w280 { width: 280px; }
+  .input.w220 { width: 220px; }
+  .input.w280 { width: 280px; }
+  .input.w360 { width: 360px; }
+  .date-range { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .date-range .input { width: 200px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="flag"></span>
+      <span>营销-营销页管理</span>
+    </div>
+    <nav class="nav">
+      <div class="nav-item" data-page="pid">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        pid管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="resource">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        资源位管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="product">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        商品管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="redpack">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        红包管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="popup">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        弹窗管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="order">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg></span>
+        订单管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="user">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>
+        用户管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="withdraw">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+        提现管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="strategy">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        策略管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item active" data-page="cashback-ratio">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        返现比例管理<span class="caret">▾</span>
+      </div>
+      <div class="nav-item" data-page="welfare">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        福利管理<span class="caret">▾</span>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <span class="burger">≡</span>
+      <div class="crumb" id="crumb">
+        <span class="home">首页</span><span class="sep">/</span><span class="current">返现比例管理</span>
+      </div>
+      <div class="user-area">
+        <div class="user-logo">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" fill="#f5c518"/>
+            <circle cx="16" cy="13" r="8" fill="#ff6c91" opacity=".95"/>
+            <circle cx="16" cy="13" r="5.5" fill="#f5c518"/>
+            <path d="M16 7.5v11M11 13h10M13.5 9.5l5 7M18.5 9.5l-5 7" stroke="#ff6c91" stroke-width=".8" opacity=".6"/>
+            <text x="16" y="27" text-anchor="middle" fill="#fff" font-size="4.5" font-family="cursive">Meet you</text>
+          </svg>
+        </div>
+        <div class="user-meta">
+          <span class="name">Meet you</span>
+          <span class="caret">▾</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="body" id="body">
+      <!-- ========= pid管理列表 ========= -->
+      <div class="view" id="view-pid">
+      <div class="filter-card">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>业务</label>
+            <select class="select">
+              <option value="" selected>请选择APP</option>
+              <option>美柚</option>
+              <option>美柚-返现</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>商城平台</label>
+            <select class="select">
+              <option value="" selected>请选择所属商城</option>
+              <option>淘宝</option>
+              <option>京东</option>
+              <option>拼多多</option>
+              <option>饿了么</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>推广位名称</label>
+            <input class="input w180" placeholder="请输入推广位名称" />
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>pid</label>
+            <input class="input w180" placeholder="请输入pid" />
+          </div>
+          <div class="filter-item">
+            <label>业务模块</label>
+            <select class="select" style="width:200px;">
+              <option value="" selected>请选择或输入业务模块</option>
+            </select>
+          </div>
+          <button class="btn btn-primary">🔍 搜索</button>
+          <button class="btn btn-green">＋ 添加pid</button>
+          <button class="btn btn-export">导出</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>pid值</th>
+                <th>业务</th>
+                <th>商城平台</th>
+                <th>推广位名称</th>
+                <th>业务模块</th>
+                <th>所属应用库</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>254</td>
+                <td class="pid-val">mm_151590176_58150058_116143050318</td>
+                <td>美柚-返现</td>
+                <td>好单库拼多多</td>
+                <td>1分购</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:39:34</td>
+              </tr>
+              <tr>
+                <td>253</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>京东</td>
+                <td>京东</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:27:18</td>
+              </tr>
+              <tr>
+                <td>170</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>饿了么</td>
+                <td>饿了么</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:26:42</td>
+              </tr>
+              <tr>
+                <td>164</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:25:56</td>
+              </tr>
+              <tr>
+                <td>163</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:25:12</td>
+              </tr>
+              <tr>
+                <td>162</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:24:28</td>
+              </tr>
+              <tr>
+                <td>161</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:23:45</td>
+              </tr>
+              <tr>
+                <td>160</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:22:58</td>
+              </tr>
+              <tr>
+                <td>159</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:22:10</td>
+              </tr>
+              <tr>
+                <td>158</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:21:22</td>
+              </tr>
+              <tr>
+                <td>157</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:20:35</td>
+              </tr>
+              <tr>
+                <td>156</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚-返现</td>
+                <td>淘宝</td>
+                <td>淘宝</td>
+                <td class="biz-module"></td>
+                <td></td>
+                <td>王五</td>
+                <td class="time-cell">2026-06-09<br>14:19:48</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- ========= 返现比例管理列表 ========= -->
+      <div class="view active" id="view-ratio-list">
+        <div class="filter-card">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>记录名称</label>
+              <input class="input w180" placeholder="请输入记录名称" />
+            </div>
+            <div class="filter-item">
+              <label>商城平台</label>
+              <select class="select w220">
+                <option value="" selected>请选择商城平台</option>
+                <option>淘宝</option>
+                <option>京东</option>
+                <option>拼多多</option>
+                <option>唯品会</option>
+                <option>抖音</option>
+                <option>饿了么</option>
+                <option>美团官方CPS</option>
+                <option>好单库-拼多多</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>返现形式</label>
+              <select class="select w180">
+                <option value="" selected>全部</option>
+                <option>按佣金返利比例</option>
+                <option>按固定返利金额</option>
+                <option>按实付金额返利比例</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>状态</label>
+              <select class="select" style="width:120px;">
+                <option value="" selected>全部</option>
+                <option>启用</option>
+                <option>禁用</option>
+              </select>
+            </div>
+            <button class="btn btn-primary">🔍 搜索</button>
+            <button class="btn btn-green" id="btn-add-ratio">＋ 添加规则</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="tbl-wrap">
+            <table class="tbl ratio-tbl">
+              <colgroup>
+                <col class="c-id" />
+                <col class="c-name" />
+                <col class="c-mall" />
+                <col class="c-amount" />
+                <col class="c-norder" />
+                <col class="c-rule" />
+                <col class="c-member" />
+                <col class="c-range" />
+                <col class="c-status" />
+                <col class="c-user" />
+                <col class="c-ctime" />
+                <col class="c-ops" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="c-id">ID</th>
+                  <th class="c-name">记录名称</th>
+                  <th class="c-mall">商城平台</th>
+                  <th class="c-amount">最低返现金额</th>
+                  <th class="c-norder">前N单配置</th>
+                  <th class="c-rule">基础返现规则</th>
+                  <th class="c-member">会员等级</th>
+                  <th class="c-range">生效时间</th>
+                  <th class="c-status">状态</th>
+                  <th class="c-user">创建人</th>
+                  <th class="c-ctime">创建时间</th>
+                  <th class="c-ops">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="c-id">18</td>
+                  <td class="c-name"><span class="name-link" data-edit="18" title="淘宝新客前3单加码">淘宝新客前3单加码</span></td>
+                  <td class="c-mall">淘宝</td>
+                  <td class="c-amount"><span class="cell-amount">0.10</span></td>
+                  <td class="c-norder">
+                    <div class="n-order">第1单：1元；第2单：2元；第3单：3元</div>
+                  </td>
+                  <td class="c-rule">
+                    <div class="rule-cell">
+                      <span class="rule-type">按佣金返利比例</span>
+                      <span class="rule-val">50%</span>
+                    </div>
+                  </td>
+                  <td class="c-member">全部</td>
+                  <td class="c-range">
+                    <div class="range-cell">
+                      <span class="start">2026-06-01 00:00:00</span>
+                      <span class="end">2026-12-31 23:59:59</span>
+                    </div>
+                  </td>
+                  <td class="c-status"><span class="badge-on">启用</span></td>
+                  <td class="c-user">王五</td>
+                  <td class="c-ctime">2026-05-28 16:20:11</td>
+                  <td class="c-ops"><a class="ops-btn ops-btn-primary" data-edit="18">编辑</a><a class="ops-btn" data-history="18">历史</a></td>
+                </tr>
+                <tr>
+                  <td class="c-id">17</td>
+                  <td class="c-name"><span class="name-link" data-edit="17" title="京东618固定返现">京东618固定返现</span></td>
+                  <td class="c-mall">京东</td>
+                  <td class="c-amount"><span class="cell-amount cell-empty">—</span></td>
+                  <td class="c-norder"><span class="cell-empty">—</span></td>
+                  <td class="c-rule">
+                    <div class="rule-cell">
+                      <span class="rule-type">按固定返利金额</span>
+                      <span class="rule-val">2.00 元</span>
+                    </div>
+                  </td>
+                  <td class="c-member">会员</td>
+                  <td class="c-range">
+                    <div class="range-cell">
+                      <span class="start">2026-06-18 00:00:00</span>
+                      <span class="end">2026-06-20 23:59:59</span>
+                    </div>
+                  </td>
+                  <td class="c-status"><span class="badge-on">启用</span></td>
+                  <td class="c-user">张三</td>
+                  <td class="c-ctime">2026-05-20 11:05:33</td>
+                  <td class="c-ops"><a class="ops-btn ops-btn-primary" data-edit="17">编辑</a><a class="ops-btn" data-history="17">历史</a></td>
+                </tr>
+                <tr>
+                  <td class="c-id">16</td>
+                  <td class="c-name"><span class="name-link" data-edit="16" title="拼多多实付比例规则">拼多多实付比例规则</span></td>
+                  <td class="c-mall">拼多多</td>
+                  <td class="c-amount"><span class="cell-amount">1.00</span></td>
+                  <td class="c-norder">
+                    <div class="n-order">第1单：0.5元；第2单：1元</div>
+                  </td>
+                  <td class="c-rule">
+                    <div class="rule-cell">
+                      <span class="rule-type">按实付金额返利比例</span>
+                      <span class="rule-val">30%</span>
+                    </div>
+                  </td>
+                  <td class="c-member">普通</td>
+                  <td class="c-range"><span class="range-tag">长期有效</span></td>
+                  <td class="c-status"><span class="badge-on">启用</span></td>
+                  <td class="c-user">李四</td>
+                  <td class="c-ctime">2026-05-15 09:42:18</td>
+                  <td class="c-ops"><a class="ops-btn ops-btn-primary" data-edit="16">编辑</a><a class="ops-btn" data-history="16">历史</a></td>
+                </tr>
+                <tr>
+                  <td class="c-id">15</td>
+                  <td class="c-name"><span class="name-link" data-edit="15" title="饿了么推广位专项">饿了么推广位专项</span></td>
+                  <td class="c-mall">饿了么</td>
+                  <td class="c-amount"><span class="cell-amount">0.50</span></td>
+                  <td class="c-norder">
+                    <div class="n-order">第1单：0.5元</div>
+                  </td>
+                  <td class="c-rule">
+                    <div class="rule-cell">
+                      <span class="rule-type">按佣金返利比例</span>
+                      <span class="rule-val">45%</span>
+                    </div>
+                  </td>
+                  <td class="c-member">全部</td>
+                  <td class="c-range">
+                    <div class="range-cell">
+                      <span class="start">2026-06-10 00:00:00</span>
+                      <span class="end">2026-07-10 23:59:59</span>
+                    </div>
+                  </td>
+                  <td class="c-status"><span class="badge-off">禁用</span></td>
+                  <td class="c-user">王五</td>
+                  <td class="c-ctime">2026-05-10 14:18:07</td>
+                  <td class="c-ops"><a class="ops-btn ops-btn-primary" data-edit="15">编辑</a><a class="ops-btn" data-history="15">历史</a></td>
+                </tr>
+                <tr>
+                  <td class="c-id">14</td>
+                  <td class="c-name"><span class="name-link" data-edit="14" title="好单库拼多多默认规则">好单库拼多多默认规则</span></td>
+                  <td class="c-mall">好单库-拼多多</td>
+                  <td class="c-amount"><span class="cell-amount cell-empty">—</span></td>
+                  <td class="c-norder"><span class="cell-empty">—</span></td>
+                  <td class="c-rule">
+                    <div class="rule-cell">
+                      <span class="rule-type">按佣金返利比例</span>
+                      <span class="rule-val">40%</span>
+                    </div>
+                  </td>
+                  <td class="c-member">全部</td>
+                  <td class="c-range"><span class="range-tag">长期有效</span></td>
+                  <td class="c-status"><span class="badge-on">启用</span></td>
+                  <td class="c-user">王五</td>
+                  <td class="c-ctime">2026-04-28 10:33:55</td>
+                  <td class="c-ops"><a class="ops-btn ops-btn-primary" data-edit="14">编辑</a><a class="ops-btn" data-history="14">历史</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span>共 5 条</span>
+            <span class="pbtn">‹</span>
+            <span class="pbtn on">1</span>
+            <span class="pbtn">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========= 返现比例管理表单 ========= -->
+      <div class="view" id="view-ratio-form">
+        <div class="form-card">
+          <div class="group-title">基础信息</div>
+          <div class="form">
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>记录名称</div>
+              <div class="form-ctrl">
+                <input class="input w360" id="f-name" placeholder="请输入记录名称，用于后台展示" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>商城平台</div>
+              <div class="form-ctrl">
+                <select class="select w280" id="f-mall">
+                  <option value="">请选择商城平台</option>
+                  <option>淘宝</option>
+                  <option>京东</option>
+                  <option>拼多多</option>
+                  <option>唯品会</option>
+                  <option>亿起发</option>
+                  <option>抖音</option>
+                  <option>饿了么</option>
+                  <option>海威</option>
+                  <option>有票票</option>
+                  <option>聚推客</option>
+                  <option>好单库-抖音</option>
+                  <option>滴滴官方CPS</option>
+                  <option>美团官方CPS</option>
+                  <option>1688</option>
+                  <option>好单库-拼多多</option>
+                  <option>灵感权益订单</option>
+                  <option>美柚品牌广告订单</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="group-title">基础返现规则</div>
+          <div class="form">
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>返现形式</div>
+              <div class="form-ctrl">
+                <div class="radios" id="f-cashback-type-group">
+                  <label class="radio"><input type="radio" name="f-cashback-type" value="commission" />按佣金返利比例</label>
+                  <label class="radio"><input type="radio" name="f-cashback-type" value="fixed" />按固定返利金额</label>
+                  <label class="radio"><input type="radio" name="f-cashback-type" value="pay" />按实付金额返利比例</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span><span id="f-value-label">返现比例/返现固定金额</span></div>
+              <div class="form-ctrl">
+                <div class="inline-row">
+                  <input class="input w220" id="f-cashback-value" placeholder="请输入" />
+                  <span id="f-value-unit" style="color:var(--text-3);font-size:13px;">%</span>
+                </div>
+                <span class="form-help red">先按上方「返现形式」算出这笔订单应返多少</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="group-title">最低返现金额</div>
+          <div class="form">
+            <div class="form-row">
+              <div class="form-label">最低返现金额</div>
+              <div class="form-ctrl">
+                <div class="inline-row">
+                  <input class="input w220" id="f-min-amount" placeholder="单位元，最多2位小数" />
+                  <span style="color:var(--text-3);font-size:13px;">元</span>
+                </div>
+                <span class="form-help red">算出来低于此值时，按此值返给用户</span>
+                <span class="form-help">实付低于此值时，规则不生效</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="group-title">前N单最低返现金额</div>
+          <div class="form">
+            <div class="form-row">
+              <div class="form-label">前N单配置</div>
+              <div class="form-ctrl">
+                <div class="n-order-rows" id="f-n-order-rows">
+                  <div class="n-order-row" data-order="1">
+                    <span class="n-order-label">第1单</span>
+                    <input class="input n-order-input" type="text" inputmode="decimal" placeholder="0.7" />
+                    <span style="color:var(--text-3);font-size:13px;">元</span>
+                    <span class="n-order-err">不可低于最低返现金额</span>
+                  </div>
+                  <div class="n-order-row" data-order="2">
+                    <span class="n-order-label">第2单</span>
+                    <input class="input n-order-input" type="text" inputmode="decimal" placeholder="0.8" />
+                    <span style="color:var(--text-3);font-size:13px;">元</span>
+                    <span class="n-order-err">不可低于最低返现金额</span>
+                  </div>
+                </div>
+                <button type="button" class="btn-add-norder" id="btn-add-norder">+ 添加一单</button>
+                <span class="form-help red">前N单时，与规则算出的金额比，谁高返谁（例：规则返0.5元、第1单配0.7元 → 返0.7元）</span>
+                <span class="form-help red">各单金额不可低于最低返现金额</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="group-title">定向信息</div>
+          <div class="form">
+            <div class="form-row">
+              <div class="form-label">指定人群包</div>
+              <div class="form-ctrl">
+                <input class="input w360" placeholder="输入表名，不填默认全部用户" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">排除人群包</div>
+              <div class="form-ctrl">
+                <input class="input w360" placeholder="输入表名，不填默认为空" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">定制人群</div>
+              <div class="form-ctrl">
+                <div class="checks checks-col">
+                  <label class="check"><input type="checkbox" />返现新用户（实时）</label>
+                  <label class="check"><input type="checkbox" />首次访问用户（实时）</label>
+                  <label class="check"><input type="checkbox" />0单用户群（实时）</label>
+                  <label class="check"><input type="checkbox" />淘宝0单用户群（实时）</label>
+                  <label class="check"><input type="checkbox" />抖音0单用户群（实时）</label>
+                  <label class="check"><input type="checkbox" />返现uid尾号为双号人群（实时）</label>
+                  <label class="check"><input type="checkbox" />返现uid尾号为单号人群（实时）</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">是否定制人群取反</div>
+              <div class="form-ctrl">
+                <div class="radios">
+                  <label class="radio"><input type="radio" name="invert" value="0" checked />否</label>
+                  <label class="radio"><input type="radio" name="invert" value="1" />是</label>
+                </div>
+                <span class="form-help">选择「是」表示圈定的人群为所选定制人群以外的用户群。举例：定制人群=首次访问用户（实时），取反=是，则定向【非首次访问用户群（实时）】</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">指定实验可见</div>
+              <div class="form-ctrl">
+                <input class="input w360" placeholder="格式 A-B，英文逗号隔开，如 1338-3550,1339-3510" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">排除实验可见</div>
+              <div class="form-ctrl">
+                <input class="input w360" placeholder="格式 A-B，英文逗号隔开，如 1338-3550,1339-3510" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">会员等级</div>
+              <div class="form-ctrl">
+                <select class="select w220">
+                  <option selected>全部</option>
+                  <option>会员</option>
+                  <option>普通</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="group-title">生效配置</div>
+          <div class="form">
+            <div class="form-row">
+              <div class="form-label">生效时间</div>
+              <div class="form-ctrl">
+                <div class="date-range">
+                  <input class="input" type="datetime-local" />
+                  <span style="color:var(--text-3);">至</span>
+                  <input class="input" type="datetime-local" />
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>状态</div>
+              <div class="form-ctrl">
+                <div class="radios">
+                  <label class="radio"><input type="radio" name="f-status" value="1" checked />启用</label>
+                  <label class="radio"><input type="radio" name="f-status" value="0" />禁用</label>
+                </div>
+                <span class="form-help">仅启用状态下该条规则才可使用</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footbar" id="footbar">
+      <button type="button" class="btn-save" id="btn-save-ratio">✓ 保存</button>
+      <button type="button" class="btn-cancel-form" id="btn-cancel-ratio">✕ 取消</button>
+    </div>
+  </main>
+</div>
+
+<div class="modal-mask" id="ratio-history-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span>变更历史<span class="sub" id="ratio-history-title"></span></span>
+      <span class="modal-close" id="ratio-history-close">×</span>
+    </div>
+    <div class="modal-body">
+      <table class="hist-tbl">
+        <thead>
+          <tr>
+            <th>变更字段</th>
+            <th>变更前</th>
+            <th>变更后</th>
+            <th>操作人</th>
+            <th>操作时间</th>
+          </tr>
+        </thead>
+        <tbody id="ratio-history-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var labels = {
+    pid: 'pid管理',
+    resource: '资源位管理',
+    product: '商品管理',
+    redpack: '红包管理',
+    popup: '弹窗管理',
+    order: '订单管理',
+    user: '用户管理',
+    withdraw: '提现管理',
+    strategy: '策略管理',
+    'cashback-ratio': '返现比例管理',
+    welfare: '福利管理'
+  };
+
+  var crumb = document.getElementById('crumb');
+  var body = document.getElementById('body');
+  var footbar = document.getElementById('footbar');
+  var viewPid = document.getElementById('view-pid');
+  var viewRatioList = document.getElementById('view-ratio-list');
+  var viewRatioForm = document.getElementById('view-ratio-form');
+  var currentModule = 'cashback-ratio';
+
+  var RATIO_RECORDS = {
+    '14': '好单库拼多多默认规则',
+    '15': '饿了么推广位专项',
+    '16': '拼多多实付比例规则',
+    '17': '京东618固定返现',
+    '18': '淘宝新客前3单加码'
+  };
+
+  var RATIO_HISTORY = {
+    '18': [
+      { field: '返现比例', before: '45%', after: '50%', operator: '王五', time: '2026-05-28 16:20:11' },
+      { field: '前N单配置', before: '第1单：1元；第2单：2元', after: '第1单：1元；第2单：2元；第3单：3元', operator: '王五', time: '2026-05-25 11:30:00' },
+      { field: '状态', before: '禁用', after: '启用', operator: '张三', time: '2026-05-20 10:00:00' },
+      { field: '创建记录', before: '—', after: '—', operator: '王五', time: '2026-05-15 09:00:00' }
+    ],
+    '17': [
+      { field: '返现形式', before: '按佣金返利比例', after: '按固定返利金额', operator: '张三', time: '2026-05-20 11:05:33' },
+      { field: '返现金额', before: '50%', after: '2.00 元', operator: '张三', time: '2026-05-20 11:05:33' },
+      { field: '会员等级', before: '全部', after: '会员', operator: '李四', time: '2026-05-18 14:22:00' },
+      { field: '创建记录', before: '—', after: '—', operator: '张三', time: '2026-05-10 09:30:00' }
+    ],
+    '16': [
+      { field: '最低返现金额', before: '—', after: '1.00 元', operator: '李四', time: '2026-05-15 09:42:18' },
+      { field: '生效时间', before: '2026-01-01 ~ 2026-06-30', after: '长期有效', operator: '李四', time: '2026-05-12 16:00:00' },
+      { field: '创建记录', before: '—', after: '—', operator: '李四', time: '2026-05-01 10:00:00' }
+    ],
+    '15': [
+      { field: '状态', before: '启用', after: '禁用', operator: '王五', time: '2026-05-10 14:18:07' },
+      { field: '返现比例', before: '40%', after: '45%', operator: '王五', time: '2026-05-08 11:20:00' },
+      { field: '创建记录', before: '—', after: '—', operator: '王五', time: '2026-05-05 09:15:00' }
+    ],
+    '14': [
+      { field: '返现比例', before: '35%', after: '40%', operator: '王五', time: '2026-04-28 10:33:55' },
+      { field: '创建记录', before: '—', after: '—', operator: '王五', time: '2026-04-20 08:00:00' }
+    ]
+  };
+
+  var historyModal = document.getElementById('ratio-history-modal');
+  var historyTbody = document.getElementById('ratio-history-tbody');
+  var historyTitle = document.getElementById('ratio-history-title');
+
+  function openRatioHistory(id) {
+    var name = RATIO_RECORDS[id] || ('ID ' + id);
+    var rows = RATIO_HISTORY[id] || [];
+    historyTitle.textContent = '· ' + name;
+    if (!rows.length) {
+      historyTbody.innerHTML = '<tr><td colspan="5" class="hist-empty">暂无变更历史记录</td></tr>';
+    } else {
+      historyTbody.innerHTML = rows.map(function (r) {
+        return '<tr>' +
+          '<td class="col-field">' + r.field + '</td>' +
+          '<td class="col-before">' + r.before + '</td>' +
+          '<td class="col-after">' + r.after + '</td>' +
+          '<td>' + r.operator + '</td>' +
+          '<td class="col-time">' + r.time + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+    historyModal.classList.add('show');
+  }
+
+  function closeRatioHistory() {
+    historyModal.classList.remove('show');
+  }
+
+  function setCrumb(text, sub) {
+    var html = '<span class="home">首页</span><span class="sep">/</span><span class="current">' + text + '</span>';
+    if (sub) html += '<span class="sep">/</span><span class="current">' + sub + '</span>';
+    crumb.innerHTML = html;
+  }
+
+  function hideAllViews() {
+    viewPid.classList.remove('active');
+    viewRatioList.classList.remove('active');
+    viewRatioForm.classList.remove('active');
+  }
+
+  function showPid() {
+    hideAllViews();
+    viewPid.classList.add('active');
+    footbar.classList.remove('show');
+    body.classList.remove('has-footbar');
+    setCrumb('pid管理');
+    currentModule = 'pid';
+  }
+
+  function showRatioList() {
+    hideAllViews();
+    viewRatioList.classList.add('active');
+    footbar.classList.remove('show');
+    body.classList.remove('has-footbar');
+    setCrumb('返现比例管理');
+    currentModule = 'cashback-ratio';
+  }
+
+  function showRatioForm(isEdit) {
+    hideAllViews();
+    viewRatioForm.classList.add('active');
+    footbar.classList.add('show');
+    body.classList.add('has-footbar');
+    setCrumb('返现比例管理', isEdit ? '编辑规则' : '添加规则');
+    updateCashbackValueUI();
+  }
+
+  document.querySelectorAll('.nav-item[data-page]').forEach(function (item) {
+    item.addEventListener('click', function () {
+      document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+      item.classList.add('active');
+      var page = item.getAttribute('data-page');
+      if (page === 'cashback-ratio') {
+        showRatioList();
+      } else if (page === 'pid') {
+        showPid();
+      } else {
+        hideAllViews();
+        viewPid.classList.add('active');
+        footbar.classList.remove('show');
+        body.classList.remove('has-footbar');
+        setCrumb(labels[page] || page);
+        currentModule = page;
+      }
+    });
+  });
+
+  document.getElementById('btn-add-ratio').addEventListener('click', function () {
+    showRatioForm(false);
+  });
+
+  document.getElementById('view-ratio-list').addEventListener('click', function (e) {
+    var editEl = e.target.closest('[data-edit]');
+    if (editEl && editEl.closest('#view-ratio-list')) {
+      e.preventDefault();
+      showRatioForm(true);
+      return;
+    }
+    var histEl = e.target.closest('[data-history]');
+    if (histEl) {
+      e.preventDefault();
+      openRatioHistory(histEl.getAttribute('data-history'));
+    }
+  });
+
+  document.getElementById('ratio-history-close').addEventListener('click', closeRatioHistory);
+  historyModal.addEventListener('click', function (e) {
+    if (e.target === historyModal) closeRatioHistory();
+  });
+
+  document.getElementById('btn-cancel-ratio').addEventListener('click', showRatioList);
+  document.getElementById('btn-save-ratio').addEventListener('click', function () {
+    if (!validateNOrderAmounts()) {
+      alert('前N单最低返不可低于最低返现金额，请检查后重试');
+      return;
+    }
+    alert('保存成功（原型演示）');
+    showRatioList();
+    document.querySelector('.nav-item[data-page="cashback-ratio"]').click();
+  });
+
+  var minAmountInput = document.getElementById('f-min-amount');
+  var nOrderRows = document.getElementById('f-n-order-rows');
+  var btnAddNOrder = document.getElementById('btn-add-norder');
+
+  function parseAmount(val) {
+    if (val === '' || val == null) return null;
+    var n = parseFloat(String(val).trim());
+    return isNaN(n) ? null : n;
+  }
+
+  function getMinAmount() {
+    return parseAmount(minAmountInput ? minAmountInput.value : '');
+  }
+
+  function validateNOrderAmounts() {
+    var min = getMinAmount();
+    if (min == null) {
+      nOrderRows.querySelectorAll('.n-order-row').forEach(function (row) {
+        row.classList.remove('has-error');
+        row.querySelector('.n-order-input').classList.remove('is-error');
+      });
+      return true;
+    }
+    var ok = true;
+    nOrderRows.querySelectorAll('.n-order-row').forEach(function (row) {
+      var input = row.querySelector('.n-order-input');
+      var val = parseAmount(input.value);
+      var bad = val != null && val < min;
+      row.classList.toggle('has-error', bad);
+      input.classList.toggle('is-error', bad);
+      if (bad) ok = false;
+    });
+    return ok;
+  }
+
+  if (minAmountInput) {
+    minAmountInput.addEventListener('blur', validateNOrderAmounts);
+    minAmountInput.addEventListener('input', validateNOrderAmounts);
+  }
+
+  if (nOrderRows) {
+    nOrderRows.addEventListener('blur', function (e) {
+      if (e.target.classList.contains('n-order-input')) validateNOrderAmounts();
+    }, true);
+    nOrderRows.addEventListener('input', function (e) {
+      if (e.target.classList.contains('n-order-input')) validateNOrderAmounts();
+    });
+  }
+
+  if (btnAddNOrder && nOrderRows) {
+    btnAddNOrder.addEventListener('click', function () {
+      var next = nOrderRows.querySelectorAll('.n-order-row').length + 1;
+      var row = document.createElement('div');
+      row.className = 'n-order-row';
+      row.dataset.order = String(next);
+      row.innerHTML =
+        '<span class="n-order-label">第' + next + '单</span>' +
+        '<input class="input n-order-input" type="text" inputmode="decimal" placeholder="请输入" />' +
+        '<span style="color:var(--text-3);font-size:13px;">元</span>' +
+        '<span class="n-order-err">不可低于最低返现金额</span>';
+      nOrderRows.appendChild(row);
+      row.querySelector('.n-order-input').focus();
+    });
+  }
+
+  var valueLabel = document.getElementById('f-value-label');
+  var valueUnit = document.getElementById('f-value-unit');
+  var valueInput = document.getElementById('f-cashback-value');
+
+  function getCashbackType() {
+    var checked = document.querySelector('input[name="f-cashback-type"]:checked');
+    return checked ? checked.value : '';
+  }
+
+  function updateCashbackValueUI() {
+    var type = getCashbackType();
+    if (type === 'fixed') {
+      valueLabel.textContent = '返现固定金额';
+      valueUnit.textContent = '元';
+      valueInput.placeholder = '请输入固定返现金额';
+    } else if (type === 'commission') {
+      valueLabel.textContent = '返现比例';
+      valueUnit.textContent = '%';
+      valueInput.placeholder = '请输入返利比例';
+    } else if (type === 'pay') {
+      valueLabel.textContent = '返现比例';
+      valueUnit.textContent = '%';
+      valueInput.placeholder = '请输入返利比例';
+    } else {
+      valueLabel.textContent = '返现比例/返现固定金额';
+      valueUnit.textContent = '%';
+      valueInput.placeholder = '请先选择返现形式';
+    }
+  }
+  document.querySelectorAll('input[name="f-cashback-type"]').forEach(function (radio) {
+    radio.addEventListener('change', updateCashbackValueUI);
+  });
+  updateCashbackValueUI();
+
+  /* ========= 自定义下拉初始化 ========= */
+  var ARROW_SVG = '<svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4"/></svg>';
+
+  function syncMySelectUI(wrap, sel) {
+    var label = wrap.querySelector('.my-select-label');
+    var list = wrap.querySelector('.my-select-list');
+    var opt = sel.options[sel.selectedIndex];
+    if (!opt) return;
+    label.textContent = opt.text;
+    label.classList.toggle('is-placeholder', !opt.value);
+    list.querySelectorAll('li').forEach(function (li) {
+      li.classList.toggle('selected', li.dataset.value === sel.value);
+    });
+  }
+
+  function closeAllMySelects(except) {
+    document.querySelectorAll('.my-select.open').forEach(function (w) {
+      if (w !== except) w.classList.remove('open');
+    });
+  }
+
+  function initCustomSelects(root) {
+    (root || document).querySelectorAll('select.select:not([multiple]):not(.enhanced)').forEach(function (sel) {
+      sel.classList.add('enhanced');
+      var wrap = document.createElement('div');
+      wrap.className = 'my-select';
+      ['w180', 'w220', 'w280', 'w360'].forEach(function (cls) {
+        if (sel.classList.contains(cls)) wrap.classList.add(cls);
+      });
+      if (sel.style.width) wrap.style.width = sel.style.width;
+
+      var trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'my-select-trigger';
+
+      var label = document.createElement('span');
+      label.className = 'my-select-label';
+
+      var arrow = document.createElement('span');
+      arrow.className = 'my-select-arrow';
+      arrow.innerHTML = ARROW_SVG;
+
+      var pop = document.createElement('div');
+      pop.className = 'my-select-pop';
+      var list = document.createElement('ul');
+      list.className = 'my-select-list';
+
+      Array.from(sel.options).forEach(function (opt) {
+        var li = document.createElement('li');
+        li.textContent = opt.text;
+        li.dataset.value = opt.value;
+        if (!opt.value) li.classList.add('is-placeholder');
+        if (opt.selected) {
+          li.classList.add('selected');
+          label.textContent = opt.text;
+          if (!opt.value) label.classList.add('is-placeholder');
+        }
+        li.addEventListener('click', function (e) {
+          e.stopPropagation();
+          sel.value = opt.value;
+          syncMySelectUI(wrap, sel);
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          wrap.classList.remove('open');
+        });
+        list.appendChild(li);
+      });
+
+      trigger.appendChild(label);
+      trigger.appendChild(arrow);
+      pop.appendChild(list);
+      wrap.appendChild(trigger);
+      wrap.appendChild(pop);
+      sel.parentNode.insertBefore(wrap, sel);
+
+      pop.addEventListener('click', function (e) { e.stopPropagation(); });
+
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = wrap.classList.contains('open');
+        closeAllMySelects(wrap);
+        wrap.classList.toggle('open', !isOpen);
+      });
+
+      sel.addEventListener('change', function () {
+        syncMySelectUI(wrap, sel);
+      });
+    });
+  }
+
+  document.addEventListener('click', function () {
+    closeAllMySelects(null);
+  });
+
+  initCustomSelects();
+  showRatioList();
+})();
+</script>
+
+</body>
+</html>
