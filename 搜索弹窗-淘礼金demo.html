@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>搜索弹窗-淘礼金demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f2f2f5;
+      --surface: #fff;
+      --t1: #1a1a1a;
+      --t2: #666;
+      --t3: #999;
+      --line: rgba(0,0,0,.07);
+    }
+
+    html, body {
+      height: 100%; background: #ddd;
+      font-family: "PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    }
+
+    /* ── 手机壳 ── */
+    .shell {
+      width: 390px; height: 100vh;
+      margin: 0 auto; background: var(--bg);
+      position: relative; overflow: hidden;
+    }
+
+    /* ── 视图切换基础 ── */
+    .view {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .38s cubic-bezier(.4,0,.2,1);
+      background: var(--bg);
+    }
+    .view.active   { transform: translateX(0); }
+    .view.behind   { transform: translateX(-20%); }
+
+    /* ── 首页 & 导购页 共用 ── */
+    /* 状态栏 */
+    .sbar { height: 44px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 16px; flex-shrink: 0; }
+    .sbar-time { font-size: 15px; font-weight: 700; letter-spacing: -.3px; }
+    .sbar-icons { display: flex; align-items: center; gap: 6px; }
+
+    /* App header (首页) */
+    .app-header { height: 48px; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; padding: 0 14px; flex-shrink: 0; }
+    .app-logo { font-size: 17px; font-weight: 800; color: var(--t1); letter-spacing: -.3px; white-space: nowrap; }
+    .app-search { flex: 1; height: 32px; background: #f2f2f5; border-radius: 999px; display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; color: var(--t3); }
+    .app-cashbtn { background: #222; color: #fff; font-size: 12px; font-weight: 600; border: none; border-radius: 999px; padding: 5px 11px; white-space: nowrap; cursor: pointer; font-family: inherit; }
+
+    /* 首页滚动 */
+    .home-scroll { flex: 1; overflow-y: auto; }
+    .home-scroll::-webkit-scrollbar { display: none; }
+
+    /* 统计行 */
+    .stats-card { margin: 10px 12px 0; background: var(--surface); border-radius: 12px; padding: 13px 16px; display: flex; align-items: center; }
+    .stat-block { flex: 1; }
+    .stat-label { font-size: 11px; color: var(--t3); display: flex; align-items: center; gap: 3px; margin-bottom: 4px; }
+    .stat-val { font-size: 20px; font-weight: 800; color: var(--t1); letter-spacing: -.5px; }
+    .stat-action { font-size: 13px; font-weight: 600; color: var(--t2); margin-left: 6px; }
+    .stat-sep { width: 1px; height: 36px; background: var(--line); margin: 0 16px; }
+    .stat-order-badge { background: #f0f0f0; color: var(--t2); font-size: 10px; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+    .stat-order-val { font-size: 13px; color: var(--t2); display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+    .stat-order-thumb { width: 26px; height: 26px; border-radius: 5px; background: #e8e8e8; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+
+    /* 说明 banner */
+    .explain-banner { margin: 10px 12px 0; background: #f7f7f7; border-radius: 12px; padding: 12px 14px; }
+    .explain-text { font-size: 12px; color: var(--t2); margin-bottom: 10px; line-height: 1.5; }
+    .platform-row { display: flex; align-items: center; gap: 8px; }
+    .pf-icon { width: 36px; height: 36px; border-radius: 10px; background: #e8e8e8; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--t2); flex-shrink: 0; }
+
+    /* 粘贴区 */
+    .paste-section { margin: 10px 12px 0; background: var(--surface); border-radius: 12px; padding: 14px; }
+    .paste-box { background: #f5f5f5; border-radius: 10px; padding: 12px 14px; min-height: 72px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .paste-placeholder { font-size: 13px; color: #bbb; line-height: 1.6; flex: 1; }
+    .paste-placeholder em { font-size: 11px; color: #ccc; font-style: normal; display: block; margin-top: 3px; }
+    .paste-filled { font-size: 12px; color: var(--t2); line-height: 1.5; flex: 1; }
+    .paste-filled strong { color: var(--t1); font-size: 13px; display: block; margin-bottom: 4px; }
+    .api-badge { margin: 8px 12px 0; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #0e7490; line-height: 1.45; }
+    .activity-tag.ship { border-color: #86efac; background: #f0fdf4; color: #166534; }
+
+    /* ── 取值说明浮层 ── */
+    .spec-btn-wrap {
+      position: fixed; bottom: 20px; right: 20px; z-index: 300;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    }
+    .spec-toggle-btn {
+      background: #1a1a1a; color: #fff; border: none; border-radius: 999px;
+      padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: inherit; box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .spec-panel {
+      display: none; position: fixed; right: 20px; bottom: 64px;
+      width: 340px; max-height: calc(100vh - 100px);
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.18);
+      overflow: hidden; z-index: 299; flex-direction: column;
+    }
+    .spec-panel.open { display: flex; }
+    .spec-panel-hd {
+      padding: 14px 16px 10px; border-bottom: 1px solid rgba(0,0,0,.07);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .spec-panel-hd h3 { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+    .spec-panel-close { background: none; border: none; cursor: pointer; color: #999; font-size: 20px; line-height: 1; padding: 0 2px; }
+    .spec-body { overflow-y: auto; padding: 10px 12px 16px; }
+    .spec-body::-webkit-scrollbar { display: none; }
+    .spec-section { margin-bottom: 12px; }
+    .spec-section-title {
+      font-size: 11px; font-weight: 700; color: #0e7490; text-transform: uppercase;
+      letter-spacing: .4px; margin-bottom: 6px; padding: 0 2px;
+    }
+    .spec-row {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 7px 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 4px;
+    }
+    .spec-label {
+      width: 80px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #1a1a1a; line-height: 1.4;
+    }
+    .spec-field {
+      flex: 1; font-size: 11px; font-family: ui-monospace, monospace;
+      color: #0369a1; background: #f0f9ff; border-radius: 4px;
+      padding: 2px 5px; line-height: 1.5; word-break: break-all;
+    }
+    .spec-rule {
+      width: 100%; font-size: 11px; color: #666; margin-top: 3px; line-height: 1.45; padding: 0 2px;
+    }
+    .spec-formula {
+      width: 100%; margin-top: 4px; padding: 5px 8px; background: #fefce8;
+      border-radius: 5px; font-size: 11px; color: #92400e; font-family: ui-monospace, monospace;
+      line-height: 1.5; word-break: break-all;
+    }
+    .paste-btn { background: #1a1a1a; color: #fff; border: none; border-radius: 999px; font-size: 15px; font-weight: 700; width: 72px; height: 40px; flex-shrink: 0; margin-left: 10px; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    .paste-btn:active { opacity: .75; }
+
+    /* 内容占位 */
+    .tab-row { margin: 10px 12px 0; background: var(--surface); border-radius: 12px; display: flex; overflow: hidden; }
+    .tab-item { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; color: var(--t3); border-bottom: 2px solid transparent; cursor: pointer; }
+    .tab-item.active { color: var(--t1); font-weight: 600; border-bottom-color: var(--t1); }
+    .content-placeholder { margin: 10px 12px 0; background: var(--surface); border-radius: 12px; padding: 14px; }
+    .placeholder-title { font-size: 14px; font-weight: 600; color: var(--t1); margin-bottom: 10px; }
+    .placeholder-strip { height: 78px; background: #f2f2f5; border-radius: 8px; margin-bottom: 8px; }
+    .placeholder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .placeholder-cell { height: 120px; background: #f2f2f5; border-radius: 8px; }
+
+    /* 底部导航 */
+    .bottom-nav { height: 56px; background: var(--surface); border-top: 1px solid var(--line); display: flex; align-items: center; flex-shrink: 0; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; }
+    .nav-icon { font-size: 20px; color: var(--t3); }
+    .nav-label { font-size: 10px; color: var(--t3); }
+    .nav-item.active .nav-icon, .nav-item.active .nav-label { color: var(--t1); font-weight: 600; }
+
+    /* ─────────── 居中弹窗（View 2）─────────── */
+    #view-modal {
+      background: rgba(0,0,0,.5);
+      align-items: center; justify-content: center;
+    }
+    /* modal 本身不是侧滑，用 scale+fade */
+    #view-modal { transition: none; }
+    #view-modal.active { transform: translateX(0); }
+
+    .modal-card {
+      width: 320px; background: var(--surface); border-radius: 20px;
+      overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      transform: scale(.88); opacity: 0;
+      transition: transform .32s cubic-bezier(.175,.885,.32,1.275), opacity .25s ease;
+    }
+    #view-modal.active .modal-card {
+      transform: scale(1); opacity: 1;
+      transition-delay: .05s;
+    }
+
+    .modal-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--t3); cursor: pointer; font-size: 22px; line-height: 1; z-index: 5; }
+    .modal-header { padding: 16px 16px 0; text-align: center; font-size: 15px; font-weight: 600; color: var(--t1); position: relative; }
+
+    /* 美柚专属隐藏券 顶部banner */
+    .modal-top-banner {
+      background: linear-gradient(90deg,#3a2a13,#5a3d18);
+      padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      color: #fff;
+    }
+    .modal-top-banner-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .modal-top-banner-amt {
+      font-size: 20px; font-weight: 800; color: #ffe1a8; line-height: 1;
+      flex-shrink: 0;
+    }
+    .modal-top-banner-amt small { font-size: 12px; font-weight: 700; margin-right: 1px; }
+    .modal-top-banner-text { font-size: 12px; font-weight: 600; color: #ffe1a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .modal-top-banner-btn {
+      flex-shrink: 0; background: #ffe1a8; color: #3a2a13;
+      border: none; border-radius: 999px; font-size: 12px; font-weight: 700;
+      padding: 6px 14px; cursor: pointer; font-family: inherit; margin-left: 10px;
+    }
+    .modal-top-banner-btn:active { opacity: .8; }
+
+    .modal-product { padding: 12px 14px 0; }
+    .modal-img { width: 100%; height: 180px; background: #e8e8e8; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+    .modal-img img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-meta { display: flex; gap: 6px; align-items: center; margin-bottom: 5px; }
+    .modal-platform { background: #f0f0f0; color: var(--t2); font-size: 10px; padding: 2px 5px; border-radius: 3px; font-weight: 500; }
+    .modal-coupon-row { display: flex; align-items: center; padding: 8px 14px 0; background: #f8f8f8; }
+    .modal-coupon-tag { background: #f0f0f0; color: var(--t2); font-size: 10px; padding: 2px 5px; border-radius: 3px; font-weight: 500; flex-shrink: 0; }
+    .modal-sold { font-size: 11px; color: var(--t3); }
+    .modal-name { font-size: 13px; font-weight: 500; color: var(--t1); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; }
+
+    .modal-price-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 14px 10px; background: #f8f8f8; margin: 0 0 0;
+    }
+    .modal-taobao-price { font-size: 18px; font-weight: 700; color: var(--t1); }
+    .modal-taobao-price small { font-size: 13px; }
+    .modal-rebate-badge {
+      background: #efefef; border-radius: 6px;
+      padding: 4px 8px; font-size: 12px; color: var(--t2);
+    }
+    .modal-rebate-badge b { color: var(--t1); }
+
+    .modal-cta {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .modal-cta-row {
+      display: flex;
+      gap: 10px;
+    }
+    .modal-cta-wrap {
+      flex: 0.9;
+      min-width: 0;
+    }
+    .modal-cta-btn {
+      width: 100%;
+      height: 48px; border: 1px solid rgba(0,0,0,.08); border-radius: 12px;
+      background: #f5f5f5; color: var(--t1);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: opacity .15s;
+    }
+    .modal-cta-btn:active { opacity: .8; }
+    .modal-cta-btn-wrap { flex: 1.1; min-width: 0; }
+    .modal-cta-btn-secondary {
+      background: #fff;
+      border-color: #e5e5e5;
+      color: #666;
+      font-weight: 500;
+    }
+    .modal-cta-btn-primary {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+
+    /* ─────────── 导购页（View 3）─────────── */
+    /* 导航栏 */
+    .page-nav { height: 44px; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; position: relative; flex-shrink: 0; }
+    .page-back { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: var(--t1); border-radius: 50%; }
+    .page-back:active { background: rgba(0,0,0,.06); }
+    .page-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 16px; font-weight: 600; color: var(--t1); }
+
+    .page-scroll { flex: 1; overflow-y: auto; padding-bottom: 110px; }
+    .page-scroll::-webkit-scrollbar { display: none; }
+
+    /* 商品信息 */
+    .prod-hero { background: var(--surface); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; border-bottom: 1px solid var(--line); }
+    .prod-hero-img { width: 100px; height: 100px; border-radius: 10px; overflow: hidden; background: #e8e8e8; flex-shrink: 0; }
+    .prod-hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .prod-hero-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+    .prod-hero-name { font-size: 14px; font-weight: 600; color: var(--t1); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .prod-hero-meta { display: flex; gap: 6px; align-items: center; }
+    .prod-price-area { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 2px; }
+    .prod-price-col { flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; }
+    .prod-price-final { font-size: 20px; font-weight: 800; color: #1a1a1a; line-height: 1.35; white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+    .prod-price-final small { font-size: 15px; font-weight: 700; margin-right: 1px; }
+    .prod-rebate-tag {
+      flex: 1;
+      min-width: 0;
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #e5e5e5;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 7px 10px;
+      border-radius: 6px;
+      text-align: center;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    /* 通用 card */
+    .card { background: var(--surface); border-radius: 14px; margin: 10px 12px 0; overflow: hidden; }
+    .card-head { padding: 12px 15px; font-size: 14px; font-weight: 600; color: var(--t1); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .card-head small { font-size: 12px; font-weight: 500; }
+    .card-body { padding: 10px; }
+
+    /* 找到优惠 */
+    #coupon-card { overflow: visible; }
+    .coupon-step { margin-bottom: 14px; }
+    .coupon-step:last-child { margin-bottom: 0; }
+    .coupon-step-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--t2);
+      margin-bottom: 8px;
+    }
+    .coupon-step-num {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #333; color: #fff; font-size: 11px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .coupon { display: flex; height: 62px; background: #f5f5f5; border-radius: 8px; overflow: hidden; }
+    .c-amt { width: 72px; background: #e4e4e4; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #333; flex-shrink: 0; }
+    .c-amt small { font-size: 13px; font-weight: 700; margin-right: 1px; }
+    .c-info { flex: 1; padding: 0 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .c-name { font-size: 14px; font-weight: 500; color: var(--t1); }
+    .c-cond { font-size: 11px; color: var(--t3); margin-top: 2px; }
+    .c-btn { width: 68px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tjb { position: relative; background: #f5f5f5; border-radius: 9px; height: 62px; display: flex; align-items: center; padding: 0 9px 0 11px; }
+    .tjb-tag { position: absolute; top: -6px; left: 8px; background: #fff; border: 1px solid rgba(0,0,0,.12); color: var(--t2); font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+    .tjb-icon { width: 36px; height: 36px; border-radius: 9px; background: #555; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 15px; margin-right: 9px; flex-shrink: 0; }
+    .tjb-text { flex: 1; min-width: 0; }
+    .tjb-name { font-size: 13px; font-weight: 600; color: var(--t1); }
+    .tjb-sub { font-size: 9px; color: var(--t3); margin-top: 2px; line-height: 1.35; }
+    .tjb-sep { width: 0; height: 28px; border-right: 1px dashed rgba(0,0,0,.15); margin: 0 7px; position: relative; flex-shrink: 0; }
+    .tjb-sep::before, .tjb-sep::after { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 9px; height: 9px; border-radius: 50%; background: #f5f5f5; }
+    .tjb-sep::before { top: -4px; } .tjb-sep::after { bottom: -4px; }
+    .tjb-btn-wrap { position: relative; flex-shrink: 0; }
+    .tjb-bubble { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #222; color: #fff; font-size: 10px; padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
+    .tjb-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 3px solid transparent; border-top-color: #222; }
+    .rebate-step {
+      background: #f5f5f5; border-radius: 9px; height: 62px;
+      display: flex; align-items: center; padding: 0 12px;
+    }
+    .rebate-step-text { flex: 1; min-width: 0; }
+    .rebate-step-name { font-size: 13px; font-weight: 600; color: var(--t1); }
+    .rebate-step-sub { font-size: 9px; color: var(--t3); margin-top: 2px; line-height: 1.35; }
+    .rebate-step-amt { font-size: 18px; font-weight: 800; color: var(--t1); flex-shrink: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .rebate-step-amt small { font-size: 12px; font-weight: 700; margin-right: 1px; }
+    .post-rebate-body { padding: 12px 10px 10px; }
+    .post-rebate-step { margin-bottom: 0; }
+
+    /* 隐藏券检索进度 */
+    .coupon-search { display: none; }
+    .coupon-search-hd {
+      padding: 12px 15px; border-bottom: 1px solid #eee;
+      font-size: 14px; font-weight: 600; color: #ff6b35;
+    }
+    .coupon-search-body { padding: 16px 15px 18px; }
+    .coupon-search-track {
+      height: 6px; background: #ececec; border-radius: 999px; overflow: hidden;
+    }
+    .coupon-search-bar {
+      height: 100%; width: 0%;
+      background: #888;
+      border-radius: 999px;
+    }
+    .coupon-search-hint {
+      margin-top: 12px; font-size: 13px; color: #999; text-align: center;
+    }
+    #coupon-card.coupon-reveal {
+      animation: couponReveal .4s ease forwards;
+    }
+    #page-deferred-section.deferred-reveal {
+      animation: couponReveal .4s ease .08s both;
+    }
+    @keyframes couponReveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .c-tag {
+      display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 5px;
+      border-radius: 3px; margin-left: 5px; vertical-align: middle;
+    }
+    .c-tag.hide { background: #333; color: #fff; }
+    .c-tag.vip { background: #f0f0f0; color: var(--t2); border: 1px solid #e5e5e5; }
+
+    /* 多券横滑券包（对齐淘金币横幅） */
+    .cpn-pack-wrap {
+      background: #f5f5f5;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+    .cpn-pack {
+      position: relative;
+      height: 62px;
+      display: flex;
+      align-items: stretch;
+      overflow: hidden;
+    }
+    .cpn-pack-scroll {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 8px 4px 8px 10px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .cpn-pack-scroll::-webkit-scrollbar { display: none; }
+    .cpn-chip {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      position: relative;
+      width: 76px;
+      height: 48px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      padding: 13px 4px 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .cpn-chip-tag {
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      font-size: 8px;
+      font-weight: 600;
+      line-height: 1.2;
+      max-width: calc(100% + 4px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 2px 4px;
+      border-radius: 6px 0 4px 0;
+    }
+    .cpn-chip-tag.solid {
+      background: #333;
+      color: #fff;
+    }
+    .cpn-chip-tag.plain {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      color: #666;
+    }
+    .cpn-chip-amt {
+      font-size: 17px;
+      font-weight: 800;
+      color: #333;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .cpn-chip-amt small { font-size: 10px; font-weight: 700; margin-right: 1px; }
+    .cpn-chip-cond { margin-top: 2px; font-size: 8px; color: #999; font-weight: 500; line-height: 1.2; }
+    .cpn-pack-sep {
+      width: 0;
+      height: 28px;
+      align-self: center;
+      border-right: 1px dashed rgba(0,0,0,.15);
+      margin: 0 4px 0 2px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .cpn-pack-sep::before, .cpn-pack-sep::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #f5f5f5;
+    }
+    .cpn-pack-sep::before { top: -4px; }
+    .cpn-pack-sep::after { bottom: -4px; }
+    .cpn-pack-btn-wrap {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 9px 0 4px;
+    }
+    .cpn-pack-tip {
+      padding: 0 10px 8px;
+      font-size: 10px;
+      color: #999;
+      line-height: 1.4;
+    }
+
+    /* 参与活动 */
+    .activity-row { background: var(--surface); border-radius: 14px; margin: 10px 12px 0; padding: 12px 15px; display: flex; align-items: flex-start; gap: 10px; }
+    .activity-label { font-size: 12px; color: var(--t3); white-space: nowrap; padding-top: 2px; }
+    .activity-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .activity-tag { background: #f0f0f0; color: #555; border: 1px solid #e5e5e5; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+
+    /* 返现明细 */
+    .rb-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; }
+    .rb-row + .rb-row { border-top: 1px solid var(--line); }
+    .rb-name { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--t1); }
+    .rb-amt { font-size: 14px; font-weight: 600; color: var(--t1); font-variant-numeric: tabular-nums; }
+    .rb-summary {
+      display: flex; align-items: center; justify-content: space-between;
+      flex: 1; min-width: 0; gap: 12px;
+    }
+    .rb-summary-title { font-size: 14px; font-weight: 600; color: var(--t1); }
+    .rb-summary-amt { font-size: 22px; font-weight: 800; color: var(--t1); letter-spacing: -.3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .rb-static { padding: 14px 15px; }
+    .rb-toggle {
+      width: 100%; background: none; border: none; padding: 14px 15px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      cursor: pointer; font-family: inherit; text-align: left;
+    }
+    .rb-toggle:active { background: rgba(0,0,0,.03); }
+    .rb-chevron { width: 15px; height: 15px; color: var(--t3); transition: transform .25s; flex-shrink: 0; }
+    .rb-panel { max-height: 0; overflow: hidden; transition: max-height .3s ease; border-top: 0 solid var(--line); }
+    #meiyou-extra-card.open .rb-panel { border-top-width: 1px; }
+    #post-rebate-card { margin-bottom: 0; }
+    #meiyou-extra-card {
+      margin-bottom: 0; background: #fafafa;
+    }
+    #meiyou-extra-card .rb-toggle { padding: 10px 15px; }
+    #meiyou-extra-card .rb-summary-title { font-size: 12px; font-weight: 500; color: #999; }
+    #meiyou-extra-card .rb-summary-amt { font-size: 13px; font-weight: 600; color: #666; letter-spacing: 0; }
+    #meiyou-extra-card .rb-chevron { width: 12px; height: 12px; color: #ccc; }
+    #meiyou-extra-card .my-tags { padding: 8px 12px 10px; gap: 5px; }
+    #meiyou-extra-card .my-tag { font-size: 11px; padding: 6px 8px; background: #f5f5f5; border-color: #e8e8e8; color: #666; }
+    #meiyou-extra-card .my-tag-plus { font-size: 12px; color: #999; }
+    #meiyou-extra-card .my-tag-icon { width: 18px; height: 18px; font-size: 9px; background: #bbb; box-shadow: none; }
+    .my-tags {
+      display: flex; align-items: center; gap: 6px; padding: 12px 15px 14px;
+      overflow-x: auto;
+    }
+    .my-tags::-webkit-scrollbar { display: none; }
+    .my-tag-plus {
+      flex-shrink: 0; font-size: 14px; font-weight: 600; color: #ff2d75; line-height: 1;
+    }
+    .my-tag {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 10px;
+      background: #fff5f8;
+      border: 1px solid #ffd6e7;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 600; color: #ff2d75;
+      white-space: nowrap;
+    }
+    .my-tag-icon {
+      width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0;
+      background: linear-gradient(180deg, #ff7070 0%, #e53935 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px; font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .my-tag-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .my-tag-amt { font-weight: 700; margin-left: 2px; font-variant-numeric: tabular-nums; }
+
+    /* 红包折叠 */
+    .hb-toggle { width: 100%; background: none; border: none; border-top: 1px solid var(--line); padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-family: inherit; }
+    .hb-toggle:active { background: rgba(0,0,0,.03); }
+    .hb-chevron { width: 15px; height: 15px; color: var(--t3); transition: transform .25s; flex-shrink: 0; }
+    .hb-panel { overflow: hidden; transition: max-height .3s ease, opacity .3s ease; }
+    .hb-chips { display: flex; gap: 8px; padding: 2px 15px 14px; overflow-x: auto; }
+    .hb-chips::-webkit-scrollbar { display: none; }
+    .hb-chip { position: relative; height: 33px; padding: 0 13px; border-radius: 999px; border: 1px solid rgba(0,0,0,.09); background: #f5f5f5; display: flex; align-items: center; font-size: 13px; color: var(--t2); cursor: pointer; flex-shrink: 0; user-select: none; transition: all .15s; }
+    .hb-chip:hover { background: #eaeaea; }
+    .hb-chip.active { background: #e2e2e2; border-color: #888; color: var(--t1); font-weight: 600; }
+    .hb-expire { position: absolute; top: -8px; right: -2px; background: #222; color: #fff; font-size: 8px; font-weight: 600; padding: 1px 4px; border-radius: 3px; white-space: nowrap; }
+
+    /* 免责 */
+    .notice-bar {
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px 15px 12px;
+      gap: 6px; flex-wrap: wrap;
+    }
+    .notice-bar-text {
+      font-size: 11px; color: #999; line-height: 1.45;
+    }
+    .notice-bar-btn {
+      background: transparent; border: 1px solid #ddd; border-radius: 999px;
+      color: #999; font-size: 11px; font-weight: 400; padding: 2px 8px;
+      cursor: pointer; font-family: inherit; white-space: nowrap; line-height: 1.45;
+    }
+    .notice-bar-btn:active { opacity: .75; }
+
+    /* 吸底行动栏 */
+    .action-bar { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface); padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.07); z-index: 10; }
+    .action-rebate { flex-shrink: 0; }
+    .action-rebate-badge {
+      background: #efefef; border-radius: 6px;
+      padding: 8px 10px; font-size: 12px; color: var(--t2);
+      white-space: nowrap; line-height: 1.35;
+    }
+    .action-rebate-badge b { color: var(--t1); font-weight: 700; }
+    .action-main-btn { background: #1a1a1a; color: #fff; border: none; border-radius: 999px; height: 48px; flex: 1; min-width: 0; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    .action-main-btn:active { opacity: .8; }
+
+    /* 通用 pill 按钮 */
+    .btn-pill { background: #222; color: #fff; border: none; border-radius: 999px; font-size: 12px; font-weight: 600; padding: 7px 13px; cursor: pointer; font-family: inherit; transition: opacity .15s; white-space: nowrap; }
+    .btn-pill:active { opacity: .75; }
+
+    /* tag-platform */
+    .tag-platform { background: #f0f0f0; color: var(--t2); font-size: 10px; padding: 2px 5px; border-radius: 3px; font-weight: 500; }
+    .tag-sold { font-size: 11px; color: var(--t3); }
+
+    /* ─────────── 全屏跳转 ─────────── */
+    #page-overlay { display:none; position:fixed; inset:0; z-index:500; background:#000; align-items:center; justify-content:center; }
+    #page-overlay.show { display:flex; }
+    #page-back-btn { position:absolute; top:14px; left:14px; z-index:10; background:rgba(0,0,0,.55); border:none; border-radius:999px; color:#fff; font-size:12px; padding:6px 14px; cursor:pointer; display:flex; align-items:center; gap:5px; font-family:inherit; }
+    #page-hint { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.6); color:#fff; font-size:12px; padding:5px 14px; border-radius:999px; white-space:nowrap; pointer-events:none; font-family:inherit; }
+    #page-steps { position:absolute; top:14px; right:14px; display:flex; gap:5px; }
+    .sdot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3); transition:background .2s; }
+    .sdot.on { background:#fff; }
+    #page-img { max-height:100vh; max-width:100vw; object-fit:contain; display:block; cursor:pointer; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ═══════════ VIEW 1：返现首页 ═══════════ -->
+  <div class="view active" id="view-home">
+
+    <div class="sbar">
+      <div class="sbar-time">13:18</div>
+      <div class="sbar-icons">
+        <svg width="16" height="11" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1" opacity=".35"/><rect x="4" y="5" width="3" height="7" rx="1" opacity=".55"/><rect x="8" y="2" width="3" height="10" rx="1" opacity=".75"/><rect x="12" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/><path d="M3.7 8.8L2.3 7.4A7.9 7.9 0 018 5c2.2 0 4.2.9 5.7 2.4l-1.4 1.4A6 6 0 008 7 5.97 5.97 0 003.7 8.8z" opacity=".55"/><path d="M0 5.5C2 3.3 4.8 2 8 2s6 1.3 8 3.5l-1.4 1.4C12.9 5.1 10.6 4 8 4A7.9 7.9 0 001.4 6.9L0 5.5z" opacity=".3"/></svg>
+        <svg width="24" height="11" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2 2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </div>
+    </div>
+
+    <div class="app-header">
+      <div class="app-logo">美柚返现</div>
+      <div class="app-search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        红糖姜茶
+      </div>
+      <button class="app-cashbtn">领现金</button>
+    </div>
+
+    <div class="home-scroll">
+      <div class="stats-card">
+        <div class="stat-block">
+          <div class="stat-label">累计已省 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <div class="stat-val">¥ 107.22</div>
+            <span class="stat-action">提现 ›</span>
+          </div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-block">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:4px;">我的订单 <span class="stat-order-badge">有2笔返现到账</span></div>
+          <div class="stat-order-val"><div class="stat-order-thumb">📦</div>¥1.02已到账</div>
+        </div>
+      </div>
+
+      <div class="explain-banner">
+        <div class="explain-text">从美柚去淘宝/京东/抖音下单，可额外获得现金返还</div>
+        <div class="platform-row">
+          <div class="pf-icon">淘</div>
+          <div class="pf-icon">唯</div>
+          <div class="pf-icon" style="font-size:10px;">抖音</div>
+          <div class="pf-icon">拼</div>
+          <div style="flex:1;padding-left:6px;font-size:11px;color:#999;line-height:1.5;">
+            复制商品链接 🔗 快速查返现<br>
+            <span style="color:#bbb;font-size:10px;">下单约返1%~6%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paste-section">
+        <div class="paste-box">
+          <div class="paste-filled" id="paste-text">
+            <strong>寿全斋红糖姜茶（接口模拟）</strong>
+            寿全斋旗舰店 · request_id: 15rugy91chb0t
+          </div>
+          <button class="paste-btn" onclick="showModal()">粘贴</button>
+        </div>
+      </div>
+      <div class="tab-row">
+        <div class="tab-item active">大家都在用</div>
+        <div class="tab-item">外卖返现</div>
+        <div class="tab-item">拼多多</div>
+        <div class="tab-item">打车返现</div>
+      </div>
+
+      <div class="content-placeholder">
+        <div class="placeholder-title">618 红包天天领 · 下单再返现金</div>
+        <div class="placeholder-strip"></div>
+      </div>
+
+      <div class="content-placeholder" style="margin-bottom:16px;">
+        <div class="placeholder-title">惊喜返现红包 · 购物津贴</div>
+        <div class="placeholder-grid">
+          <div class="placeholder-cell"></div><div class="placeholder-cell"></div>
+          <div class="placeholder-cell"></div><div class="placeholder-cell"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🌸</div><div class="nav-label">美柚</div></div>
+      <div class="nav-item"><div class="nav-icon">📋</div><div class="nav-label">记录</div></div>
+      <div class="nav-item active"><div class="nav-icon">💰</div><div class="nav-label">返现</div></div>
+      <div class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">消息</div></div>
+      <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">我</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ VIEW 2：居中弹窗 ═══════════ -->
+  <div class="view" id="view-modal" style="background:rgba(0,0,0,.5);align-items:center;justify-content:center;">
+    <div class="modal-card" id="modal-card">
+
+      <div class="modal-top-banner">
+        <div class="modal-top-banner-left">
+          <div class="modal-top-banner-amt"><small>¥</small>5</div>
+          <div class="modal-top-banner-text">美柚专属隐藏券</div>
+        </div>
+        <button class="modal-top-banner-btn" type="button" onclick="showPage()">先领取</button>
+      </div>
+
+      <div class="modal-header">
+        已为你搜到
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+
+      <div class="modal-product">
+        <div class="modal-img">
+          <img id="modal-img" src="" alt="">
+        </div>
+        <div class="modal-meta">
+          <span class="modal-platform tag-platform" id="modal-platform">天猫</span>
+          <span class="modal-sold tag-sold" id="modal-sold"></span>
+        </div>
+        <div class="modal-name" id="modal-title"></div>
+      </div>
+
+      <div class="modal-coupon-row">
+        <span class="modal-coupon-tag">10元券</span>
+      </div>
+      <div class="modal-price-row">
+        <div class="modal-taobao-price"><small>¥</small><span id="modal-taobao-price"></span></div>
+        <div class="modal-rebate-badge">买后约返 <b id="modal-rebate"></b></div>
+      </div>
+
+      <div class="modal-cta">
+        <div class="modal-cta-row">
+          <div class="modal-cta-wrap">
+            <button class="modal-cta-btn modal-cta-btn-secondary" onclick="showDirectOrder()">直接下单</button>
+          </div>
+          <div class="modal-cta-btn-wrap">
+            <button class="modal-cta-btn modal-cta-btn-primary" onclick="showPage()">查隐藏优惠</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ VIEW 3：导购详情页 ═══════════ -->
+  <div class="view" id="view-page" style="position:absolute;inset:0;display:flex;flex-direction:column;">
+
+    <div class="sbar">
+      <div class="sbar-time">13:18</div>
+      <div class="sbar-icons">
+        <svg width="16" height="11" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1" opacity=".35"/><rect x="4" y="5" width="3" height="7" rx="1" opacity=".55"/><rect x="8" y="2" width="3" height="10" rx="1" opacity=".75"/><rect x="12" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/><path d="M3.7 8.8L2.3 7.4A7.9 7.9 0 018 5c2.2 0 4.2.9 5.7 2.4l-1.4 1.4A6 6 0 008 7 5.97 5.97 0 003.7 8.8z" opacity=".55"/><path d="M0 5.5C2 3.3 4.8 2 8 2s6 1.3 8 3.5l-1.4 1.4C12.9 5.1 10.6 4 8 4A7.9 7.9 0 001.4 6.9L0 5.5z" opacity=".3"/></svg>
+        <svg width="24" height="11" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2 2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <button class="page-back" onclick="goHome()">
+        <svg width="10" height="17" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1L1 9l8 8"/></svg>
+      </button>
+      <div class="page-title">查隐藏券</div>
+    </div>
+
+    <div class="page-scroll">
+
+      <div class="prod-hero">
+        <div class="prod-hero-img"><img id="page-img-prod" src="" alt=""></div>
+        <div class="prod-hero-info">
+          <div class="prod-hero-name" id="page-title"></div>
+          <div class="prod-hero-meta">
+            <span class="tag-platform" id="page-platform">天猫</span>
+            <span class="tag-sold" id="page-sold"></span>
+          </div>
+          <div class="prod-price-area">
+            <div class="prod-price-col">
+              <div class="prod-price-final"><small>¥</small><span id="page-header-price">0</span></div>
+            </div>
+            <div class="prod-rebate-tag" id="page-rebate-tag">约返0元</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card coupon-search" id="coupon-search">
+        <div class="coupon-search-hd">优惠查找中</div>
+        <div class="coupon-search-body">
+          <div class="coupon-search-track">
+            <div class="coupon-search-bar" id="coupon-search-bar"></div>
+          </div>
+          <div class="coupon-search-hint">正在查找优惠信息</div>
+        </div>
+      </div>
+
+      <div class="card" id="coupon-card">
+        <div class="card-head"><span id="coupon-found-status">找到4个优惠</span></div>
+        <div class="card-body">
+          <div class="coupon-step" id="coupon-step-1">
+            <div class="cpn-pack-wrap" id="coupon-pack-wrap">
+              <div class="cpn-pack" id="coupon-pack">
+                <div class="cpn-pack-scroll" id="coupon-grid"></div>
+                <div class="cpn-pack-sep"></div>
+                <div class="cpn-pack-btn-wrap">
+                  <button type="button" class="btn-pill" id="coupon-claim-all-btn" onclick="showJump()">再领取</button>
+                </div>
+              </div>
+              <div class="cpn-pack-tip">红包数量有限，先到先得</div>
+            </div>
+          </div>
+          <div class="coupon-step" id="coupon-step-2">
+            <div class="tjb" id="tjb-block" style="display:none;">
+              <div class="tjb-icon">币</div>
+              <div class="tjb-text">
+                <div class="tjb-name">淘金币抵扣</div>
+                <div class="tjb-sub">可抵金额以淘宝为准，不影响返现金额</div>
+              </div>
+              <div class="tjb-sep"></div>
+              <div class="tjb-btn-wrap">
+                <div class="tjb-bubble" id="tjb-bubble"></div>
+                <button class="btn-pill" onclick="showJump()">立即抵扣</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-deferred-section">
+      <div class="activity-row" id="activity-row">
+        <span class="activity-label">参与活动</span>
+        <div class="activity-tags" id="activity-tags"></div>
+      </div>
+
+      <div class="card" id="meiyou-extra-card">
+        <button type="button" class="rb-toggle" onclick="toggleMeiyouExtra()">
+          <div class="rb-summary">
+            <div class="rb-summary-title">美柚再补</div>
+            <div class="rb-summary-amt" id="rb-meiyou-total">0 元</div>
+          </div>
+          <svg class="rb-chevron" id="meiyou-extra-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="rb-panel" id="meiyou-extra-panel">
+          <div class="my-tags">
+            <div class="my-tag">
+              <span class="my-tag-icon">返</span>
+              <span class="my-tag-text">返现红包<span class="my-tag-amt" id="rb-hongbao-tag">¥0</span></span>
+            </div>
+            <span class="my-tag-plus">+</span>
+            <div class="my-tag">
+              <span class="my-tag-text">打卡补贴<span class="my-tag-amt" id="rb-daka-tag">¥0</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notice-bar">
+        <div class="notice-bar-text">实际支付价影响预估返现金额</div>
+      </div>
+      </div>
+
+    </div><!-- /page-scroll -->
+
+    <div class="action-bar">
+      <div class="action-rebate" id="action-rebate">
+        <div class="action-rebate-badge">买后约返 <b id="action-rebate-amt"></b></div>
+      </div>
+      <button class="action-main-btn" onclick="showJump()">一键领取并抵扣</button>
+    </div>
+
+  </div>
+
+  <!-- ─── 全屏跳转遮罩 ─── -->
+  <div id="page-overlay">
+    <button id="page-back-btn" onclick="closePO()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      返回
+    </button>
+    <div id="page-steps"><div class="sdot on" id="dot1"></div><div class="sdot" id="dot2"></div></div>
+    <div id="page-hint">点击图片跳转下一步 →</div>
+    <img id="page-img" src="" onclick="onImgClick()" alt="">
+  </div>
+
+</div><!-- /shell -->
+
+<!-- ── 取值说明浮层 ── -->
+<div class="spec-btn-wrap">
+  <div class="spec-panel" id="spec-panel">
+    <div class="spec-panel-hd">
+      <h3>取值说明</h3>
+      <button class="spec-panel-close" onclick="toggleSpec()">×</button>
+    </div>
+    <div class="spec-body" id="spec-body"></div>
+  </div>
+  <button class="spec-toggle-btn" onclick="toggleSpec()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+    查看取值说明
+  </button>
+</div>
+
+<script>
+  /* ═══ 接口模拟数据：寿全斋红糖姜茶 ═══ */
+  var API_RAW = {
+    item_basic_info: {
+      title: "【囤货首选】寿全斋红糖姜茶大姨妈必备独立包装姜枣茶120g*3盒",
+      brand_name: "寿全斋",
+      shop_title: "寿全斋旗舰店",
+      pict_url: "https://img.alicdn.com/bao/uploaded/i1/1613774608/O1CN01lr9hYJ1juWDT19c1G_!!1613774608.jpg",
+      annual_vol: "6000+",
+      user_type: 1,
+      real_post_fee: "0.00"
+    },
+    price_promotion_info: {
+      reserve_price: "50",
+      zk_final_price: "50",
+      final_promotion_price: "40",
+      final_promotion_path_list: {
+        final_promotion_path_map_data: [
+          { promotion_title: "商品券", promotion_desc: "满5减10", promotion_fee: "10", promotion_id: "10bff09c9a034fb6aaeca5366f1ce65c" },
+          { promotion_title: "粉丝福利券", promotion_desc: "满34减4", promotion_fee: "4", promotion_id: "fan-welfare-001" },
+          { promotion_title: "店铺关注券", promotion_desc: "满99减5", promotion_fee: "5", promotion_id: "shop-follow-001" }
+        ]
+      },
+      more_promotion_list: {
+        more_promotion_map_data: [
+          { promotion_title: "淘金币频道专享", promotion_desc: "淘金币频道抵扣11%起", promotion_id: "41482176804coin" }
+        ]
+      },
+      promotion_tag_list: {
+        promotion_tag_map_data: [
+          { tag_name: "10元" },
+          { tag_name: "淘金币频道抵扣4元起" },
+          { tag_name: "包邮" }
+        ]
+      }
+    },
+    publish_info: {
+      income_info: {
+        commission_amount: "2",
+        commission_rate: "1100",
+        subsidy_amount: "0",
+        subsidy_rate: "0"
+      },
+      income_rate: "11.00"
+    }
+  };
+
+  var COUPON_TITLE_KEYS = ["商品券", "品类加补券", "淘礼金", "店铺券", "店铺会员券", "鲜食加补购物券", "粉丝福利券", "店铺关注券"];
+  var ACTIVITY_TITLE_KEYS = ["官方立减", "单品直降", "限时优惠", "满件折", "件", "折"];
+
+  function isCouponType(title) {
+    return COUPON_TITLE_KEYS.some(function (k) { return (title || "").indexOf(k) >= 0; });
+  }
+  function isActivityType(item) {
+    var title = item.promotion_title || "";
+    if (title.indexOf("淘金币") >= 0) return false;
+    if (isCouponType(title)) return false;
+    return ACTIVITY_TITLE_KEYS.some(function (k) { return title.indexOf(k) >= 0; });
+  }
+  function parseThreshold(desc) {
+    var m = (desc || "").match(/满(\d+(?:\.\d+)?)/);
+    return m ? m[1] : "";
+  }
+  function parseFeeFromDesc(desc) {
+    var m = (desc || "").match(/减(\d+(?:\.\d+)?)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+  function parseTjbAmount(tags) {
+    for (var i = 0; i < tags.length; i++) {
+      var m = (tags[i].tag_name || "").match(/淘金币[^0-9]*(\d+(?:\.\d+)?)/);
+      if (m) return parseFloat(m[1]);
+    }
+    return null;
+  }
+  function fmtDisplay(n) {
+    var s = Number(n).toFixed(2);
+    if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, "");
+    return s;
+  }
+  function fmt(n) { return Number(n).toFixed(2); }
+  function fmtYuan(n) { return "¥" + fmt(n); }
+  function dedupeCoupons(list) {
+    var seen = {};
+    return list.filter(function (c) {
+      var key = c.promotion_id + "|" + c.promotion_desc;
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function parseProduct(api) {
+    var basic = api.item_basic_info;
+    var price = api.price_promotion_info;
+    var pub = api.publish_info;
+    var pathList = price.final_promotion_path_list.final_promotion_path_map_data || [];
+    var moreList = price.more_promotion_list.more_promotion_map_data || [];
+    var tagList = price.promotion_tag_list.promotion_tag_map_data || [];
+
+    var allPromos = pathList.map(function (p) { return Object.assign({}, p, { source: "path" }); })
+      .concat(moreList.map(function (p) { return Object.assign({}, p, { source: "more" }); }));
+
+    var coupons = dedupeCoupons(allPromos.filter(function (p) { return isCouponType(p.promotion_title); }));
+    coupons = coupons.filter(function (c) {
+      if (c.source === "more" && c.promotion_title === "品类加补券") return false;
+      return true;
+    });
+    coupons.forEach(function (c) {
+      if (!c.promotion_fee) c.promotion_fee = String(parseFeeFromDesc(c.promotion_desc));
+    });
+    coupons.sort(function (a, b) { return parseFloat(b.promotion_fee || 0) - parseFloat(a.promotion_fee || 0); });
+
+    var activities = pathList.filter(function (p) { return isActivityType(p); });
+    moreList.forEach(function (p) {
+      if (isActivityType(p) && !activities.some(function (a) { return a.promotion_desc === p.promotion_desc; })) {
+        activities.push(p);
+      }
+    });
+
+    var tjbItem = moreList.find(function (p) { return (p.promotion_title || "").indexOf("淘金币") >= 0; });
+    var tjbAmount = parseTjbAmount(tagList);
+    var pTaobao = parseFloat(price.final_promotion_price);
+    var commission = parseFloat(pub.income_info.commission_amount || 0);
+    var daka = 1.5;
+    var hongbao = 2;
+    var rebateTotal = commission + daka + hongbao;
+    var pMeiyou = pTaobao - rebateTotal;
+    var couponSaveTotal = coupons.reduce(function (s, c) { return s + parseFloat(c.promotion_fee || 0); }, 0);
+
+    return {
+      basic: basic, price: price, coupons: coupons, activities: activities.slice(0, 5),
+      tjbItem: tjbItem, tjbAmount: tjbAmount,
+      pTaobao: pTaobao, pMeiyou: pMeiyou, rebateTotal: rebateTotal,
+      commission: commission, daka: daka, hongbao: hongbao, couponSaveTotal: couponSaveTotal,
+      platform: basic.user_type === 1 ? "天猫" : "淘宝",
+      soldText: "已售 " + basic.annual_vol
+    };
+  }
+
+  var DATA = parseProduct(API_RAW);
+
+  function renderAll() {
+    var d = DATA;
+    var img = d.basic.pict_url;
+    document.getElementById("modal-img").src = img;
+    document.getElementById("page-img-prod").src = img;
+    document.getElementById("modal-platform").textContent = d.platform;
+    document.getElementById("page-platform").textContent = d.platform;
+    document.getElementById("modal-sold").textContent = d.soldText;
+    document.getElementById("page-sold").textContent = d.soldText;
+    document.getElementById("modal-title").textContent = d.basic.title;
+    document.getElementById("page-title").textContent = d.basic.title;
+    document.getElementById("modal-taobao-price").textContent = fmt(d.pTaobao);
+    document.getElementById("modal-rebate").textContent = fmtYuan(d.rebateTotal);
+    document.getElementById("page-header-price").textContent = fmtDisplay(d.pTaobao);
+    document.getElementById("page-rebate-tag").textContent = "约返" + fmt(d.rebateTotal) + "元";
+    document.getElementById("action-rebate-amt").textContent = fmtYuan(d.rebateTotal);
+    document.getElementById("rb-meiyou-total").textContent = fmt(d.daka + d.hongbao) + " 元";
+    document.getElementById("rb-hongbao-tag").textContent = "¥" + fmt(d.hongbao);
+    document.getElementById("rb-daka-tag").textContent = "¥" + fmt(d.daka);
+    var meiyouCard = document.getElementById("meiyou-extra-card");
+    if (meiyouCard) meiyouCard.style.display = (d.daka + d.hongbao) > 0 ? "" : "none";
+    renderCouponModule(d);
+    renderActivities(d.activities);
+    if (!d.coupons.length && !d.tjbItem) {
+      document.getElementById("coupon-card").style.display = "none";
+      document.getElementById("coupon-search").style.display = "none";
+    }
+  }
+
+  function fmtFee(n) {
+    var v = Number(n);
+    return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(2);
+  }
+
+  function formatFoundStatus(d) {
+    var count = d.coupons.length + (d.tjbItem ? 1 : 0);
+    return '找到' + count + '个优惠';
+  }
+
+  function renderCouponChip(c, idx) {
+    var fee = parseFloat(c.promotion_fee || 0);
+    var threshold = parseThreshold(c.promotion_desc);
+    var feeStr = fee % 1 ? fee : Math.round(fee);
+    var condText = threshold ? '满' + threshold + '用' : (c.promotion_desc || '');
+    var tagClass = idx === 0 ? 'solid' : 'plain';
+    var tagName = c.promotion_title || '优惠券';
+    return '<div class="cpn-chip">' +
+      '<span class="cpn-chip-tag ' + tagClass + '">' + tagName + '</span>' +
+      '<div class="cpn-chip-amt"><small>¥</small>' + feeStr + '</div>' +
+      '<div class="cpn-chip-cond">' + condText + '</div>' +
+    '</div>';
+  }
+
+  function renderCouponModule(d) {
+    var step1 = document.getElementById("coupon-step-1");
+    var step2 = document.getElementById("coupon-step-2");
+    var packWrap = document.getElementById("coupon-pack-wrap");
+    var packEl = document.getElementById("coupon-pack");
+    var gridEl = document.getElementById("coupon-grid");
+    var claimBtn = document.getElementById("coupon-claim-all-btn");
+    var tjbBlock = document.getElementById("tjb-block");
+    var foundEl = document.getElementById("coupon-found-status");
+    if (foundEl) foundEl.textContent = formatFoundStatus(d);
+
+    if (d.coupons.length) {
+      step1.style.display = "";
+      if (packWrap) packWrap.style.display = "";
+      if (packEl) packEl.style.display = "flex";
+      gridEl.innerHTML = d.coupons.map(renderCouponChip).join('');
+      if (claimBtn) claimBtn.style.display = '';
+    } else {
+      step1.style.display = "none";
+      if (packWrap) packWrap.style.display = "none";
+      if (packEl) packEl.style.display = "none";
+      gridEl.innerHTML = "";
+      if (claimBtn) claimBtn.style.display = "none";
+    }
+
+    if (d.tjbItem) {
+      step2.style.display = "";
+      tjbBlock.style.display = "flex";
+      document.getElementById("tjb-bubble").textContent = d.tjbAmount
+        ? "可抵" + fmtFee(d.tjbAmount) + "元起"
+        : "可抵扣";
+    } else {
+      step2.style.display = "none";
+      tjbBlock.style.display = "none";
+    }
+  }
+
+  function toggleMeiyouExtra() {
+    var card = document.getElementById("meiyou-extra-card");
+    var panel = document.getElementById("meiyou-extra-panel");
+    var chev = document.getElementById("meiyou-extra-chev");
+    var open = card.classList.toggle("open");
+    panel.style.maxHeight = open ? panel.scrollHeight + "px" : "0";
+    chev.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
+  }
+
+  function resetMeiyouExtra() {
+    var card = document.getElementById("meiyou-extra-card");
+    var panel = document.getElementById("meiyou-extra-panel");
+    var chev = document.getElementById("meiyou-extra-chev");
+    if (!card) return;
+    card.classList.remove("open");
+    panel.style.maxHeight = "0";
+    chev.style.transform = "rotate(0deg)";
+  }
+
+  var ACTIVITY_TAGS = ["立减3元", "88vip95折", "2件9折"];
+
+  function renderActivities(activities) {
+    var tags = document.getElementById("activity-tags");
+    tags.innerHTML = "";
+    ACTIVITY_TAGS.forEach(function (text) {
+      var span = document.createElement("span");
+      span.className = "activity-tag";
+      span.textContent = text;
+      tags.appendChild(span);
+    });
+  }
+
+  renderAll();
+  renderSpec();
+
+  /* ── 取值说明面板 ── */
+  function renderSpec() {
+    var d = DATA;
+    var sections = [
+      {
+        title: "商品基础信息",
+        rows: [
+          { label: "商品标题",  field: "item_basic_info.title" },
+          { label: "商品图片",  field: "item_basic_info.pict_url" },
+          { label: "平台",      field: "item_basic_info.user_type", rule: "1 → 天猫，其他 → 淘宝" },
+          { label: "销量",      field: "item_basic_info.annual_vol", rule: "优先年销量，无则用 tk_total_sales" },
+          { label: "店铺",      field: "item_basic_info.shop_title" },
+        ]
+      },
+      {
+        title: "价格",
+        rows: [
+          { label: "淘宝到手价", field: "price_promotion_info.final_promotion_price",
+            formula: "zk_final_price(" + d.price.zk_final_price + ") − 10元券 = " + fmtN(d.pTaobao) },
+          { label: "买后约返",   field: "publish_info.income_info.commission_amount",
+            formula: "commission_amount(" + d.commission + ")" },
+          { label: "美柚再补",   field: "内部数据",
+            formula: "打卡补贴(" + fmtN(d.daka) + ") + 返现红包(" + fmtN(d.hongbao) + ") = " + fmtN(d.daka + d.hongbao) },
+          { label: "约返合计",   field: "计算值",
+            formula: "买后约返(" + fmtN(d.commission) + ") + 打卡补贴(" + fmtN(d.daka) + ") + 返现红包(" + fmtN(d.hongbao) + ") = " + fmtN(d.rebateTotal) },
+          { label: "展示价格", field: "price_promotion_info.final_promotion_price",
+            formula: "券后价 = 标价50 − 10元券 = " + fmtN(d.pTaobao) + "（不含返现扣除）" },
+          { label: "美柚返后价", field: "计算值",
+            formula: "final_promotion_price(" + fmtN(d.pTaobao) + ") − 返现(" + fmtN(d.rebateTotal) + ") = " + fmtN(d.pMeiyou) },
+          { label: "买后约返", field: "计算值",
+            formula: "commission + 美柚再补 = " + fmtN(d.rebateTotal) },
+          { label: "活动价参考", field: "price_promotion_info.zk_final_price / reserve_price",
+            rule: "zk_final_price=" + d.price.zk_final_price + "，reserve_price=" + d.price.reserve_price },
+        ]
+      },
+      {
+        title: "找到优惠（多券横排）",
+        rows: [
+          { label: "模块标题",   field: "固定文案", rule: "「找到X个优惠」→ X 用阿拉伯数字，含券 + 淘金币" },
+          { label: "券展示",     field: "规则", rule: "券包横滑展示，黑白灰小券卡 + 右侧虚线分隔 + 一键领取；下方灰色小字「红包数量有限，先到先得」" },
+          { label: "淘金币",     field: "规则", rule: "券区下方独立展示淘金币行 + 立即抵扣" },
+          { label: "券数据来源", field: "final_promotion_path_list + more_promotion_list",
+            rule: "按 promotion_title 白名单筛选券类，全部展示" },
+        ]
+      },
+      {
+        title: "参与活动",
+        rows: [
+          { label: "数据来源",   field: "final_promotion_path_list + more_promotion_list",
+            rule: "白名单：限时优惠 / 官方立减 / 单品直降 / 满件折 / 88VIP折，排除券类和淘金币" },
+          { label: "标签文案",   field: "promotion_desc",
+            rule: "88VIP 消费券展示为「88VIP消费券 满X减Y」；包邮仅作 tag 不展示" },
+          { label: "最多展示",   field: "规则", rule: "最多 5 个标签" },
+        ]
+      },
+      {
+        title: "美柚再补",
+        rows: [
+          { label: "展示总额",   field: "计算值", rule: "= 打卡补贴 + 返现红包，默认折叠仅展示总额" },
+          { label: "展开明细",   field: "规则", rule: "打卡补贴 + 返现红包" },
+          { label: "打卡补贴",   field: "内部数据", rule: "= " + fmtN(d.daka) + " 元" },
+          { label: "返现红包",   field: "内部数据", rule: "= " + fmtN(d.hongbao) + " 元" },
+        ]
+      },
+      {
+        title: "底部行动区",
+        rows: [
+          { label: "买后约返",   field: "计算值", rule: "行动栏左侧展示「买后约返 ¥" + fmtN(d.rebateTotal) + "」" },
+          { label: "美柚返后价", field: "计算值", rule: "final_promotion_price − 约返总额 = " + fmtN(d.pMeiyou) },
+          { label: "付返明细",   field: "计算值", rule: "「付" + fmtN(d.pTaobao) + "元，返" + fmtN(d.rebateTotal) + "元」" },
+          { label: "一键领取并抵扣",     field: "publish_info.click_url", rule: "推广链接（模拟为空）" },
+          { label: "提示文案",   field: "固定文案", rule: "「实际支付价影响预估返现金额」" },
+        ]
+      }
+    ];
+
+    var html = "";
+    sections.forEach(function (sec) {
+      html += '<div class="spec-section"><div class="spec-section-title">' + sec.title + '</div>';
+      sec.rows.forEach(function (r) {
+        html += '<div class="spec-row"><div class="spec-label">' + r.label + '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+          '<div class="spec-field">' + r.field + '</div>' +
+          (r.rule ? '<div class="spec-rule">' + r.rule + '</div>' : '') +
+          (r.formula ? '<div class="spec-formula">' + r.formula + '</div>' : '') +
+          '</div></div>';
+      });
+      html += '</div>';
+    });
+    document.getElementById("spec-body").innerHTML = html;
+  }
+
+  function fmtN(n) { return Number(n).toFixed(2); }
+
+  function toggleSpec() {
+    document.getElementById("spec-panel").classList.toggle("open");
+  }
+
+  /* ── View 切换 ── */
+  var views = ['view-home','view-modal','view-page'];
+  var cur = 'view-home';
+
+  function showView(next) {
+    var prev = cur;
+    cur = next;
+    // 将旧视图设为 behind（往左缩），新视图 active（滑入）
+    views.forEach(function(id){
+      var el = document.getElementById(id);
+      if (id === next) { el.classList.remove('behind'); el.classList.add('active'); }
+      else if (id === prev) { el.classList.remove('active'); el.classList.add('behind'); }
+      else { el.classList.remove('active','behind'); }
+    });
+  }
+
+  // 首页 → 居中弹窗
+  function showModal() {
+    // 弹窗用 overlay，不做视图切换，直接显示在首页上层
+    var modal = document.getElementById('view-modal');
+    modal.style.position = 'absolute';
+    modal.style.inset = '0';
+    modal.style.display = 'flex';
+    // 用 requestAnimationFrame 触发 CSS transition
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        modal.classList.add('active');
+      });
+    });
+  }
+
+  function closeModal() {
+    var modal = document.getElementById('view-modal');
+    modal.classList.remove('active');
+    // 等动画结束再隐藏
+    setTimeout(function(){ modal.style.display = 'none'; }, 350);
+  }
+
+  var couponSearchRaf = null;
+
+  function hasCouponModule() {
+    return DATA.coupons.length > 0 || DATA.tjbItem;
+  }
+
+  function setDeferredSectionsVisible(visible, reveal) {
+    var section = document.getElementById("page-deferred-section");
+    var actionRebate = document.getElementById("action-rebate");
+    if (section) {
+      section.style.display = visible ? "" : "none";
+      section.classList.remove("deferred-reveal");
+      if (reveal) {
+        void section.offsetWidth;
+        section.classList.add("deferred-reveal");
+      }
+    }
+    if (actionRebate) actionRebate.style.display = visible ? "" : "none";
+  }
+
+  function resetCouponSearch() {
+    if (couponSearchRaf) { cancelAnimationFrame(couponSearchRaf); couponSearchRaf = null; }
+    var search = document.getElementById("coupon-search");
+    var bar = document.getElementById("coupon-search-bar");
+    var card = document.getElementById("coupon-card");
+    if (search) search.style.display = "none";
+    if (bar) bar.style.width = "0%";
+    if (card) {
+      card.classList.remove("coupon-reveal");
+      if (hasCouponModule()) card.style.display = "";
+    }
+    setDeferredSectionsVisible(true, false);
+  }
+
+  function startCouponSearch() {
+    resetCouponSearch();
+    if (!hasCouponModule()) return;
+
+    var search = document.getElementById("coupon-search");
+    var card = document.getElementById("coupon-card");
+    var bar = document.getElementById("coupon-search-bar");
+
+    search.style.display = "block";
+    card.style.display = "none";
+    setDeferredSectionsVisible(false, false);
+
+    var start = performance.now();
+    var duration = 1800;
+
+    function step(now) {
+      var progress = Math.min((now - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      bar.style.width = (eased * 100).toFixed(1) + "%";
+      if (progress < 1) {
+        couponSearchRaf = requestAnimationFrame(step);
+      } else {
+        couponSearchRaf = null;
+        search.style.display = "none";
+        card.style.display = "";
+        card.classList.add("coupon-reveal");
+        setDeferredSectionsVisible(true, true);
+      }
+    }
+    couponSearchRaf = requestAnimationFrame(step);
+  }
+
+  // 居中弹窗 → 导购页（侧滑进入）
+  function showPage() {
+    var modal = document.getElementById('view-modal');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    var page = document.getElementById('view-page');
+    page.style.display = 'flex';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        page.classList.add('active');
+        startCouponSearch();
+      });
+    });
+    cur = 'view-page';
+  }
+
+  // 导购页 → 返回首页
+  function goHome() {
+    resetCouponSearch();
+    resetMeiyouExtra();
+    var page = document.getElementById('view-page');
+    page.classList.remove('active');
+    setTimeout(function(){ page.style.display = 'none'; }, 400);
+    cur = 'view-home';
+  }
+
+  // 初始化：modal 和 page 默认隐藏
+  (function init(){
+    var modal = document.getElementById('view-modal');
+    var page  = document.getElementById('view-page');
+    modal.style.display = 'none';
+    page.style.display  = 'none';
+  })();
+
+  /* ── 全屏跳转 ── */
+  var pCur = 0;
+  var jumpMode = 'guide';
+  var IMG_TAOBAO1 = 'assets/taobao1.png';
+  var IMG_TAOBAO2 = 'assets/taobao2.png';
+  var IMG_GUIDE1 = 'assets/page1.png';
+  var IMG_GUIDE2 = 'assets/page2.png';
+
+  function openOverlay(imgSrc, hint, step) {
+    pCur = step;
+    document.getElementById('page-img').src = imgSrc;
+    document.getElementById('page-hint').textContent = hint;
+    document.getElementById('dot1').className = step === 1 ? 'sdot on' : 'sdot';
+    document.getElementById('dot2').className = step === 2 ? 'sdot on' : 'sdot';
+    document.getElementById('page-overlay').classList.add('show');
+  }
+
+  function showDirectOrder() {
+    jumpMode = 'direct';
+    closeModal();
+    openOverlay(IMG_TAOBAO1, '点击图片跳转淘宝商品页 →', 1);
+  }
+
+  function showJump() {
+    jumpMode = 'guide';
+    openOverlay(IMG_GUIDE1, '点击图片跳转下一步 →', 1);
+  }
+
+  function onImgClick() {
+    if (pCur === 1) {
+      if (jumpMode === 'direct') {
+        openOverlay(IMG_TAOBAO2, '已到达淘宝商品页，点击「返回」退出', 2);
+      } else {
+        openOverlay(IMG_GUIDE2, '已到达终点，点击「返回」退出', 2);
+      }
+    }
+  }
+
+  function closePO() {
+    pCur = 0;
+    document.getElementById('page-overlay').classList.remove('show');
+  }
+</script>
+</body>
+</html>
