@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>述职展示 · 策略产品工作总结</title>
+<style>
+  :root {
+    --pink-deep: #E23B6E;
+    --pink: #F5709A;
+    --pink-soft: #FBD5E0;
+    --gold: #F5B840;
+    --gold-deep: #D89020;
+    --ink: #1E1822;
+    --ink-soft: #524856;
+    --paper: #FFF6F8;
+    --card: #FFFFFF;
+    --line: rgba(226,59,110,0.14);
+    --red-deep: #B8291A;
+    --red: #D4372C;
+    --red-soft: #FFE8E5;
+    --festive-gold: #D4AF37;
+    /* 16:9 大屏字号阶梯 */
+    --fs-xs: clamp(12px, 0.78vw, 15px);
+    --fs-sm: clamp(14px, 0.92vw, 17px);
+    --fs-md: clamp(16px, 1.08vw, 20px);
+    --fs-lg: clamp(22px, 1.65vw, 30px);
+    --fs-xl: clamp(30px, 2.4vw, 44px);
+    --fs-hero: clamp(34px, 2.9vw, 52px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    background:
+      radial-gradient(circle at 20% 0%, #FFE3EC 0%, transparent 45%),
+      radial-gradient(circle at 90% 100%, #FFEAD6 0%, transparent 40%),
+      #FFF6F8;
+    color: var(--ink);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============ 场景管理 ============ */
+  .scenes-wrapper { width: 100%; height: 100vh; height: 100dvh; position: relative; }
+  .stage {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: minmax(460px, 40vw) 1fr; gap: 0;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateX(40px);
+  }
+  .stage.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+  .stage.exit-left { opacity: 0; transform: translateX(-40px); }
+
+  /* ============ 通用：左侧手机演示区 ============ */
+  .demo-pane {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: clamp(24px, 3vh, 48px) clamp(20px, 2vw, 40px);
+    position: relative;
+  }
+  .scene-tag {
+    position: absolute; top: clamp(24px, 3.5vh, 44px); left: clamp(28px, 3vw, 52px);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .scene-tag .num {
+    width: clamp(38px, 2.8vw, 48px); height: clamp(38px, 2.8vw, 48px); border-radius: 50%;
+    background: var(--ink); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(15px, 1.1vw, 18px); font-weight: 700; letter-spacing: -0.5px;
+  }
+  .scene-tag .txt { font-size: clamp(14px, 1vw, 18px); color: var(--ink-soft); letter-spacing: 2px; font-weight: 600; }
+  .phone {
+    width: calc(min(74vh, 820px) * 0.5);
+    height: min(74vh, 820px);
+    border-radius: clamp(36px, 2.8vw, 48px);
+    background: #111; padding: clamp(8px, 0.7vw, 12px);
+    box-shadow: 0 30px 80px -16px rgba(226,59,110,0.45), 0 0 0 1px rgba(0,0,0,0.05);
+    position: relative;
+  }
+  .phone-screen {
+    width: 100%; height: 100%; border-radius: clamp(28px, 2.2vw, 38px);
+    overflow: hidden; position: relative;
+  }
+  .notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 130px; height: 24px; background: #111;
+    border-radius: 0 0 16px 16px; z-index: 40;
+  }
+  .status-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 22px 0; font-size: 11px; color: #fff; font-weight: 600; z-index: 30;
+  }
+
+  /* ============ 通用：右侧数据面板 ============ */
+  .data-pane {
+    padding: clamp(36px, 4.5vh, 72px) clamp(48px, 5vw, 96px) clamp(36px, 4vh, 64px) clamp(40px, 4vw, 72px);
+    display: flex; flex-direction: column; justify-content: center;
+    overflow-y: auto; border-left: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,246,248,0.4));
+    position: relative;
+  }
+  .data-pane > * { flex-shrink: 0; }
+  .eyebrow {
+    font-size: var(--fs-sm); letter-spacing: 5px; color: var(--pink-deep);
+    font-weight: 800; text-transform: uppercase; margin-bottom: 14px;
+  }
+  .headline {
+    font-size: var(--fs-hero); font-weight: 800; line-height: 1.18;
+    color: var(--ink); margin-bottom: 12px; letter-spacing: -0.02em;
+  }
+  .headline .accent { color: var(--pink-deep); }
+  .lead {
+    font-size: var(--fs-md); color: var(--ink-soft); line-height: 1.65;
+    max-width: 92%; margin-bottom: clamp(18px, 2vh, 28px);
+  }
+  .lead b { color: var(--ink); font-weight: 700; }
+  .hint-pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(226,59,110,0.1); color: var(--pink-deep);
+    font-size: var(--fs-sm); font-weight: 600;
+    padding: clamp(10px, 1vh, 14px) clamp(16px, 1.4vw, 22px);
+    border-radius: 24px; margin-bottom: clamp(18px, 2vh, 28px); align-self: flex-start;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+  .hint-pill .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pink-deep); flex-shrink: 0; }
+  .data-cards { display: flex; flex-direction: column; gap: clamp(14px, 1.5vh, 20px); }
+  .dcard {
+    background: var(--card); border-radius: 16px;
+    padding: clamp(18px, 1.6vw, 28px) clamp(22px, 2vw, 32px);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 32px -16px rgba(226,59,110,0.18);
+    opacity: 0; transform: translateY(16px);
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .dcard.show { opacity: 1; transform: translateY(0); }
+  .dcard-flag {
+    font-size: var(--fs-xs); letter-spacing: 2px; font-weight: 800;
+    text-transform: uppercase; margin-bottom: 10px;
+    display: inline-block; padding: 4px 12px; border-radius: 8px;
+  }
+  .flag-data { background: rgba(245,184,64,0.18); color: var(--gold-deep); }
+  .flag-insight { background: rgba(226,59,110,0.12); color: var(--pink-deep); }
+  .flag-compare { background: rgba(104,192,90,0.14); color: #2d7a22; }
+  .dcard-num {
+    font-size: var(--fs-xl); font-weight: 800; color: var(--ink); line-height: 1; letter-spacing: -0.02em;
+  }
+  .dcard-num .unit { font-size: calc(var(--fs-xl) * 0.55); font-weight: 700; color: var(--ink-soft); }
+  .dcard-num .up { color: #2d7a22; font-size: var(--fs-sm); font-weight: 700; }
+  .dcard-label { font-size: var(--fs-md); color: var(--ink); font-weight: 700; margin-top: 10px; }
+  .dcard-desc { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.7; margin-top: 8px; }
+  .dcard-desc b { color: var(--pink-deep); font-weight: 700; }
+  .dcard-desc .green { color: #2d7a22; font-weight: 700; }
+  .bridge {
+    margin-top: clamp(16px, 2vh, 24px); padding: clamp(14px, 1.4vw, 20px) clamp(18px, 1.6vw, 24px);
+    border-left: 4px solid var(--gold);
+    background: rgba(245,184,64,0.08);
+    border-radius: 0 14px 14px 0;
+    font-size: var(--fs-sm); color: var(--ink); line-height: 1.7; font-style: italic;
+    opacity: 0; transform: translateX(-10px);
+    transition: all 0.5s ease;
+  }
+  .bridge.show { opacity: 1; transform: translateX(0); }
+  .bridge b { color: var(--gold-deep); font-style: normal; }
+
+  .next-scene-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: clamp(12px, 1.2vh, 16px) clamp(22px, 2vw, 28px);
+    margin-top: clamp(14px, 1.5vh, 20px); align-self: flex-start;
+    background: linear-gradient(135deg, var(--pink-deep), #C62E5C);
+    color: #fff; border: none; border-radius: 28px;
+    font-size: var(--fs-sm); font-weight: 700; cursor: pointer;
+    box-shadow: 0 10px 28px rgba(226,59,110,0.38);
+    opacity: 0; transform: translateY(10px); pointer-events: none;
+    transition: all 0.4s ease;
+  }
+  .next-scene-btn.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .next-scene-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(226,59,110,0.45); }
+
+  /* ============ 全局导航 ============ */
+  .global-nav {
+    position: fixed; bottom: clamp(24px, 3.5vh, 40px); right: clamp(40px, 4vw, 72px);
+    display: flex; gap: 12px; align-items: center; z-index: 200;
+  }
+  .nav-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--pink-soft); border: none; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-dot.active { width: 36px; border-radius: 6px; background: var(--pink-deep); }
+  .nav-label {
+    font-size: var(--fs-xs); color: var(--ink-soft); letter-spacing: 1px;
+    margin-left: 12px; font-weight: 600;
+  }
+  .reset-btn {
+    position: fixed; bottom: clamp(24px, 3.5vh, 40px); left: clamp(32px, 3vw, 56px);
+    background: rgba(255,255,255,0.85); border: 1px solid var(--line);
+    color: var(--ink-soft); font-size: var(--fs-xs); font-weight: 600;
+    padding: clamp(8px, 0.8vh, 12px) clamp(14px, 1.2vw, 20px);
+    border-radius: 20px; cursor: pointer; z-index: 200;
+    backdrop-filter: blur(8px);
+  }
+  .reset-btn:hover { background: rgba(226,59,110,0.08); color: var(--pink-deep); }
+  .back-btn {
+    position: fixed; bottom: clamp(24px, 3.5vh, 40px); left: clamp(120px, 10vw, 180px);
+    background: rgba(255,255,255,0.85); border: 1px solid transparent;
+    color: transparent; font-size: var(--fs-xs); font-weight: 600;
+    padding: clamp(8px, 0.8vh, 12px) clamp(14px, 1.2vw, 20px);
+    border-radius: 20px; cursor: pointer; z-index: 200;
+    transition: all 0.3s; user-select: none; backdrop-filter: blur(8px);
+  }
+  .back-btn:hover {
+    border-color: var(--line); color: var(--ink-soft);
+    background: rgba(226,59,110,0.08);
+  }
+  .nav-hint {
+    position: fixed; bottom: clamp(8px, 1vh, 14px); right: clamp(40px, 4vw, 72px);
+    font-size: 11px; color: rgba(82,72,86,0.3);
+    letter-spacing: 1px; z-index: 200; user-select: none;
+  }
+
+  /* ============ 场景一：双十一扭蛋 ============ */
+  .s1-screen {
+    background: linear-gradient(180deg, #FF6B9D 0%, #F5477E 30%, #E8356C 100%);
+  }
+  .act-header {
+    padding: 44px 20px 8px; text-align: center; color: #fff;
+    position: relative; z-index: 10;
+  }
+  .act-title {
+    font-size: 26px; font-weight: 800; letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(180,20,60,0.4); font-style: italic;
+  }
+  .act-sub { font-size: 12px; margin-top: 4px; opacity: 0.95; letter-spacing: 3px; }
+  .gacha-zone {
+    position: absolute; top: 96px; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .gacha-machine { width: 220px; height: 300px; position: relative; margin-top: 8px; }
+  .gacha-globe {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 200px; border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), rgba(255,255,255,0.05) 55%),
+      linear-gradient(160deg, rgba(255,220,235,0.65), rgba(255,160,190,0.35));
+    border: 3px solid rgba(255,255,255,0.7);
+    box-shadow: inset 0 -20px 40px rgba(226,59,110,0.25), 0 8px 24px rgba(200,30,80,0.3);
+    overflow: hidden; z-index: 5;
+  }
+  .capsule {
+    position: absolute; width: 34px; height: 34px; border-radius: 50%;
+    box-shadow: inset 0 -6px 10px rgba(0,0,0,0.12), inset 0 4px 6px rgba(255,255,255,0.6);
+  }
+  .cap-a { background: linear-gradient(160deg,#FFD86B,#F5A623); top: 120px; left: 30px; }
+  .cap-b { background: linear-gradient(160deg,#FF9EC0,#F5477E); top: 140px; left: 78px; }
+  .cap-c { background: linear-gradient(160deg,#A0D8FF,#4F9FE8); top: 115px; left: 128px; }
+  .cap-d { background: linear-gradient(160deg,#C8F5C0,#68C05A); top: 155px; left: 45px; }
+  .cap-e { background: linear-gradient(160deg,#FFD86B,#F5A623); top: 150px; left: 120px; }
+  .cap-f { background: linear-gradient(160deg,#FF9EC0,#F5477E); top: 100px; left: 85px; }
+  @keyframes jiggle {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-4px) rotate(-8deg); }
+    75% { transform: translateY(-2px) rotate(6deg); }
+  }
+  .shaking .capsule { animation: jiggle 0.4s ease-in-out infinite; }
+  .shaking .cap-b { animation-delay: 0.08s; }
+  .shaking .cap-c { animation-delay: 0.15s; }
+  .shaking .cap-d { animation-delay: 0.05s; }
+  .shaking .cap-e { animation-delay: 0.12s; }
+  .shaking .cap-f { animation-delay: 0.18s; }
+  .gacha-body {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 180px; height: 140px;
+    background: linear-gradient(180deg, #FF5C8D, #E8356C);
+    border-radius: 20px;
+    box-shadow: inset 0 4px 10px rgba(255,255,255,0.3), 0 6px 16px rgba(180,20,60,0.35);
+    z-index: 6;
+  }
+  .gacha-knob {
+    position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+    width: 48px; height: 48px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #FFF, #FFD86B 60%, #E89A10);
+    border: 3px solid #fff;
+    box-shadow: 0 3px 8px rgba(180,20,60,0.3);
+  }
+  .gacha-slot {
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    width: 70px; height: 16px; border-radius: 8px;
+    background: rgba(120,10,40,0.55);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .drop-capsule {
+    position: absolute; bottom: 34px; left: 50%;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(160deg,#FFD86B,#F5A623);
+    box-shadow: inset 0 -6px 10px rgba(0,0,0,0.15), inset 0 4px 6px rgba(255,255,255,0.6), 0 4px 12px rgba(180,20,60,0.3);
+    z-index: 8; opacity: 0; transform: translateX(-50%);
+  }
+  @keyframes dropOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.6); }
+    30% { opacity: 1; transform: translateX(-50%) translateY(10px) scale(1); }
+    60% { transform: translateX(-50%) translateY(2px) scale(1.05); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(6px) scale(1); }
+  }
+  .dropping { animation: dropOut 0.7s ease-out forwards; }
+  .draw-btn {
+    position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%);
+    width: 170px; padding: 13px 0; z-index: 15;
+    background: linear-gradient(180deg, #FFE08A, #F5A623);
+    color: #8B3A00; font-weight: 800; font-size: 16px;
+    border: none; border-radius: 22px;
+    box-shadow: 0 6px 14px rgba(200,120,10,0.4), inset 0 2px 4px rgba(255,255,255,0.6);
+    cursor: pointer; letter-spacing: 2px; transition: transform 0.12s;
+  }
+  .draw-btn:active { transform: translateX(-50%) scale(0.95); }
+  .draw-count {
+    position: absolute; bottom: 62px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: #fff; z-index: 15; opacity: 0.9;
+  }
+  .order-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(4px);
+    padding: 10px 16px 14px; z-index: 20;
+  }
+  .order-bar-title { font-size: 11px; color: #fff; text-align: center; margin-bottom: 6px; letter-spacing: 1px; }
+  .order-pills { display: flex; justify-content: center; gap: 6px; }
+  .order-pill {
+    width: 40px; height: 34px; border-radius: 8px;
+    background: rgba(255,255,255,0.2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; font-size: 10px; font-weight: 700;
+  }
+  .order-pill.hot { background: linear-gradient(180deg,#FFE08A,#F5A623); color:#8B3A00; }
+  .select-overlay {
+    position: absolute; inset: 0; z-index: 50;
+    background: rgba(180,20,60,0.35); backdrop-filter: blur(3px);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 130px;
+  }
+  .select-card {
+    width: 268px; background: linear-gradient(180deg, #FFFFFF, #FFF0F5);
+    border-radius: 22px; padding: 18px 16px 20px;
+    box-shadow: 0 20px 40px rgba(180,20,60,0.4); text-align: center;
+  }
+  .select-card h3 { font-size: 16px; color: var(--pink-deep); font-weight: 800; }
+  .select-card .sc-sub { font-size: 11px; color: var(--ink-soft); margin: 4px 0 14px; }
+  .prize-row { display: flex; gap: 8px; }
+  .prize-opt {
+    flex: 1; border-radius: 14px; padding: 12px 4px 10px;
+    background: #fff; border: 2px solid var(--pink-soft);
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .prize-opt:hover { transform: translateY(-3px); }
+  .prize-opt.chosen { border-color: var(--pink-deep); background: linear-gradient(180deg,#FFF,#FFE8F0); box-shadow: 0 6px 14px rgba(226,59,110,0.25); }
+  .prize-emoji { font-size: 30px; }
+  .prize-name { font-size: 11px; font-weight: 700; margin-top: 6px; color: var(--ink); }
+  .prize-val { font-size: 10px; color: var(--pink-deep); margin-top: 2px; }
+  .prize-share {
+    position: absolute; top: -8px; right: -6px;
+    background: var(--pink-deep); color: #fff; font-size: 9px;
+    padding: 2px 6px; border-radius: 10px; font-weight: 700;
+    opacity: 0; transform: scale(0.6); transition: all 0.3s;
+  }
+  .prize-opt.reveal .prize-share { opacity: 1; transform: scale(1); }
+  .select-confirm {
+    margin-top: 14px; width: 100%; padding: 11px 0;
+    background: linear-gradient(180deg, #FF6B9D, #E8356C);
+    color: #fff; font-weight: 800; font-size: 14px;
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 6px 14px rgba(226,59,110,0.35);
+  }
+  .select-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ============ 场景二：年货节抽签 ============ */
+  .s2-screen {
+    background: linear-gradient(180deg, #E8302A 0%, #C62828 40%, #A01E1E 100%);
+  }
+  .s2-header {
+    padding: 44px 20px 8px; text-align: center; color: #fff;
+    position: relative; z-index: 10;
+  }
+  .s2-title {
+    font-size: 24px; font-weight: 800; letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(120,10,10,0.4);
+  }
+  .s2-sub { font-size: 12px; margin-top: 4px; opacity: 0.95; letter-spacing: 3px; }
+  .s2-prize-banner {
+    margin: 8px auto 0; width: 200px; padding: 6px 0;
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.2), transparent);
+    text-align: center; font-size: 22px; font-weight: 800;
+    color: #FFD700; text-shadow: 0 1px 4px rgba(200,150,0,0.5);
+    letter-spacing: 2px;
+  }
+
+  .fortune-zone {
+    position: absolute; top: 120px; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .fortune-tube-wrap { position: relative; width: 160px; height: 220px; margin-top: 0; }
+  .fortune-tube {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 140px;
+    background: linear-gradient(90deg, #5C2D0E 0%, #8B4513 25%, #A0522D 50%, #8B4513 75%, #5C2D0E 100%);
+    border-radius: 8px 8px 50px 50px;
+    box-shadow: inset 0 4px 8px rgba(255,215,0,0.15), 0 8px 20px rgba(80,30,10,0.4);
+  }
+  .fortune-tube::before {
+    content: ''; position: absolute; top: -6px; left: -6px; right: -6px; height: 18px;
+    background: linear-gradient(180deg, #FFD700, #DAA520, #B8860B);
+    border-radius: 10px 10px 4px 4px; box-shadow: 0 2px 6px rgba(218,165,32,0.5);
+  }
+  .fortune-tube::after {
+    content: '签'; position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+    font-size: 22px; font-weight: 800; color: rgba(255,215,0,0.35);
+    letter-spacing: 4px;
+  }
+  .f-stick {
+    position: absolute; width: 7px; border-radius: 3px 3px 1px 1px;
+    background: linear-gradient(180deg, #FFD700 0%, #F5DEB3 25%, #DEB887 100%);
+    transform-origin: bottom center;
+  }
+  .f-stick-1 { height: 90px; bottom: 100px; left: 55px; transform: rotate(-8deg); }
+  .f-stick-2 { height: 85px; bottom: 100px; left: 70px; transform: rotate(-2deg); }
+  .f-stick-3 { height: 95px; bottom: 100px; left: 85px; transform: rotate(5deg); }
+  .f-stick-4 { height: 80px; bottom: 100px; left: 98px; transform: rotate(10deg); }
+  .f-stick-5 { height: 88px; bottom: 100px; left: 42px; transform: rotate(-12deg); }
+  @keyframes stickShake {
+    0%,100% { transform: rotate(var(--base-rot)); }
+    25% { transform: rotate(calc(var(--base-rot) - 4deg)); }
+    75% { transform: rotate(calc(var(--base-rot) + 4deg)); }
+  }
+  .tube-shaking .f-stick { animation: stickShake 0.3s ease-in-out infinite; }
+  .f-stick-1 { --base-rot: -8deg; }
+  .f-stick-2 { --base-rot: -2deg; }
+  .f-stick-3 { --base-rot: 5deg; }
+  .f-stick-4 { --base-rot: 10deg; }
+  .f-stick-5 { --base-rot: -12deg; }
+
+  @keyframes stickPull {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    60% { transform: translateY(-70px) rotate(5deg); opacity: 1; }
+    100% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+  }
+  .stick-pulling { animation: stickPull 0.6s ease-out forwards; }
+
+  .fortune-result-card {
+    position: absolute; top: 55px; left: 50%; transform: translate(-50%, 20px) scale(0.7);
+    width: 210px; padding: 18px 14px 16px;
+    background: linear-gradient(180deg, #FFF8E7, #FFF0D0);
+    border: 2px solid var(--festive-gold); border-radius: 18px;
+    text-align: center; opacity: 0; z-index: 30;
+    box-shadow: 0 12px 30px rgba(139,69,19,0.3);
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .fortune-result-card.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .fortune-level {
+    font-size: 26px; font-weight: 800; color: var(--red-deep);
+    text-shadow: 0 1px 2px rgba(184,41,26,0.2);
+  }
+  .fortune-divider {
+    width: 60px; height: 2px; margin: 8px auto;
+    background: linear-gradient(90deg, transparent, var(--festive-gold), transparent);
+  }
+  .fortune-reward-icon { font-size: 28px; margin: 4px 0; }
+  .fortune-reward-text { font-size: 13px; font-weight: 700; color: #654321; }
+  .fortune-reward-sub { font-size: 11px; color: #8B7355; margin-top: 2px; }
+
+  .s2-draw-btn {
+    position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+    width: 180px; padding: 14px 0; z-index: 15;
+    background: linear-gradient(180deg, #FFE08A, #F5A623);
+    color: #8B3A00; font-weight: 800; font-size: 16px;
+    border: none; border-radius: 22px;
+    box-shadow: 0 6px 14px rgba(200,120,10,0.4), inset 0 2px 4px rgba(255,255,255,0.6);
+    cursor: pointer; letter-spacing: 2px; transition: transform 0.12s;
+  }
+  .s2-draw-btn:active { transform: translateX(-50%) scale(0.95); }
+  .s2-draw-count {
+    position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: rgba(255,255,255,0.9); z-index: 15;
+  }
+
+  .task-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.97); backdrop-filter: blur(6px);
+    border-radius: 20px 20px 0 0; padding: 14px 14px 16px;
+    z-index: 25; transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+  }
+  .task-panel.show { transform: translateY(0); }
+  .task-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .task-panel-title { font-size: 13px; font-weight: 700; color: var(--red-deep); }
+  .task-panel-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    background: rgba(212,55,44,0.1); color: var(--red);
+    font-weight: 700;
+  }
+  .task-item {
+    display: flex; align-items: center; padding: 10px 12px;
+    background: #FFF8F5; border-radius: 12px; margin-bottom: 6px;
+    cursor: pointer; transition: all 0.2s; border: 1.5px solid transparent;
+  }
+  .task-item:hover { background: #FFEEE5; border-color: rgba(212,55,44,0.15); }
+  .task-item.clicked { background: #F0FFF0; border-color: rgba(104,192,90,0.3); }
+  .task-icon { font-size: 18px; margin-right: 10px; flex-shrink: 0; }
+  .task-info { flex: 1; }
+  .task-name { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .task-sub { font-size: 10px; color: var(--ink-soft); margin-top: 1px; }
+  .task-go {
+    font-size: 10px; padding: 4px 12px;
+    background: linear-gradient(135deg, var(--red), #E84535);
+    color: #fff; border: none; border-radius: 12px;
+    font-weight: 700; cursor: pointer; flex-shrink: 0;
+  }
+  .task-item.clicked .task-go {
+    background: #68C05A; pointer-events: none;
+  }
+  .task-item.clicked .task-go::after { content: ' ✓'; }
+
+  .s2-bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.2); backdrop-filter: blur(4px);
+    padding: 10px 16px 14px; z-index: 20; text-align: center;
+  }
+  .s2-bottom-text { font-size: 11px; color: rgba(255,255,255,0.9); letter-spacing: 1px; }
+
+  /* ============ 场景三：618 抽奖机 ============ */
+  .s3-screen {
+    background: linear-gradient(180deg, #FF8FA8 0%, #FF6B8A 35%, #FF5A7A 100%);
+    overflow-y: auto;
+  }
+  .s3-top { padding: 36px 14px 0; position: relative; z-index: 10; }
+  .s3-back { position: absolute; left: 14px; top: 40px; color: #fff; font-size: 18px; opacity: 0.9; }
+  .s3-brand { text-align: center; font-size: 11px; color: rgba(255,255,255,0.95); letter-spacing: 1px; }
+  .s3-hero {
+    margin-top: 6px; text-align: center; font-size: 20px; font-weight: 900; line-height: 1.25;
+    color: #fff; text-shadow: 0 2px 0 #E8356C, 0 4px 12px rgba(180,20,60,0.35);
+    letter-spacing: 1px;
+  }
+  .s3-rules {
+    position: absolute; right: 14px; top: 38px; font-size: 10px; color: #fff;
+    background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;
+  }
+  .s3-rounds { display: flex; gap: 4px; padding: 10px 12px 0; }
+  .s3-round {
+    flex: 1; text-align: center; padding: 6px 2px; border-radius: 10px 10px 0 0;
+    background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); font-size: 9px; line-height: 1.3;
+  }
+  .s3-round.active {
+    background: linear-gradient(180deg, #FFE08A, #F5A623); color: #8B3A00; font-weight: 700;
+  }
+  .s3-round-pool { font-size: 10px; font-weight: 800; }
+  .s3-collect-bar {
+    margin: 0 12px; padding: 8px 10px; background: rgba(255,255,255,0.92);
+    border-radius: 12px; font-size: 10px; color: var(--ink-soft);
+  }
+  .s3-collect-bar b { color: var(--pink-deep); }
+  .s3-collect-progress {
+    height: 6px; background: #F0E0E8; border-radius: 3px; margin-top: 6px; overflow: hidden;
+  }
+  .s3-collect-fill {
+    height: 100%; width: 0%; background: linear-gradient(90deg, #FF6B9D, #F5A623);
+    border-radius: 3px; transition: width 0.5s ease;
+  }
+  .s3-pomelos { display: flex; justify-content: space-between; padding: 8px 16px 4px; }
+  .s3-pomelo { text-align: center; flex: 1; }
+  .s3-pomelo-icon {
+    width: 44px; height: 44px; margin: 0 auto 4px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: 2px dashed rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    transition: all 0.3s;
+  }
+  .s3-pomelo-icon.got {
+    background: linear-gradient(160deg, #FFE08A, #F5A623); border: 2px solid #fff;
+    box-shadow: 0 4px 10px rgba(200,120,10,0.35);
+  }
+  .s3-pomelo-name { font-size: 9px; color: rgba(255,255,255,0.95); }
+  .s3-pomelo-count { font-size: 8px; color: rgba(255,255,255,0.75); }
+  .s3-slot-wrap { padding: 6px 14px 16px; position: relative; }
+  .s3-slot-machine {
+    background: linear-gradient(180deg, #FFB347 0%, #FF8C42 50%, #FF7A35 100%);
+    border-radius: 20px; padding: 10px 10px 14px;
+    box-shadow: 0 8px 24px rgba(200,80,20,0.4), inset 0 2px 6px rgba(255,255,255,0.35);
+    position: relative;
+  }
+  .s3-ticker {
+    background: rgba(255,255,255,0.9); border-radius: 14px; padding: 5px 10px;
+    font-size: 9px; color: var(--ink-soft); text-align: center; margin-bottom: 8px;
+    white-space: nowrap; overflow: hidden;
+  }
+  .s3-ticker span { display: inline-block; animation: ticker 8s linear infinite; }
+  @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+  .s3-reels { display: flex; gap: 5px; justify-content: center; margin-bottom: 10px; }
+  .s3-reel {
+    width: 58px; height: 52px; background: #fff; border-radius: 10px;
+    overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
+    position: relative;
+  }
+  .s3-reel-strip {
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  .s3-reel-strip.spinning { transition: none; animation: reelSpin 0.35s linear infinite; }
+  @keyframes reelSpin { to { transform: translateY(-50%); } }
+  .s3-reel-item {
+    width: 58px; height: 52px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 9px; color: var(--ink-soft);
+  }
+  .s3-reel-item .ico { font-size: 22px; line-height: 1; }
+  .s3-draw-btn {
+    display: block; width: 78%; margin: 0 auto; padding: 11px 0;
+    background: linear-gradient(180deg, #FF8FB8, #FF5A8A);
+    color: #fff; font-weight: 800; font-size: 15px; border: none; border-radius: 22px;
+    box-shadow: 0 6px 14px rgba(200,40,80,0.4), inset 0 2px 4px rgba(255,255,255,0.4);
+    cursor: pointer; letter-spacing: 2px;
+  }
+  .s3-draw-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+  .s3-side-row { display: flex; justify-content: space-between; padding: 8px 24px 0; }
+  .s3-side-btn {
+    font-size: 9px; color: rgba(255,255,255,0.95); text-align: center; cursor: pointer;
+  }
+  .s3-side-btn .ico {
+    width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 4px;
+    background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .s3-result-toast {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+    background: rgba(255,255,255,0.97); border-radius: 16px; padding: 14px 20px;
+    text-align: center; opacity: 0; pointer-events: none; z-index: 50;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2); transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s3-result-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .s3-result-toast .big { font-size: 28px; }
+  .s3-result-toast .txt { font-size: 12px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+
+  /* ============ 对比条 ============ */
+  .compare-bar {
+    display: flex; align-items: flex-end; gap: 12px; margin-top: 10px;
+  }
+  .compare-item { text-align: center; }
+  .compare-bar-track {
+    width: 48px; border-radius: 6px 6px 0 0;
+    transition: height 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .compare-label { font-size: 10px; color: var(--ink-soft); margin-top: 4px; }
+  .compare-val { font-size: 12px; font-weight: 800; color: var(--ink); }
+
+  /* ============ 场景四：返现红包 ============ */
+  .s4-screen {
+    background: linear-gradient(180deg, #FFF5F7 0%, #FFE8EE 50%, #FFF0F3 100%);
+  }
+  .s4-home {
+    padding: 40px 16px 0; height: 100%; position: relative;
+  }
+  .s4-nav { font-size: 12px; font-weight: 700; color: var(--pink-deep); margin-bottom: 12px; }
+  .s4-banner {
+    background: linear-gradient(135deg, #FF6B9D, #E8356C);
+    border-radius: 14px; padding: 14px 16px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 6px 16px rgba(226,59,110,0.3); cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .s4-banner:active { transform: scale(0.98); }
+  .s4-banner-txt { font-size: 14px; font-weight: 800; }
+  .s4-banner-sub { font-size: 10px; opacity: 0.9; margin-top: 2px; }
+  .s4-banner-btn {
+    background: linear-gradient(180deg, #FFE08A, #F5A623);
+    color: #8B3A00; font-size: 11px; font-weight: 800;
+    padding: 6px 12px; border-radius: 14px; white-space: nowrap;
+  }
+  .s4-feed { margin-top: 14px; }
+  .s4-feed-item {
+    background: #fff; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    font-size: 11px; color: var(--ink-soft); box-shadow: 0 2px 8px rgba(226,59,110,0.06);
+  }
+  .s4-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  .s4-overlay.show { display: flex; }
+  .s4-rp-card {
+    width: 260px; background: linear-gradient(180deg, #FF4D6A 0%, #E8356C 55%, #C62850 100%);
+    border-radius: 20px; padding: 24px 20px 18px; text-align: center; color: #fff;
+    box-shadow: 0 20px 40px rgba(180,20,60,0.45);
+    transform: scale(0.85); opacity: 0; transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s4-overlay.show .s4-rp-card { transform: scale(1); opacity: 1; }
+  .s4-rp-title { font-size: 16px; font-weight: 800; letter-spacing: 2px; }
+  .s4-rp-amt {
+    font-size: 48px; font-weight: 900; line-height: 1.1; margin: 12px 0 4px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .s4-rp-amt span { font-size: 22px; }
+  .s4-rp-timer {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(0,0,0,0.2); border-radius: 12px;
+    padding: 4px 12px; font-size: 11px; margin: 10px 0 16px;
+  }
+  .s4-rp-timer b { color: #FFE08A; font-variant-numeric: tabular-nums; }
+  .s4-rp-go {
+    width: 100%; padding: 12px 0; border: none; border-radius: 22px;
+    background: linear-gradient(180deg, #FFE08A, #F5A623);
+    color: #8B3A00; font-size: 15px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(200,120,10,0.35);
+  }
+  .s4-rp-go:active { transform: scale(0.97); }
+  .s4-rp-close { font-size: 11px; opacity: 0.7; margin-top: 10px; }
+  .s4-admin {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.97);
+    z-index: 60; padding: 44px 16px 16px; transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s4-admin.show { transform: translateY(0); }
+  .s4-admin-title { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 12px; }
+  .s4-admin-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12px;
+  }
+  .s4-admin-row label { color: var(--ink-soft); }
+  .s4-admin-row .val {
+    background: rgba(226,59,110,0.08); color: var(--pink-deep);
+    padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 11px;
+  }
+  .s4-admin-scenes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .s4-admin-tag {
+    font-size: 10px; padding: 4px 10px; border-radius: 10px;
+    background: #F0FFF0; color: #3a8a2a; font-weight: 600;
+  }
+  .s4-timeline {
+    display: flex; gap: 6px; margin-top: 14px; justify-content: center;
+  }
+  .s4-tl-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--pink-soft);
+    transition: all 0.3s;
+  }
+  .s4-tl-dot.active { width: 20px; border-radius: 4px; background: var(--pink-deep); }
+  .s4-tl-dot.done { background: #68C05A; }
+
+  /* 场景四：时间轴 + 成效卡并列展示 */
+  #scene4 .data-pane { justify-content: flex-start; padding-top: clamp(28px, 3.5vh, 56px); }
+  #scene4 .s4-evolution { margin-bottom: clamp(12px, 1.5vh, 18px); }
+  #scene4 .data-cards { margin-top: 4px; }
+  .s4-evolution {
+    display: flex; align-items: stretch; gap: 0;
+    margin-bottom: clamp(16px, 2vh, 24px); width: 100%;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.55s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s4-evolution.show { opacity: 1; transform: translateY(0); }
+  .s4-evo-card {
+    flex: 1; min-width: 0;
+    background: linear-gradient(165deg, #FFFFFF 0%, #FFF5F8 100%);
+    border-radius: 14px; padding: clamp(14px, 1.3vw, 20px) clamp(12px, 1.1vw, 16px);
+    border: 1.5px solid rgba(226,59,110,0.1);
+    opacity: 0.5; transform: scale(0.98);
+    transition: all 0.45s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s4-evo-card.reached {
+    opacity: 1; transform: scale(1);
+    border-color: rgba(226,59,110,0.18);
+    box-shadow: 0 6px 20px -8px rgba(226,59,110,0.1);
+  }
+  .s4-evo-card.active {
+    border-color: var(--pink-deep);
+    border-top-width: 4px;
+    background: linear-gradient(165deg, #FFFFFF 0%, #FFEBF1 100%);
+    box-shadow: 0 10px 28px -6px rgba(226,59,110,0.2);
+    padding-top: clamp(12px, 1.1vw, 18px);
+  }
+  .s4-evo-card.done { opacity: 1; }
+  .s4-evo-card.done:not(.active) {
+    border-color: rgba(226,59,110,0.14);
+    background: linear-gradient(165deg, #FFFFFF 0%, #FFFAFB 100%);
+  }
+  .s4-evo-title {
+    font-size: var(--fs-sm); font-weight: 800; color: var(--pink);
+    margin-bottom: 8px; letter-spacing: 0.3px;
+  }
+  .s4-evo-card.reached .s4-evo-title { color: var(--pink-deep); }
+  .s4-evo-card.active .s4-evo-title { color: var(--pink-deep); }
+  .s4-evo-summary {
+    font-size: var(--fs-xs); color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .s4-evo-card.reached .s4-evo-summary { color: var(--ink-soft); }
+  .s4-evo-card.active .s4-evo-summary { color: var(--ink); font-weight: 600; }
+  .s4-evo-card.done:not(.active) .s4-evo-summary { color: var(--ink-soft); }
+  .s4-evo-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: clamp(24px, 2vw, 36px); flex-shrink: 0;
+  }
+  .s4-evo-arrow i {
+    width: clamp(22px, 1.8vw, 30px); height: clamp(22px, 1.8vw, 30px); border-radius: 50%;
+    background: rgba(226,59,110,0.1);
+    color: var(--pink-deep); font-size: clamp(11px, 0.9vw, 14px); font-style: normal;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* ============ 场景五：拼多多风控应对 ============ */
+  .s5-screen {
+    background: linear-gradient(180deg, #FFF8F6 0%, #FFEFEB 50%, #FFF5F2 100%);
+  }
+  .s5-home { padding: 40px 14px 0; height: 100%; position: relative; }
+  .s5-nav { font-size: 12px; font-weight: 700; color: #E02E24; margin-bottom: 10px; }
+  .s5-search {
+    background: #fff; border-radius: 22px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(224,46,36,0.1); cursor: pointer;
+    border: 1.5px solid rgba(224,46,36,0.15);
+  }
+  .s5-search-txt { flex: 1; font-size: 11px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .s5-search-btn {
+    background: #E02E24; color: #fff; font-size: 11px; font-weight: 700;
+    padding: 5px 12px; border-radius: 14px; flex-shrink: 0;
+  }
+  .s5-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .s5-tag {
+    font-size: 9px; padding: 3px 8px; border-radius: 8px;
+    background: rgba(224,46,36,0.08); color: #E02E24; font-weight: 600;
+  }
+  .s5-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: flex-end; justify-content: center; z-index: 50;
+  }
+  .s5-overlay.show { display: flex; }
+  .s5-modal {
+    width: 100%; background: #fff; border-radius: 20px 20px 0 0;
+    padding: 20px 16px 24px; transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s5-overlay.show .s5-modal { transform: translateY(0); }
+  .s5-modal-warn {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    font-size: 13px; font-weight: 800; color: #E02E24;
+  }
+  .s5-modal-desc { font-size: 11px; color: #666; line-height: 1.55; margin-bottom: 14px; }
+  .s5-modal-opt {
+    width: 100%; padding: 12px; border-radius: 12px; margin-bottom: 8px;
+    font-size: 12px; font-weight: 700; cursor: pointer; text-align: left;
+    border: 1.5px solid transparent; transition: all 0.15s;
+  }
+  .s5-modal-opt.primary {
+    background: linear-gradient(135deg, #FF6B5A, #E02E24); color: #fff;
+    box-shadow: 0 4px 12px rgba(224,46,36,0.3);
+  }
+  .s5-modal-opt.secondary {
+    background: #FFF5F3; color: #E02E24; border-color: rgba(224,46,36,0.2);
+  }
+  .s5-modal-opt.ghost { background: #f5f5f5; color: #999; font-weight: 500; }
+  .s5-modal-opt:active { transform: scale(0.98); }
+  .s5-collect {
+    position: absolute; inset: 0; background: #fff; z-index: 60;
+    padding: 44px 16px 16px; transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s5-collect.show { transform: translateY(0); }
+  .s5-collect-title { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 12px; }
+  .s5-collect-item {
+    display: flex; gap: 10px; padding: 12px;
+    background: #FFF8F6; border-radius: 12px; border: 1px solid rgba(224,46,36,0.12);
+  }
+  .s5-collect-img {
+    width: 56px; height: 56px; border-radius: 8px;
+    background: linear-gradient(135deg, #FFE0DB, #FFC4BC);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .s5-collect-info { flex: 1; }
+  .s5-collect-name { font-size: 11px; font-weight: 700; color: var(--ink); line-height: 1.4; }
+  .s5-collect-timer {
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 6px;
+    background: rgba(224,46,36,0.1); color: #E02E24;
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px;
+  }
+  .s5-collect-timer b { font-variant-numeric: tabular-nums; }
+  .s5-collect-go {
+    margin-top: 14px; width: 100%; padding: 11px; border: none; border-radius: 20px;
+    background: #ddd; color: #999; font-size: 13px; font-weight: 700;
+  }
+  .s5-collect-go.ready {
+    background: linear-gradient(135deg, #FF6B5A, #E02E24); color: #fff;
+    box-shadow: 0 4px 12px rgba(224,46,36,0.3);
+  }
+  .s5-responses {
+    display: flex; gap: clamp(10px, 1vw, 14px); margin-bottom: clamp(16px, 2vh, 24px);
+    opacity: 0; transform: translateY(8px);
+    transition: all 0.5s ease;
+  }
+  .s5-responses.show { opacity: 1; transform: translateY(0); }
+  .s5-resp-card {
+    flex: 1; background: #1e1e24; border-radius: 12px;
+    padding: clamp(12px, 1.1vw, 18px) clamp(10px, 1vw, 14px);
+    border: 1px solid rgba(255,255,255,0.08); opacity: 0.45;
+    transition: all 0.4s;
+  }
+  .s5-resp-card.reached { opacity: 1; }
+  .s5-resp-card.active { border-top: 3px solid #2dd4bf; opacity: 1; }
+  .s5-resp-card.done { opacity: 0.78; }
+  .s5-resp-num { font-size: var(--fs-xs); color: #b89dff; font-weight: 800; margin-bottom: 6px; }
+  .s5-resp-card.active .s5-resp-num { color: #2dd4bf; }
+  .s5-resp-txt { font-size: var(--fs-xs); color: rgba(255,255,255,0.75); line-height: 1.5; }
+  .s5-path-quote {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: linear-gradient(135deg, #1a1a22 0%, #1e1e28 100%);
+    border: 1px solid rgba(224,46,36,0.28);
+    border-radius: 16px; padding: clamp(16px, 1.5vw, 24px) clamp(18px, 1.6vw, 26px);
+    box-shadow: 0 10px 36px rgba(224,46,36,0.1);
+    margin-top: 8px;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.55s cubic-bezier(0.16,1,0.3,1) 0.15s;
+  }
+  .s5-path-quote.show { opacity: 1; transform: translateY(0); }
+  .s5-path-quote-mark {
+    font-size: clamp(40px, 3.5vw, 56px); line-height: 0.85; color: rgba(224,46,36,0.38);
+    font-family: Georgia, serif; flex-shrink: 0;
+  }
+  .s5-path-quote-txt { font-size: var(--fs-sm); color: rgba(255,255,255,0.88); line-height: 1.75; }
+  .s5-path-quote-txt b { color: #ff9e94; font-weight: 700; }
+
+  /* ===== 动态数据卡内联字号（JS 生成）大屏适配 ===== */
+  .data-pane .dcard [style*="font-size:36px"],
+  .data-pane .dcard [style*="font-size:28px"] { font-size: var(--fs-xl) !important; letter-spacing: -0.02em !important; }
+  .data-pane .dcard [style*="font-size:24px"],
+  .data-pane .dcard [style*="font-size:20px"] { font-size: var(--fs-lg) !important; }
+  .data-pane .dcard [style*="font-size:14px"] { font-size: var(--fs-sm) !important; }
+  .data-pane .dcard [style*="font-size:13px"],
+  .data-pane .dcard [style*="font-size:12px"] { font-size: var(--fs-sm) !important; line-height: 1.7 !important; }
+  .data-pane .dcard [style*="font-size:11px"],
+  .data-pane .dcard [style*="font-size:10px"] { font-size: var(--fs-xs) !important; }
+  .data-pane .dcard [style*="font-size:10px"] span,
+  .data-pane .dcard [style*="font-size:11px"] span,
+  .data-pane .dcard [style*="font-size:12px"] span { font-size: inherit !important; }
+
+  /* ===== 16:9 超宽屏微调 ===== */
+  @media (min-aspect-ratio: 16/9) and (min-width: 1400px) {
+    .stage { grid-template-columns: minmax(500px, 38vw) 1fr; }
+    .headline { font-size: clamp(38px, 3.1vw, 54px); }
+    .data-pane { padding-right: clamp(56px, 6vw, 120px); }
+  }
+  @media (max-height: 800px) {
+    .phone { height: min(68vh, 720px); width: calc(min(68vh, 720px) * 0.5); }
+    .data-pane { padding-top: 28px; padding-bottom: 28px; justify-content: flex-start; }
+  }
+
+  /* ============ 场景六：工作总结与思考 ============ */
+  .stage.stage-summary {
+    display: flex; align-items: center; justify-content: center;
+    grid-template-columns: unset;
+    padding: clamp(36px, 4.5vh, 64px) clamp(48px, 6vw, 120px);
+    background:
+      radial-gradient(circle at 10% 20%, rgba(226,59,110,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(245,184,64,0.08) 0%, transparent 35%),
+      transparent;
+  }
+  .s6-wrap {
+    width: 100%; max-width: 1280px;
+    display: flex; flex-direction: column; gap: clamp(20px, 2.5vh, 32px);
+  }
+  .s6-header { text-align: center; }
+  .s6-header .eyebrow { justify-content: center; display: flex; margin-bottom: 12px; }
+  .s6-header .headline { font-size: clamp(36px, 3.2vw, 52px); margin-bottom: 14px; }
+  .s6-theme {
+    font-size: var(--fs-md); color: var(--ink-soft); line-height: 1.7;
+    max-width: 820px; margin: 0 auto;
+  }
+  .s6-theme b { color: var(--ink); font-weight: 700; }
+  .s6-pillars {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: clamp(14px, 1.5vw, 22px);
+  }
+  .s6-pillar {
+    background: var(--card); border-radius: 18px;
+    padding: clamp(20px, 2vw, 28px) clamp(18px, 1.8vw, 26px);
+    border: 1px solid var(--line);
+    box-shadow: 0 14px 40px -18px rgba(226,59,110,0.15);
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.55s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s6-pillar.show { opacity: 1; transform: translateY(0); }
+  .s6-pillar:nth-child(2).show { transition-delay: 0.1s; }
+  .s6-pillar:nth-child(3).show { transition-delay: 0.2s; }
+  .s6-pillar-tag {
+    display: inline-block; font-size: var(--fs-xs); font-weight: 800;
+    letter-spacing: 3px; padding: 4px 12px; border-radius: 8px; margin-bottom: 12px;
+  }
+  .s6-pillar-tag.out { background: rgba(226,59,110,0.12); color: var(--pink-deep); }
+  .s6-pillar-tag.in  { background: rgba(245,184,64,0.15); color: var(--gold-deep); }
+  .s6-pillar-tag.stable { background: rgba(224,46,36,0.1); color: #E02E24; }
+  .s6-pillar-title {
+    font-size: var(--fs-lg); font-weight: 800; color: var(--ink);
+    margin-bottom: 10px; line-height: 1.3;
+  }
+  .s6-pillar-q {
+    font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.6;
+    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+  .s6-pillar-row { margin-bottom: 10px; }
+  .s6-pillar-label {
+    font-size: var(--fs-xs); font-weight: 800; color: var(--pink-deep);
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .s6-pillar-val { font-size: var(--fs-sm); color: var(--ink); line-height: 1.65; }
+  .s6-synthesis {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: linear-gradient(135deg, #1a1a22 0%, #1e1e28 100%);
+    border: 1px solid rgba(167,139,250,0.22);
+    border-radius: 18px; padding: clamp(20px, 2vw, 28px) clamp(24px, 2.2vw, 32px);
+    box-shadow: 0 12px 40px rgba(80,60,180,0.12);
+    opacity: 0; transform: translateY(16px);
+    transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s6-synthesis.show { opacity: 1; transform: translateY(0); }
+  .s6-synthesis-mark {
+    font-size: clamp(44px, 4vw, 60px); line-height: 0.85;
+    color: rgba(167,139,250,0.32); font-family: Georgia, serif; flex-shrink: 0;
+  }
+  .s6-synthesis-txt { font-size: var(--fs-md); color: rgba(255,255,255,0.9); line-height: 1.75; }
+  .s6-synthesis-txt b { color: #c4b5fd; font-weight: 700; }
+  .s6-method {
+    display: flex; align-items: center; justify-content: center; gap: clamp(8px, 1vw, 16px);
+    flex-wrap: wrap; text-align: center;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.5s ease 0.1s;
+  }
+  .s6-method.show { opacity: 1; transform: translateY(0); }
+  .s6-method-step {
+    font-size: var(--fs-sm); font-weight: 700; color: var(--ink);
+    background: rgba(226,59,110,0.08); padding: 8px 16px; border-radius: 20px;
+  }
+  .s6-method-arrow { color: var(--pink-deep); font-size: var(--fs-md); font-weight: 700; }
+  .s6-hint {
+    text-align: center; font-size: var(--fs-sm); color: var(--ink-soft);
+    margin-top: -8px;
+  }
+  .s6-hint.done { color: #2d7a22; font-weight: 600; }
+
+  /* ============ 场景七：下半年期望 ============ */
+  .s7-wrap {
+    width: 100%; max-width: 1100px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: clamp(24px, 3vh, 40px); text-align: center;
+  }
+  .s7-header .headline { margin-bottom: 10px; }
+  .s7-sub {
+    font-size: var(--fs-md); color: var(--ink-soft); line-height: 1.65;
+    max-width: 640px;
+  }
+  .s7-cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px, 2vw, 24px);
+    width: 100%; text-align: left;
+  }
+  .s7-card {
+    background: var(--card); border-radius: 18px;
+    padding: clamp(22px, 2vw, 32px) clamp(22px, 2.2vw, 34px);
+    border: 1.5px solid var(--line);
+    box-shadow: 0 12px 36px -14px rgba(226,59,110,0.12);
+    opacity: 0; transform: translateY(18px);
+    transition: all 0.55s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s7-card.show { opacity: 1; transform: translateY(0); }
+  .s7-card:nth-child(2).show { transition-delay: 0.12s; }
+  .s7-card-icon { font-size: clamp(28px, 2.5vw, 36px); margin-bottom: 12px; }
+  .s7-card-title {
+    font-size: var(--fs-lg); font-weight: 800; color: var(--ink);
+    margin-bottom: 10px; line-height: 1.35;
+  }
+  .s7-card-txt {
+    font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.75;
+  }
+  .s7-card-txt b { color: var(--ink); font-weight: 700; }
+  .s7-thanks {
+    font-size: clamp(40px, 4vw, 56px); font-weight: 800;
+    color: var(--pink-deep); letter-spacing: 8px;
+    opacity: 0; transform: scale(0.92);
+    transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .s7-thanks.show { opacity: 1; transform: scale(1); }
+  .s7-thanks-sub {
+    font-size: var(--fs-sm); color: var(--ink-soft); margin-top: 8px;
+    letter-spacing: 2px; opacity: 0; transition: opacity 0.5s ease 0.2s;
+  }
+  .s7-thanks-sub.show { opacity: 1; }
+  .s7-hint {
+    font-size: var(--fs-sm); color: var(--ink-soft); margin-top: -8px;
+  }
+  .s7-hint.done { color: #2d7a22; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="scenes-wrapper">
+
+  <!-- ==================== 场景一：双十一扭蛋 ==================== -->
+  <div class="stage active" id="scene1">
+    <div class="demo-pane">
+      <div class="scene-tag">
+        <div class="num">01</div>
+        <div class="txt">双十一 · 扭蛋活动</div>
+      </div>
+      <div class="phone">
+        <div class="phone-screen s1-screen" id="s1Screen">
+          <div class="notch"></div>
+          <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+          <div class="act-header">
+            <div class="act-title">11.11 宠爱季</div>
+            <div class="act-sub">每天抽千元好礼</div>
+          </div>
+          <div class="gacha-zone">
+            <div class="gacha-machine" id="machine">
+              <div class="gacha-globe" id="globe">
+                <div class="capsule cap-a"></div>
+                <div class="capsule cap-b"></div>
+                <div class="capsule cap-c"></div>
+                <div class="capsule cap-d"></div>
+                <div class="capsule cap-e"></div>
+                <div class="capsule cap-f"></div>
+              </div>
+              <div class="gacha-body">
+                <div class="gacha-knob"></div>
+                <div class="gacha-slot"></div>
+              </div>
+              <div class="drop-capsule" id="dropCap"></div>
+            </div>
+            <div class="draw-count" id="drawCount">今日可抽 3 次</div>
+            <button class="draw-btn" id="drawBtn">开 扭 蛋</button>
+          </div>
+          <div class="order-bar">
+            <div class="order-bar-title">下单得扭蛋 · 再赚额外现金</div>
+            <div class="order-pills">
+              <div class="order-pill">¥0.15</div>
+              <div class="order-pill">¥0.3</div>
+              <div class="order-pill hot">¥0.8</div>
+              <div class="order-pill">¥1.5</div>
+              <div class="order-pill">¥2.8</div>
+            </div>
+          </div>
+          <div class="select-overlay" id="selectOverlay" style="display:none;">
+            <div class="select-card">
+              <h3>开扭蛋赢奖励</h3>
+              <div class="sc-sub">请选择心仪的特等奖</div>
+              <div class="prize-row">
+                <div class="prize-opt" data-prize="skii" onclick="S1.pickPrize(this)">
+                  <div class="prize-emoji">🧴</div>
+                  <div class="prize-name">SK-II 神仙水</div>
+                  <div class="prize-val">价值 ¥1500</div>
+                  <div class="prize-share">17.77%</div>
+                </div>
+                <div class="prize-opt" data-prize="cash" onclick="S1.pickPrize(this)">
+                  <div class="prize-emoji">💰</div>
+                  <div class="prize-name">1000元现金</div>
+                  <div class="prize-val">直接入账</div>
+                  <div class="prize-share">60.26%</div>
+                </div>
+                <div class="prize-opt" data-prize="gold" onclick="S1.pickPrize(this)">
+                  <div class="prize-emoji">📿</div>
+                  <div class="prize-name">足金吊坠</div>
+                  <div class="prize-val">价值 ¥1080</div>
+                  <div class="prize-share">21.97%</div>
+                </div>
+              </div>
+              <button class="select-confirm" id="s1ConfirmBtn" disabled onclick="S1.confirmPrize()">确 认</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-pane">
+      <div class="eyebrow">ROUND 01 · 策略迭代</div>
+      <h1 class="headline">从节点增长，到<span class="accent">增长组件</span></h1>
+      <p class="lead" style="max-width:none;">如何把<b style="color:var(--ink)">一次性</b>的大促玩法，拆解成<b style="color:var(--ink)">可复用</b>的增长组件，并在<b style="color:var(--ink)">不同节点</b>、<b style="color:var(--ink)">不同用户群</b>、<b style="color:var(--ink)">不同转化场景</b>中验证它们是否持续有效。</p>
+      <div class="hint-pill" id="s1Hint">
+        <span class="dot"></span>
+        <span id="s1HintText">点击手机上的「开扭蛋」开始演示</span>
+      </div>
+      <div class="data-cards" id="s1Cards"></div>
+      <div class="bridge" id="s1Bridge">
+        <b>这两个洞察，直接成了年货节的策略骨架。</b><br>
+        用户想要明确可信的高价值利益点 → 年货节主打「抽签必得现金」；<br>
+        用户参与深度不足 → 年货节引入任务机制，把一次性参与变成持续行为。
+      </div>
+      <button class="next-scene-btn" id="s1NextBtn" onclick="goScene(1)">进入年货节 →</button>
+    </div>
+  </div>
+
+  <!-- ==================== 场景二：年货节抽签 ==================== -->
+  <div class="stage" id="scene2">
+    <div class="demo-pane">
+      <div class="scene-tag">
+        <div class="num">02</div>
+        <div class="txt">年货节 · 抽签活动</div>
+      </div>
+      <div class="phone">
+        <div class="phone-screen s2-screen" id="s2Screen">
+          <div class="notch"></div>
+          <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+          <div class="s2-header">
+            <div class="s2-title">🏮 年货节好运签 🏮</div>
+            <div class="s2-sub">抽签赢大奖 · 现金天天得</div>
+            <div class="s2-prize-banner">¥1000 现金</div>
+          </div>
+          <div class="fortune-zone">
+            <div class="fortune-tube-wrap" id="tubeWrap">
+              <div class="f-stick f-stick-1" id="fStick1"></div>
+              <div class="f-stick f-stick-2" id="fStick2"></div>
+              <div class="f-stick f-stick-3" id="fStick3"></div>
+              <div class="f-stick f-stick-4" id="fStick4"></div>
+              <div class="f-stick f-stick-5" id="fStick5"></div>
+              <div class="fortune-tube"></div>
+            </div>
+            <div class="fortune-result-card" id="fortuneCard">
+              <div class="fortune-level" id="fortuneLevel">上上签</div>
+              <div class="fortune-divider"></div>
+              <div class="fortune-reward-icon" id="fortuneIcon">🧧</div>
+              <div class="fortune-reward-text" id="fortuneText">现金红包 ¥0.32</div>
+              <div class="fortune-reward-sub" id="fortuneSub">已存入余额</div>
+            </div>
+            <div class="s2-draw-count" id="s2DrawCount">今日可抽 3 签</div>
+            <button class="s2-draw-btn" id="s2DrawBtn" onclick="S2.draw()">抽签得现金</button>
+          </div>
+          <div class="s2-bottom-bar" id="s2BottomBar">
+            <div class="s2-bottom-text">🧨 集齐上上签 · 必得1000元 🧨</div>
+          </div>
+          <div class="task-panel" id="taskPanel">
+            <div class="task-panel-header">
+              <div class="task-panel-title">🎯 完成任务赢更多抽签</div>
+              <div class="task-panel-badge">+1签/任务</div>
+            </div>
+            <div class="task-item" id="task1" onclick="S2.clickTask(this, 1)">
+              <div class="task-icon">🧧</div>
+              <div class="task-info">
+                <div class="task-name">领取淘宝年货红包</div>
+                <div class="task-sub">点击即可完成</div>
+              </div>
+              <button class="task-go">去完成</button>
+            </div>
+            <div class="task-item" id="task2" onclick="S2.clickTask(this, 2)">
+              <div class="task-icon">🏪</div>
+              <div class="task-info">
+                <div class="task-name">逛美柚返现年货节会场</div>
+                <div class="task-sub">浏览10秒</div>
+              </div>
+              <button class="task-go">去完成</button>
+            </div>
+            <div class="task-item" id="task3" onclick="S2.clickTask(this, 3)">
+              <div class="task-icon">📖</div>
+              <div class="task-info">
+                <div class="task-name">浏览红包秘籍</div>
+                <div class="task-sub">了解返现玩法</div>
+              </div>
+              <button class="task-go">去完成</button>
+            </div>
+            <div class="task-item" id="task4" onclick="S2.clickTask(this, 4)">
+              <div class="task-icon">🛒</div>
+              <div class="task-info">
+                <div class="task-name">逛一逛淘宝年货节</div>
+                <div class="task-sub">发现好货</div>
+              </div>
+              <button class="task-go">去完成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-pane">
+      <div class="eyebrow" id="s2Eyebrow">ROUND 02 · 策略验证</div>
+      <h1 class="headline">年货节不是从零策划<br>是<span class="accent">复盘驱动的迭代</span></h1>
+      <p class="lead">基于双十一两个核心洞察，我们做了三个精确改动：去掉选大奖、强化利益点、引入任务体系。</p>
+      <div class="hint-pill" id="s2Hint">
+        <span class="dot"></span>
+        <span id="s2HintText">点击「抽签得现金」—— 注意：没有大奖选择步骤了</span>
+      </div>
+      <div class="data-cards" id="s2Cards"></div>
+      <div class="bridge" id="s2Bridge">
+        <b>年货节验证了两件事：</b><br>
+        ① 基于复盘做的策略改动是有效的，成单增长率从 16.97% 提升到 28.16%；<br>
+        ② 任务机制可以作为独立的促活能力沉淀下来，而不只是一次活动的附属功能。
+      </div>
+      <button class="next-scene-btn" id="s2NextBtn" onclick="goScene(2)">进入 618 大促 →</button>
+    </div>
+  </div>
+
+  <!-- ==================== 场景三：618 抽奖机 ==================== -->
+  <div class="stage" id="scene3">
+    <div class="demo-pane">
+      <div class="scene-tag">
+        <div class="num">03</div>
+        <div class="txt">618 · 集柚分现金</div>
+      </div>
+      <div class="phone">
+        <div class="phone-screen s3-screen" id="s3Screen">
+          <div class="notch"></div>
+          <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+
+          <div class="s3-top">
+            <span class="s3-back">‹</span>
+            <div class="s3-brand">美柚返现 | 618宠粉节</div>
+            <span class="s3-rules">规则</span>
+            <div class="s3-hero">每天抽好礼<br>集柚分现金</div>
+          </div>
+
+          <div class="s3-rounds">
+            <div class="s3-round active"><div>第1轮🔥</div><div class="s3-round-pool">10W奖池</div></div>
+            <div class="s3-round"><div>第2轮</div><div class="s3-round-pool">15W奖池</div></div>
+            <div class="s3-round"><div>第3轮</div><div class="s3-round-pool">20W奖池</div></div>
+          </div>
+
+          <div class="s3-collect-bar">
+            已有 <b id="s3CollectNum">0</b>/4，抽奖集柚得现金
+            <div class="s3-collect-progress"><div class="s3-collect-fill" id="s3CollectFill"></div></div>
+          </div>
+
+          <div class="s3-pomelos">
+            <div class="s3-pomelo"><div class="s3-pomelo-icon" id="pom0">?</div><div class="s3-pomelo-name">锦鲤柚</div><div class="s3-pomelo-count" id="pc0">x0</div></div>
+            <div class="s3-pomelo"><div class="s3-pomelo-icon" id="pom1">?</div><div class="s3-pomelo-name">轻松柚</div><div class="s3-pomelo-count" id="pc1">x0</div></div>
+            <div class="s3-pomelo"><div class="s3-pomelo-icon" id="pom2">?</div><div class="s3-pomelo-name">向阳柚</div><div class="s3-pomelo-count" id="pc2">x0</div></div>
+            <div class="s3-pomelo"><div class="s3-pomelo-icon" id="pom3">?</div><div class="s3-pomelo-name">必胜柚</div><div class="s3-pomelo-count" id="pc3">x0</div></div>
+          </div>
+
+          <div class="s3-slot-wrap">
+            <div class="s3-slot-machine">
+              <div class="s3-ticker"><span>用户小***西 刚刚获得了 1.98元 返现红包</span></div>
+              <div class="s3-reels" id="s3Reels">
+                <div class="s3-reel"><div class="s3-reel-strip" data-reel="0">
+                  <div class="s3-reel-item"><span class="ico">🧧</span>红包</div>
+                  <div class="s3-reel-item"><span class="ico">🍊</span>轻松柚</div>
+                  <div class="s3-reel-item"><span class="ico">☂️</span>防晒伞</div>
+                  <div class="s3-reel-item"><span class="ico">🎁</span>随机</div>
+                </div></div>
+                <div class="s3-reel"><div class="s3-reel-strip" data-reel="1">
+                  <div class="s3-reel-item"><span class="ico">🍊</span>向阳柚</div>
+                  <div class="s3-reel-item"><span class="ico">🧧</span>红包</div>
+                  <div class="s3-reel-item"><span class="ico">💳</span>京东卡</div>
+                  <div class="s3-reel-item"><span class="ico">🍊</span>必胜柚</div>
+                </div></div>
+                <div class="s3-reel"><div class="s3-reel-strip" data-reel="2">
+                  <div class="s3-reel-item"><span class="ico">🧧</span>红包</div>
+                  <div class="s3-reel-item"><span class="ico">🎁</span>随机</div>
+                  <div class="s3-reel-item"><span class="ico">🍊</span>锦鲤柚</div>
+                  <div class="s3-reel-item"><span class="ico">🧧</span>红包</div>
+                </div></div>
+                <div class="s3-reel"><div class="s3-reel-strip" data-reel="3">
+                  <div class="s3-reel-item"><span class="ico">💳</span>京东卡</div>
+                  <div class="s3-reel-item"><span class="ico">🧧</span>红包</div>
+                  <div class="s3-reel-item"><span class="ico">🍊</span>轻松柚</div>
+                  <div class="s3-reel-item"><span class="ico">🎁</span>随机</div>
+                </div></div>
+              </div>
+              <button class="s3-draw-btn" id="s3DrawBtn">立即抽奖</button>
+            </div>
+            <div class="s3-side-row">
+              <div class="s3-side-btn" id="s3TaskBtn"><div class="ico">📋</div>获得次数</div>
+              <div class="s3-side-btn"><div class="ico">🎁</div>我的奖品</div>
+            </div>
+            <div class="s3-result-toast" id="s3Toast">
+              <div class="big" id="s3ToastIcon">🍊</div>
+              <div class="txt" id="s3ToastText">获得 轻松柚 ×1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-pane">
+      <div class="eyebrow">ROUND 03 · 机制验证</div>
+      <h1 class="headline">618：从覆盖增长，转向<span class="accent">精准转化</span></h1>
+      <p class="lead" style="max-width:none;">在年货节经验上叠加<b>集柚瓜分</b>、<b>返现红包</b>、<b>任务体系</b>三类机制，验证哪些可沉淀、哪些需收敛。</p>
+      <div class="hint-pill" id="s3Hint">
+        <span class="dot"></span>
+        <span id="s3HintText">点击「立即抽奖」体验 618 抽奖机</span>
+      </div>
+      <div class="data-cards" id="s3Cards"></div>
+      <div class="bridge" id="s3Bridge">
+        <b>618 的核心结论：</b>成单仍增长，但策略重心已从「让更多人参与」转向「让参与更有效」——<br>
+        返现红包、任务链路可沉淀；集柚三轮、延迟瓜分、任务入口过深，是下一轮已知命题。
+      </div>
+      <button class="next-scene-btn" id="s3NextBtn" onclick="goScene(3)">进入返现红包 →</button>
+    </div>
+  </div>
+
+  <!-- ==================== 场景四：返现红包 ==================== -->
+  <div class="stage" id="scene4">
+    <div class="demo-pane">
+      <div class="scene-tag">
+        <div class="num">04</div>
+        <div class="txt">返现红包 · 转化资产</div>
+      </div>
+      <div class="phone">
+        <div class="phone-screen s4-screen" id="s4Screen">
+          <div class="notch"></div>
+          <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+
+          <div class="s4-home" id="s4Home">
+            <div class="s4-nav">美柚返现</div>
+            <div class="s4-banner" id="s4Banner">
+              <div>
+                <div class="s4-banner-txt">🧧 限时返现红包</div>
+                <div class="s4-banner-sub">购物立减 · 24h 内有效</div>
+              </div>
+              <div class="s4-banner-btn">立即抢</div>
+            </div>
+            <div class="s4-feed">
+              <div class="s4-feed-item">🎄 双旦好礼 · 玩法首发验证</div>
+              <div class="s4-feed-item">🏮 年货节 · 机制二次验证</div>
+              <div class="s4-feed-item">💄 38宠爱礼 · 场景三次放大</div>
+            </div>
+            <div class="s4-timeline" id="s4Timeline">
+              <div class="s4-tl-dot active" data-tl="0"></div>
+              <div class="s4-tl-dot" data-tl="1"></div>
+              <div class="s4-tl-dot" data-tl="2"></div>
+              <div class="s4-tl-dot" data-tl="3"></div>
+            </div>
+          </div>
+
+          <div class="s4-overlay" id="s4Overlay">
+            <div class="s4-rp-card">
+              <div class="s4-rp-title">恭喜获得返现红包</div>
+              <div class="s4-rp-amt"><span>¥</span>2.88</div>
+              <div class="s4-rp-timer">⏱ 剩余 <b id="s4Countdown">23:59:59</b></div>
+              <button class="s4-rp-go" id="s4GoBtn">去下单</button>
+              <div class="s4-rp-close">过期失效，请尽快使用</div>
+            </div>
+          </div>
+
+          <div class="s4-admin" id="s4Admin">
+            <div class="s4-admin-title">⚙️ 返现红包 · 运营创建 & 发放</div>
+            <div class="s4-admin-row"><label>创建红包</label><span class="val">金额 / 有效期 / 人群</span></div>
+            <div class="s4-admin-row"><label>发放方式</label><span class="val">资源位配置下发</span></div>
+            <div class="s4-admin-row"><label>资源位</label><span class="val">弹窗 / Push / Banner / 活动页</span></div>
+            <div class="s4-admin-row"><label>跳转目标</label><span class="val">电商 Tab / 指定会场</span></div>
+            <div class="s4-admin-row"><label>用户分层</label><span class="val">首单 / 老用户 / 全量</span></div>
+            <div style="font-size:11px;color:var(--ink-soft);margin-top:12px;">已验证 & 复用场景</div>
+            <div class="s4-admin-scenes">
+              <span class="s4-admin-tag">双旦大促</span>
+              <span class="s4-admin-tag">年货节</span>
+              <span class="s4-admin-tag">38宠爱礼</span>
+              <span class="s4-admin-tag">618抽奖</span>
+              <span class="s4-admin-tag">首页弹窗</span>
+              <span class="s4-admin-tag">日常 Push</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-pane">
+      <div class="eyebrow">PART 02 · 向内挖</div>
+      <h1 class="headline">返现红包：从活动奖品，到<span class="accent">转化资产</span></h1>
+      <p class="lead">价值不在于「用户领到了红包」，而在于购物意图产生时，用<b>即时利益</b>和<b>使用倒计时</b>推动下单决策。</p>
+      <div class="hint-pill" id="s4Hint">
+        <span class="dot"></span>
+        <span id="s4HintText">点击「立即抢」—— 体验红包领取与倒计时紧迫感</span>
+      </div>
+
+      <div class="s4-evolution show" id="s4Evolution">
+        <div class="s4-evo-card" data-evo="0">
+          <div class="s4-evo-title">双旦 OS 1.0</div>
+          <div class="s4-evo-summary">用最小成本在双旦验证假设</div>
+        </div>
+        <div class="s4-evo-arrow"><i>→</i></div>
+        <div class="s4-evo-card" data-evo="1">
+          <div class="s4-evo-title">年货节 OS 1.1</div>
+          <div class="s4-evo-summary">年货节验证 ROI 可持续性</div>
+        </div>
+        <div class="s4-evo-arrow"><i>→</i></div>
+        <div class="s4-evo-card" data-evo="2">
+          <div class="s4-evo-title">38 宠爱礼</div>
+          <div class="s4-evo-summary">38 宠爱礼验证规模化放大效果</div>
+        </div>
+        <div class="s4-evo-arrow"><i>→</i></div>
+        <div class="s4-evo-card" data-evo="3">
+          <div class="s4-evo-title">日常化 + 618 集成</div>
+          <div class="s4-evo-summary">升级为日常营销抓手，618 作为转化场景产出增量</div>
+        </div>
+      </div>
+
+      <div class="data-cards" id="s4Cards"></div>
+      <div class="bridge" id="s4Bridge" style="display:none"></div>
+      <button class="next-scene-btn" id="s4NextBtn" onclick="goScene(4)">进入拼多多风控应对 →</button>
+    </div>
+  </div>
+
+  <!-- ==================== 场景五：拼多多风控应对 ==================== -->
+  <div class="stage" id="scene5">
+    <div class="demo-pane">
+      <div class="scene-tag">
+        <div class="num">05</div>
+        <div class="txt">拼多多 · 风控应对</div>
+      </div>
+      <div class="phone">
+        <div class="phone-screen s5-screen" id="s5Screen">
+          <div class="notch"></div>
+          <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+
+          <div class="s5-home" id="s5Home">
+            <div class="s5-nav">美柚返现 · 搜商品</div>
+            <div class="s5-search" id="s5Search">
+              <span style="font-size:14px">🔗</span>
+              <span class="s5-search-txt" id="s5SearchTxt">粘贴拼多多商品链接，查返现</span>
+              <span class="s5-search-btn">搜索</span>
+            </div>
+            <div class="s5-tags">
+              <span class="s5-tag">拼多多</span>
+              <span class="s5-tag">淘宝</span>
+              <span class="s5-tag">京东</span>
+            </div>
+          </div>
+
+          <div class="s5-overlay" id="s5Overlay">
+            <div class="s5-modal">
+              <div class="s5-modal-warn">⚠️ 命中比价风控</div>
+              <div class="s5-modal-desc">你已在拼多多浏览过此商品，直接下单无法返现。根据平台规则，<b>等待 1 小时</b>后可正常跟单拿返现。</div>
+              <button class="s5-modal-opt primary" id="s5OptWait">⭐ 先收藏稍后买 · 1h 后提醒下单</button>
+              <button class="s5-modal-opt secondary" id="s5OptSwitch">🔄 切换拼多多账号购买</button>
+              <button class="s5-modal-opt ghost">不要返现，直接买</button>
+            </div>
+          </div>
+
+          <div class="s5-collect" id="s5Collect">
+            <div class="s5-collect-title">📌 我的收藏 · 等待下单</div>
+            <div class="s5-collect-item">
+              <div class="s5-collect-img">🛍️</div>
+              <div class="s5-collect-info">
+                <div class="s5-collect-name">拼多多商品 · 预估返现 ¥3.2</div>
+                <div class="s5-collect-timer">⏱ 可下单倒计时 <b id="s5WaitCd">01:00:00</b></div>
+              </div>
+            </div>
+            <button class="s5-collect-go" id="s5CollectGo" disabled>等待中，到时提醒下单</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-pane">
+      <div class="eyebrow">PART 03 · 稳住盘</div>
+      <h1 class="headline">拼多多：上游规则变化下的<span class="accent">风险应对</span></h1>
+      <p class="lead">官方风控收紧后，日成单从约 <b>1,500 单</b>降至 <b>400 单</b>。通过调研竞品、重建链路、接入三方能力，把「不可控的外部变化」转化为「可执行的产品策略」。</p>
+      <div class="hint-pill" id="s5Hint">
+        <span class="dot"></span>
+        <span id="s5HintText">点击搜索框 — 体验命中比价风控后的引导链路</span>
+      </div>
+
+      <div class="s5-responses" id="s5Responses">
+        <div class="s5-resp-card" data-resp="0">
+          <div class="s5-resp-num">① 调研</div>
+          <div class="s5-resp-txt">竞品分析<br>收藏等待路径</div>
+        </div>
+        <div class="s5-resp-card" data-resp="1">
+          <div class="s5-resp-num">② 重建</div>
+          <div class="s5-resp-txt">搜链接返现<br>比价引导</div>
+        </div>
+        <div class="s5-resp-card" data-resp="2">
+          <div class="s5-resp-num">③ 接入</div>
+          <div class="s5-resp-txt">好单库转链<br>恢复跟单</div>
+        </div>
+      </div>
+
+      <div class="data-cards" id="s5Cards"></div>
+      <div class="s5-path-quote" id="s5PathQuote">
+        <div class="s5-path-quote-mark">"</div>
+        <div class="s5-path-quote-txt">
+          <b>应对逻辑：</b>上游规则变化不可控，但响应路径可控 —— 先调研摸清平台机制（收藏 + 等待 1h 可规避比价判定），再产品化引导链路挽回流失订单，最后通过好单库等三方能力对冲权限回收。核心不是「对抗平台」，而是<b>在规则约束内找到用户仍能拿到返现的路径</b>。
+        </div>
+      </div>
+      <button class="next-scene-btn" id="s5NextBtn" onclick="goScene(5)">查看工作总结 →</button>
+    </div>
+  </div>
+
+  <!-- ==================== 场景六：工作总结与思考 ==================== -->
+  <div class="stage stage-summary" id="scene6">
+    <div class="s6-wrap">
+      <div class="s6-header">
+        <div class="eyebrow">SUMMARY · 工作总结与思考</div>
+        <h1 class="headline">在不确定环境里，提升<span class="accent">策略判断</span>的确定性</h1>
+        <p class="s6-theme">三项工作表面是不同项目，底层是同一套方法 —— <b>小成本验证 → 数据决定放大或收敛 → 有效则产品化沉淀</b></p>
+      </div>
+
+      <div class="s6-pillars" id="s6Pillars">
+        <div class="s6-pillar" id="s6P1">
+          <span class="s6-pillar-tag out">向外求</span>
+          <div class="s6-pillar-title">大促策略迭代</div>
+          <div class="s6-pillar-q">怎样在时间紧、资源有限时，不重复从零策划？</div>
+          <div class="s6-pillar-row">
+            <div class="s6-pillar-label">路径</div>
+            <div class="s6-pillar-val">双十一复盘 → 年货节验证 → 618 收敛边界</div>
+          </div>
+          <div class="s6-pillar-row">
+            <div class="s6-pillar-label">沉淀</div>
+            <div class="s6-pillar-val">从「节点增长」到「增长组件」—— 返现红包、任务可复用，复杂机制需收敛</div>
+          </div>
+        </div>
+        <div class="s6-pillar" id="s6P2">
+          <span class="s6-pillar-tag in">向内挖</span>
+          <div class="s6-pillar-title">返现红包产品化</div>
+          <div class="s6-pillar-q">怎样用小场景试出有效玩法，并变成日常抓手？</div>
+          <div class="s6-pillar-row">
+            <div class="s6-pillar-label">路径</div>
+            <div class="s6-pillar-val">双旦验证假设 → 年货节验 ROI → 38 节放大 → 日常化 + 618</div>
+          </div>
+          <div class="s6-pillar-row">
+            <div class="s6-pillar-label">沉淀</div>
+            <div class="s6-pillar-val">从活动奖品到转化资产 —— 运营可创建，资源位可发放</div>
+          </div>
+        </div>
+        <div class="s6-pillar" id="s6P3">
+          <span class="s6-pillar-tag stable">稳住盘</span>
+          <div class="s6-pillar-title">拼多多风控应对</div>
+          <div class="s6-pillar-q">上游规则不可控时，怎样稳住跟单基本盘？</div>
+          <div class="s6-pillar-row">
+            <div class="s6-pillar-label">路径</div>
+            <div class="s6-pillar-val">调研平台机制 → 重建搜链路与比价引导 → 好单库对冲权限回收</div>
+          </div>
+          <div class="s6-pillar-row">
+            <div class="s6-pillar-label">沉淀</div>
+            <div class="s6-pillar-val">不是对抗平台，是在规则约束内找到用户仍能拿到返现的路径</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="s6-synthesis" id="s6Synthesis">
+        <div class="s6-synthesis-mark">"</div>
+        <div class="s6-synthesis-txt">
+          <b>综合思考：</b>大促让我学会把活动做成可复用组件；返现红包让我学会把小玩法做成日常抓手；拼多多让我学会在外部变化时快速调研、重建链路、对冲风险。每一项都是基于上一步的数据结论驱动，而不是基于直觉。
+        </div>
+      </div>
+
+      <div class="s6-method" id="s6Method">
+        <span class="s6-method-step">小成本验证</span>
+        <span class="s6-method-arrow">→</span>
+        <span class="s6-method-step">数据复盘</span>
+        <span class="s6-method-arrow">→</span>
+        <span class="s6-method-step">放大 or 收敛</span>
+        <span class="s6-method-arrow">→</span>
+        <span class="s6-method-step">产品化沉淀</span>
+      </div>
+
+      <div class="s6-hint" id="s6Hint">按 Space 逐步展开</div>
+      <button class="next-scene-btn" id="s6NextBtn" onclick="goScene(6)">下半年期望 →</button>
+    </div>
+  </div>
+
+  <!-- ==================== 场景七：下半年期望 ==================== -->
+  <div class="stage stage-summary" id="scene7">
+    <div class="s7-wrap">
+      <div class="s7-header">
+        <div class="eyebrow">OUTLOOK · 下半年期望</div>
+        <h1 class="headline">持续成长，<span class="accent">沉淀方法论</span></h1>
+        <p class="s7-sub">希望在组织支持下，把上半年积累的判断力，转化为更长线的专业能力</p>
+      </div>
+
+      <div class="s7-cards" id="s7Cards">
+        <div class="s7-card" id="s7Card1">
+          <div class="s7-card-icon">🤖</div>
+          <div class="s7-card-title">AI 兴趣小组持续办下去</div>
+          <div class="s7-card-txt">希望小组能<b>持续运营</b>，邀请更多同学、前辈分享 AI 在实际工作中的使用经验，让工具能力真正融入日常产品工作。</div>
+        </div>
+        <div class="s7-card" id="s7Card2">
+          <div class="s7-card-icon">🤝</div>
+          <div class="s7-card-title">打破壁垒，拓宽交流</div>
+          <div class="s7-card-txt">希望能与<b>业务产品、中后台产品</b>的同学前辈有更多交流，在专业能力上互相启发，逐步<b>沉淀属于自己的一套方法论</b>。</div>
+        </div>
+      </div>
+
+      <div id="s7ThanksWrap">
+        <div class="s7-thanks" id="s7Thanks">谢谢</div>
+        <div class="s7-thanks-sub" id="s7ThanksSub">THANK YOU</div>
+      </div>
+
+      <div class="s7-hint" id="s7Hint">按 Space 继续</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 全局导航 -->
+<div class="global-nav">
+  <button class="nav-dot active" id="navDot0" onclick="goScene(0)"></button>
+  <button class="nav-dot" id="navDot1" onclick="goScene(1)"></button>
+  <button class="nav-dot" id="navDot2" onclick="goScene(2)"></button>
+  <button class="nav-dot" id="navDot3" onclick="goScene(3)"></button>
+  <button class="nav-dot" id="navDot4" onclick="goScene(4)"></button>
+  <button class="nav-dot" id="navDot5" onclick="goScene(5)"></button>
+  <button class="nav-dot" id="navDot6" onclick="goScene(6)"></button>
+  <span class="nav-label" id="navLabel">01 / 07</span>
+</div>
+<button class="reset-btn" onclick="resetCurrentScene()">↺ 重新演示</button>
+<button class="back-btn" id="backBtn" onclick="if(currentScene>0){goScene(currentScene-1)}">← 上一页</button>
+<div class="nav-hint">Space 下一步 · ← 上一步</div>
+
+<script>
+/* ============ 场景管理 ============ */
+let currentScene = 0;
+const scenes = [document.getElementById('scene1'), document.getElementById('scene2'), document.getElementById('scene3'), document.getElementById('scene4'), document.getElementById('scene5'), document.getElementById('scene6'), document.getElementById('scene7')];
+
+function goScene(idx) {
+  if (idx === currentScene || idx < 0 || idx >= scenes.length) return;
+  scenes[currentScene].classList.remove('active');
+  scenes[currentScene].classList.add('exit-left');
+  setTimeout(() => scenes[currentScene].classList.remove('exit-left'), 500);
+  currentScene = idx;
+  scenes[idx].classList.add('active');
+  updateNav();
+}
+
+function updateNav() {
+  document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === currentScene));
+  document.getElementById('navLabel').textContent = String(currentScene + 1).padStart(2, '0') + ' / ' + String(scenes.length).padStart(2, '0');
+}
+
+function resetCurrentScene() {
+  if (currentScene === 0) S1.reset();
+  else if (currentScene === 1) S2.reset();
+  else if (currentScene === 2) S3.reset();
+  else if (currentScene === 3) S4.reset();
+  else if (currentScene === 4) S5.reset();
+  else if (currentScene === 5) S6.reset();
+  else if (currentScene === 6) S7.reset();
+}
+
+function addCard(container, html) {
+  const div = document.createElement('div');
+  div.className = 'dcard';
+  div.innerHTML = html;
+  container.appendChild(div);
+  requestAnimationFrame(() => setTimeout(() => div.classList.add('show'), 30));
+}
+
+/* ============ 场景一：双十一扭蛋 ============ */
+const S1 = (() => {
+  let step = 0, chosenPrize = null, drawsLeft = 3, secondShown = false;
+  const els = {
+    machine: () => document.getElementById('machine'),
+    dropCap: () => document.getElementById('dropCap'),
+    overlay: () => document.getElementById('selectOverlay'),
+    cards: () => document.getElementById('s1Cards'),
+    bridge: () => document.getElementById('s1Bridge'),
+    hintText: () => document.getElementById('s1HintText'),
+    hint: () => document.getElementById('s1Hint'),
+    drawCount: () => document.getElementById('drawCount'),
+    confirmBtn: () => document.getElementById('s1ConfirmBtn'),
+    nextBtn: () => document.getElementById('s1NextBtn'),
+  };
+
+  document.getElementById('drawBtn').onclick = function () {
+    if (step === 0) {
+      els.machine().classList.add('shaking');
+      setTimeout(() => {
+        els.machine().classList.remove('shaking');
+        els.overlay().style.display = 'flex';
+      }, 600);
+      step = 1;
+      els.hintText().textContent = '这一步是复盘的关键 — 请选一个大奖';
+    } else if (step === 3) {
+      doDropDraw();
+    }
+  };
+
+  function pickPrize(el) {
+    document.querySelectorAll('.prize-opt').forEach(p => { p.classList.remove('chosen', 'reveal'); });
+    el.classList.add('chosen');
+    chosenPrize = el.dataset.prize;
+    els.confirmBtn().disabled = false;
+    setTimeout(() => document.querySelectorAll('.prize-opt').forEach(p => p.classList.add('reveal')), 200);
+  }
+
+  function confirmPrize() {
+    els.overlay().style.display = 'none';
+    step = 2;
+    els.cards().innerHTML = '';
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">活动整体成效</span>
+      <div class="dcard-desc" style="margin:0 0 14px;font-size:14px;line-height:1.6;">以可控现金成本换取超红发放量，<b>「游戏化抽奖」是一条走得通的增长路径。</b></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;">
+        <div><div style="font-size:32px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">16.22<span style="font-size:16px;color:var(--ink-soft);">%</span></div><div style="font-size:12px;color:var(--ink-soft);margin-top:3px;">老用户成单转化增量</div><div style="font-size:12px;color:var(--pink-deep);font-weight:700;margin-top:1px;">+34,962 单</div></div>
+        <div><div style="font-size:32px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">40.83<span style="font-size:16px;color:var(--ink-soft);">%</span></div><div style="font-size:12px;color:var(--ink-soft);margin-top:3px;">新用户成单转化增量</div><div style="font-size:12px;color:var(--pink-deep);font-weight:700;margin-top:1px;">+4,668 单</div></div>
+        <div><div style="font-size:32px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">39,630<span style="font-size:16px;color:var(--ink-soft);"> 单</span></div><div style="font-size:12px;color:var(--ink-soft);margin-top:3px;">新老用户合计成单增量</div></div>
+        <div><div style="font-size:32px;font-weight:800;color:var(--gold-deep);letter-spacing:-0.5px;">1.26</div><div style="font-size:12px;color:var(--ink-soft);margin-top:3px;">整体 ROI</div></div>
+      </div>
+    `);
+    setTimeout(() => {
+      addCard(els.cards(), `
+        <span class="dcard-flag flag-insight">用户行为洞察</span>
+        <div class="dcard-desc" style="margin:0 0 12px;font-size:14px;line-height:1.6;">游戏化活动不是越有仪式感越好，用户参与的前提是<b>「利益点可信、明确、低理解成本」</b></div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink);line-height:1.7;">
+          <div>● 整体大奖选择率只有 <b style="color:var(--ink);">49.49%</b>，首次进入即选择大奖的仅 <b style="color:var(--ink);">41.73%</b></div>
+          <div>● 但一旦选择了奖品，后续点击抽奖的比例达到 <b style="color:#3a8a2a;">86.90%</b></div>
+          <div>● 在大奖选择中，<b style="color:var(--pink-deep);">60.26%</b> 的用户选择了「1000元现金」</div>
+        </div>
+      `);
+    }, 400);
+    els.hintText().textContent = '再点「开扭蛋」，看第二个洞察';
+    doDrop();
+    step = 3;
+    drawsLeft = 2;
+    els.drawCount().textContent = '今日可抽 ' + drawsLeft + ' 次';
+  }
+
+  function doDrop() {
+    const dc = els.dropCap();
+    dc.className = 'drop-capsule';
+    void dc.offsetWidth;
+    dc.classList.add('dropping');
+  }
+
+  function doDropDraw() {
+    if (drawsLeft <= 0) { showSecond(); return; }
+    els.machine().classList.add('shaking');
+    setTimeout(() => {
+      els.machine().classList.remove('shaking');
+      doDrop();
+      drawsLeft--;
+      els.drawCount().textContent = drawsLeft > 0 ? '今日可抽 ' + drawsLeft + ' 次' : '今日次数已用完';
+      if (drawsLeft <= 0) setTimeout(showSecond, 500);
+    }, 500);
+  }
+
+  function showSecond() {
+    if (secondShown) return;
+    secondShown = true;
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-insight">复盘洞察</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:14px;line-height:1.6;">先建立信任，而不是立刻收割转化。<b>首次体验决定用户是否继续参与，前几次抽奖不能过度营销化。</b></div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink);line-height:1.7;">
+        <div>● 前 2 次抽中明信片、金豆等非营销类奖品的用户，后续人均参与次数比全部抽中营销类红包的用户<b style="color:#3a8a2a;">高 3.15%</b></div>
+        <div>● 且两组用户的人均超红点击次数<b>相当</b> —— 不跳转不等于不转化</div>
+        <div style="margin-top:2px;color:var(--pink-deep);font-weight:700;">→ 信任感先行，转化自然跟上。</div>
+      </div>
+    `);
+    setTimeout(() => {
+      addCard(els.cards(), `
+        <span class="dcard-flag flag-insight">复盘洞察</span>
+        <div class="dcard-desc" style="margin:0 0 12px;font-size:14px;line-height:1.6;">免费次数能拉起参与，但如果与下单<b>弱绑定</b>，补贴效率会受限。</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink);line-height:1.7;">
+          <div>● 抽中现金奖励的用户中，免费获得的抽奖次数占 <b>90.66%</b></div>
+          <div>● 下单获得的抽奖次数仅占 <b style="color:var(--pink-deep);">9.34%</b></div>
+          <div style="margin-top:4px;padding:8px 12px;background:rgba(226,59,110,0.05);border-radius:8px;font-size:12px;line-height:1.6;color:var(--ink-soft);">
+            → 权益发放要从<b style="color:var(--ink);">「免费触达」</b>逐步递进到<b style="color:var(--ink);">「行为绑定」</b>：任务 → 出站 → 下单 → 复购<br>
+            → 否则补贴是<b style="color:var(--pink-deep);">流量成本</b>，而不是<b style="color:#3a8a2a;">转化杠杆</b>
+          </div>
+        </div>
+      `);
+      setTimeout(() => {
+        addCard(els.cards(), `
+          <span class="dcard-flag flag-insight">复盘洞察</span>
+          <div class="dcard-desc" style="margin:0 0 12px;font-size:14px;line-height:1.6;">大促活动不能只看首日参与率，还要看<b>参与深度</b>和<b>复访能力</b>。</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink);line-height:1.7;">
+            <div>● 人均参与天数仅 <b>1.16 天</b></div>
+            <div>● <b style="color:var(--pink-deep);">89.93%</b> 的用户仅参与一天</div>
+            <div>● 用户大部分集中在参与 <b>1-2 次</b></div>
+          </div>
+        `);
+        setTimeout(() => {
+          els.bridge().classList.add('show');
+          setTimeout(() => els.nextBtn().classList.add('show'), 400);
+          els.hintText().textContent = '✓ 演示完成 · 洞察 → 年货节策略';
+          els.hint().style.animation = 'none';
+          els.hint().style.background = 'rgba(104,192,90,0.12)';
+          els.hint().querySelector('.dot').style.background = '#4a9c3a';
+        }, 500);
+      }, 500);
+    }, 500);
+  }
+
+  function reset() {
+    step = 0; chosenPrize = null; drawsLeft = 3; secondShown = false;
+    els.cards().innerHTML = '';
+    els.bridge().classList.remove('show');
+    els.nextBtn().classList.remove('show');
+    els.overlay().style.display = 'none';
+    els.drawCount().textContent = '今日可抽 3 次';
+    document.querySelectorAll('.prize-opt').forEach(p => { p.classList.remove('chosen', 'reveal'); });
+    els.confirmBtn().disabled = true;
+    els.hintText().textContent = '点击手机上的「开扭蛋」开始演示';
+    els.hint().style.animation = 'pulse 2s ease-in-out infinite';
+    els.hint().style.background = 'rgba(226,59,110,0.08)';
+    els.hint().querySelector('.dot').style.background = 'var(--pink-deep)';
+  }
+
+  function advance() {
+    if (step === 0) {
+      document.getElementById('drawBtn').onclick();
+      return false;
+    } else if (step === 1) {
+      pickPrize(document.querySelector('[data-prize="cash"]'));
+      setTimeout(() => confirmPrize(), 500);
+      return false;
+    } else if (step === 3 && !secondShown) {
+      drawsLeft = 0;
+      els.drawCount().textContent = '今日次数已用完';
+      els.machine().classList.add('shaking');
+      setTimeout(() => {
+        els.machine().classList.remove('shaking');
+        doDrop();
+        showSecond();
+      }, 400);
+      return false;
+    } else if (secondShown) {
+      return true;
+    }
+    return false;
+  }
+
+  return { pickPrize, confirmPrize, reset, advance };
+})();
+
+/* ============ 场景二：年货节抽签 ============ */
+const S2 = (() => {
+  let drawsLeft = 3, drawStep = 0, taskClicked = false, completed = false;
+  const rewards = [
+    { level: '上上签', icon: '🧧', text: '现金红包 ¥0.32', sub: '已存入余额' },
+    { level: '大吉签', icon: '🥜', text: '坚果礼包', sub: '年货好运到' },
+    { level: '中签', icon: '💰', text: '金豆 ×5', sub: '可兑换奖品' },
+  ];
+
+  const els = {
+    tubeWrap: () => document.getElementById('tubeWrap'),
+    fortuneCard: () => document.getElementById('fortuneCard'),
+    fortuneLevel: () => document.getElementById('fortuneLevel'),
+    fortuneIcon: () => document.getElementById('fortuneIcon'),
+    fortuneText: () => document.getElementById('fortuneText'),
+    fortuneSub: () => document.getElementById('fortuneSub'),
+    drawCount: () => document.getElementById('s2DrawCount'),
+    drawBtn: () => document.getElementById('s2DrawBtn'),
+    taskPanel: () => document.getElementById('taskPanel'),
+    bottomBar: () => document.getElementById('s2BottomBar'),
+    cards: () => document.getElementById('s2Cards'),
+    bridge: () => document.getElementById('s2Bridge'),
+    hint: () => document.getElementById('s2Hint'),
+    hintText: () => document.getElementById('s2HintText'),
+    nextBtn: () => document.getElementById('s2NextBtn'),
+  };
+
+  function draw() {
+    if (drawsLeft <= 0 || completed) return;
+    const wrap = els.tubeWrap();
+    wrap.classList.add('tube-shaking');
+
+    const stickIdx = 4 - drawsLeft + 1;
+    const stick = document.getElementById('fStick' + stickIdx);
+
+    setTimeout(() => {
+      wrap.classList.remove('tube-shaking');
+      if (stick) {
+        stick.style.animation = 'none';
+        stick.classList.add('stick-pulling');
+      }
+
+      const reward = rewards[3 - drawsLeft];
+      setTimeout(() => {
+        const card = els.fortuneCard();
+        els.fortuneLevel().textContent = reward.level;
+        els.fortuneIcon().textContent = reward.icon;
+        els.fortuneText().textContent = reward.text;
+        els.fortuneSub().textContent = reward.sub;
+        card.classList.add('show');
+
+        setTimeout(() => card.classList.remove('show'), 1600);
+
+        drawsLeft--;
+        drawStep++;
+        els.drawCount().textContent = drawsLeft > 0 ? '今日可抽 ' + drawsLeft + ' 签' : '免费次数已用完';
+
+        showDataForStep(drawStep);
+      }, 400);
+    }, 500);
+  }
+
+  function showDataForStep(step) {
+    const cards = els.cards();
+    if (step === 1) {
+      addCard(cards, `
+        <span class="dcard-flag flag-data">年货节整体成效</span>
+        <div class="dcard-desc" style="margin:0 0 14px;font-size:13px;">策略迭代目标：<b>参与率</b> × <b>参与深度</b> × <b>补贴效率</b></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 16px;margin-bottom:14px;">
+          <div><div style="font-size:28px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">75,588<span style="font-size:13px;color:var(--ink-soft);"> 单</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">合计成单增量</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:#3a8a2a;letter-spacing:-0.5px;">28.16<span style="font-size:13px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">整体增长率</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:var(--gold-deep);letter-spacing:-0.5px;">1.75</div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">ROI</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding-top:10px;border-top:1px solid var(--line);">
+          <div><div style="font-size:11px;color:var(--ink-soft);">新用户</div><div style="font-size:14px;font-weight:700;color:var(--ink);">+15,180 单 <span style="font-size:12px;color:#3a8a2a;">↑56.57%</span></div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">老用户</div><div style="font-size:14px;font-weight:700;color:var(--ink);">+60,408 单 <span style="font-size:12px;color:#3a8a2a;">↑21.02%</span></div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">成单渗透率</div><div style="font-size:14px;font-weight:700;color:var(--ink);">0.27% → 0.31% <span style="font-size:12px;color:#3a8a2a;">↑16.75%</span></div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">对比双十一增量</div><div style="font-size:14px;font-weight:700;color:var(--ink);">39,630 → 75,588 <span style="font-size:12px;color:#3a8a2a;">↑90.7%</span></div></div>
+        </div>
+      `);
+      setTimeout(() => {
+        addCard(cards, `
+          <span class="dcard-flag flag-compare">参与率与参与深度</span>
+          <div class="dcard-desc" style="margin:0 0 10px;font-size:13px;">相比双十一扭蛋，四项核心指标全面提升：</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;">
+            <div><div style="font-size:11px;color:var(--ink-soft);">活动参与率</div><div style="font-size:20px;font-weight:800;color:var(--ink);">48.34<span style="font-size:12px;color:var(--ink-soft);">%</span> <span style="font-size:12px;color:#3a8a2a;font-weight:700;">↑12.55%</span></div><div style="font-size:11px;color:var(--ink-soft);">双十一 42.95%</div></div>
+            <div><div style="font-size:11px;color:var(--ink-soft);">人均参与次数</div><div style="font-size:20px;font-weight:800;color:var(--ink);">2.91<span style="font-size:12px;color:var(--ink-soft);"> 次/日</span> <span style="font-size:12px;color:#3a8a2a;font-weight:700;">↑40.58%</span></div><div style="font-size:11px;color:var(--ink-soft);">双十一 2.07 次</div></div>
+            <div><div style="font-size:11px;color:var(--ink-soft);">人均参与天数</div><div style="font-size:20px;font-weight:800;color:var(--ink);">1.30<span style="font-size:12px;color:var(--ink-soft);"> 天</span></div><div style="font-size:11px;color:var(--ink-soft);">双十一 1.16 天</div></div>
+            <div><div style="font-size:11px;color:var(--ink-soft);">次日继续参与</div><div style="font-size:20px;font-weight:800;color:var(--ink);">2.72<span style="font-size:12px;color:var(--ink-soft);">%</span> <span style="font-size:12px;color:#3a8a2a;font-weight:700;">×1.92</span></div><div style="font-size:11px;color:var(--ink-soft);">双十一 1.42%</div></div>
+          </div>
+        `);
+      }, 400);
+      els.hintText().textContent = '继续抽签，查看任务机制效果';
+    }
+    if (step === 2) {
+      els.hintText().textContent = '再抽一次，看任务面板';
+    }
+    if (step === 3) {
+      setTimeout(() => {
+        els.taskPanel().classList.add('show');
+        els.bottomBar().style.opacity = '0';
+        els.drawBtn().style.opacity = '0.4';
+        els.drawBtn().style.pointerEvents = 'none';
+        els.hintText().textContent = '免费次数用完了 → 点击任务列表中的任意任务';
+      }, 800);
+    }
+  }
+
+  function clickTask(el, idx) {
+    if (taskClicked || completed) return;
+    el.classList.add('clicked');
+    taskClicked = true;
+
+    const taskRates = { 1: '9.60%', 2: '6.73%', 3: '5.93%', 4: '5.35%' };
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">任务转化</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">任务不是"增加抽签次数"的附属模块，而是可以<b>直接贡献订单增长的策略组件</b>。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:10px;">
+        <div><div style="font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">9,460<span style="font-size:12px;color:var(--ink-soft);"> 单</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">合计成单增量</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;letter-spacing:-0.5px;">13.27<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">整体增长率</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--pink-deep);letter-spacing:-0.5px;">12.52<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">占活动总增量</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;padding-top:8px;border-top:1px solid var(--line);margin-bottom:10px;">
+        <div><div style="font-size:11px;color:var(--ink-soft);">新用户</div><div style="font-size:14px;font-weight:700;color:var(--ink);">+2,551 单</div></div>
+        <div><div style="font-size:11px;color:var(--ink-soft);">老用户</div><div style="font-size:14px;font-weight:700;color:var(--ink);">+6,909 单</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink);line-height:1.6;">
+        <div style="display:flex;align-items:baseline;gap:6px;"><span style="color:var(--pink-deep);font-weight:700;">①</span> 抽签次数来源从<b>「免费领取」</b>扩展到<b>「完成任务」</b>，让参与深度与用户行为挂钩</div>
+        <div style="display:flex;align-items:baseline;gap:6px;"><span style="color:var(--pink-deep);font-weight:700;">②</span> 任务承载<b>返现教育</b>、<b>会场浏览</b>、<b>红包领取</b>、<b>出站转化</b>等多重目标，一个机制服务多个场景</div>
+      </div>
+    `);
+
+    setTimeout(() => {
+      addCard(els.cards(), `
+        <span class="dcard-flag flag-insight">复盘洞察</span>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink);line-height:1.7;">
+          <div>● 仍有 <b style="color:var(--pink-deep);">82.66%</b> 用户仅参与 1 天 —— 参与深度有提升，但<b>复访能力</b>仍是短板</div>
+          <div>● 插屏资源<b>一过性强</b>，带来大量首日参与，但缺乏<b>二次召回</b>路径</div>
+          <div>● 挽留弹窗实验无成效：触发时机在用户<b>已做退出决策</b>时，心理闭环已完成，干预已晚</div>
+        </div>
+        <div style="margin-top:10px;padding:8px 12px;background:rgba(245,184,64,0.08);border-radius:8px;font-size:12px;line-height:1.6;color:var(--ink-soft);">
+          → 这些不是失败，而是<b style="color:var(--gold-deep);">下一个周期已知的待解命题</b>
+        </div>
+      `);
+      setTimeout(() => showSummary(), 600);
+    }, 800);
+  }
+
+  function showSummary() {
+    if (completed) return;
+    completed = true;
+
+    setTimeout(() => {
+      els.bridge().classList.add('show');
+      const nextBtn = document.getElementById('s2NextBtn');
+      if (nextBtn) nextBtn.classList.add('show');
+      els.hintText().textContent = '✓ 年货节演示完成';
+      els.hint().style.animation = 'none';
+      els.hint().style.background = 'rgba(104,192,90,0.12)';
+      els.hint().querySelector('.dot').style.background = '#4a9c3a';
+    }, 1200);
+  }
+
+  function reset() {
+    drawsLeft = 3; drawStep = 0; taskClicked = false; completed = false;
+    els.cards().innerHTML = '';
+    els.bridge().classList.remove('show');
+    els.fortuneCard().classList.remove('show');
+    els.taskPanel().classList.remove('show');
+    els.bottomBar().style.opacity = '1';
+    els.drawBtn().style.opacity = '1';
+    els.drawBtn().style.pointerEvents = 'auto';
+    els.drawCount().textContent = '今日可抽 3 签';
+    document.querySelectorAll('.task-item').forEach(t => t.classList.remove('clicked'));
+
+    for (let i = 1; i <= 5; i++) {
+      const s = document.getElementById('fStick' + i);
+      if (s) { s.classList.remove('stick-pulling'); s.style.animation = ''; }
+    }
+
+    els.hintText().textContent = '点击「抽签得现金」—— 注意：没有大奖选择步骤了';
+    els.hint().style.animation = 'pulse 2s ease-in-out infinite';
+    els.hint().style.background = 'rgba(226,59,110,0.08)';
+    els.hint().querySelector('.dot').style.background = 'var(--pink-deep)';
+  }
+
+  function advance() {
+    if (drawStep < 3 && drawsLeft > 0) {
+      draw();
+      return false;
+    } else if (drawStep === 3 && !taskClicked) {
+      setTimeout(() => clickTask(document.getElementById('task1'), 1), 300);
+      return false;
+    } else if (completed) {
+      return true;
+    }
+    return false;
+  }
+
+  return { draw, clickTask, reset, advance };
+})();
+
+/* ============ 场景三：618 抽奖机 ============ */
+const S3 = (() => {
+  const POMELOS = [
+    { id: 0, icon: '🐟', name: '锦鲤柚', emoji: '🍊' },
+    { id: 1, icon: '😊', name: '轻松柚', emoji: '🍊' },
+    { id: 2, icon: '☀️', name: '向阳柚', emoji: '🍊' },
+    { id: 3, icon: '💪', name: '必胜柚', emoji: '🍊' },
+  ];
+  const DRAWS = [
+    { type: 'pomelo', idx: 1, label: '获得 轻松柚 ×1' },
+    { type: 'pomelo', idx: 2, label: '获得 向阳柚 ×1' },
+    { type: 'redpack', icon: '🧧', label: '返现红包 ¥1.28' },
+  ];
+  let drawStep = 0, spinning = false, completed = false, taskClicked = false;
+  let collectCount = 0;
+  const pomCounts = [0, 0, 0, 0];
+
+  const els = {
+    drawBtn: () => document.getElementById('s3DrawBtn'),
+    reels: () => document.querySelectorAll('.s3-reel-strip'),
+    toast: () => document.getElementById('s3Toast'),
+    toastIcon: () => document.getElementById('s3ToastIcon'),
+    toastText: () => document.getElementById('s3ToastText'),
+    collectNum: () => document.getElementById('s3CollectNum'),
+    collectFill: () => document.getElementById('s3CollectFill'),
+    cards: () => document.getElementById('s3Cards'),
+    bridge: () => document.getElementById('s3Bridge'),
+    hint: () => document.getElementById('s3Hint'),
+    hintText: () => document.getElementById('s3HintText'),
+    taskBtn: () => document.getElementById('s3TaskBtn'),
+  };
+
+  document.getElementById('s3DrawBtn').onclick = () => draw();
+  els.taskBtn().onclick = () => clickTask();
+
+  function setReelResult(strip, itemIndex) {
+    strip.classList.remove('spinning');
+    strip.style.transform = `translateY(-${itemIndex * 52}px)`;
+  }
+
+  function spinReels(resultIndices) {
+    els.reels().forEach((strip, i) => {
+      strip.classList.add('spinning');
+      strip.style.transform = '';
+    });
+    return new Promise(resolve => {
+      setTimeout(() => {
+        els.reels().forEach((strip, i) => setReelResult(strip, resultIndices[i] ?? 1));
+        setTimeout(resolve, 900);
+      }, 1200);
+    });
+  }
+
+  function showToast(icon, text) {
+    const t = els.toast();
+    els.toastIcon().textContent = icon;
+    els.toastText().textContent = text;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function updateCollect(idx) {
+    if (idx == null) return;
+    collectCount = Math.min(4, collectCount + 1);
+    pomCounts[idx]++;
+    const el = document.getElementById('pom' + idx);
+    const pc = document.getElementById('pc' + idx);
+    if (el) { el.textContent = POMELOS[idx].icon; el.classList.add('got'); }
+    if (pc) pc.textContent = 'x' + pomCounts[idx];
+    els.collectNum().textContent = collectCount;
+    els.collectFill().style.width = (collectCount / 4 * 100) + '%';
+  }
+
+  function showDataStep(step) {
+    const cards = els.cards();
+    if (step === 1) {
+      addCard(cards, `
+        <span class="dcard-flag flag-data">618 整体成效</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 16px;margin-bottom:14px;">
+          <div><div style="font-size:28px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">101,168<span style="font-size:13px;color:var(--ink-soft);"> 单</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">合计成单增量</div><div style="font-size:10px;color:var(--ink-soft);">日均 2,662 单</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:#3a8a2a;letter-spacing:-0.5px;">25.94<span style="font-size:13px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">整体成单增长率</div><div style="font-size:10px;color:var(--ink-soft);">较年货节 -7.88%</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:var(--gold-deep);letter-spacing:-0.5px;">7.17</div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">ROI</div><div style="font-size:10px;color:var(--ink-soft);">年货节 1.75</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding-top:10px;border-top:1px solid var(--line);">
+          <div><div style="font-size:11px;color:var(--ink-soft);">新用户</div><div style="font-size:14px;font-weight:700;color:var(--ink);">+12,689 单 <span style="font-size:12px;color:#3a8a2a;">↑38.94%</span></div><div style="font-size:10px;color:var(--ink-soft);">日均 334 单 · 低于年货节 56.57%</div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">老用户</div><div style="font-size:14px;font-weight:700;color:var(--ink);">+88,479 单 <span style="font-size:12px;color:#3a8a2a;">↑24.08%</span></div><div style="font-size:10px;color:var(--ink-soft);">日均 2,328 单 · <b style="color:#3a8a2a;">高于年货节 21.02%</b></div></div>
+          <div style="grid-column:1/-1;"><div style="font-size:11px;color:var(--ink-soft);">成单渗透率</div><div style="font-size:14px;font-weight:700;color:var(--ink);">0.30% → 0.33% <span style="font-size:12px;color:#3a8a2a;">↑11.14%</span></div></div>
+        </div>
+      `);
+      els.hintText().textContent = '继续抽奖，查看参与表现';
+    }
+    if (step === 2) {
+      addCard(cards, `
+        <span class="dcard-flag flag-compare">参与率与参与深度</span>
+        <div class="dcard-desc" style="margin:0 0 10px;font-size:13px;">成单仍在增长，但<b>参与覆盖</b>弱于年货节 —— 「集柚分现金」理解成本高，延迟瓜分削弱即时反馈。</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;">
+          <div><div style="font-size:11px;color:var(--ink-soft);">活动参与率</div><div style="font-size:20px;font-weight:800;color:var(--ink);">36.42<span style="font-size:12px;">%</span> <span style="font-size:11px;color:var(--pink-deep);">↓25.49%</span></div><div style="font-size:10px;color:var(--ink-soft);">年货节 48.88%</div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">人均参与次数</div><div style="font-size:20px;font-weight:800;color:var(--ink);">2.38<span style="font-size:12px;"> 次</span> <span style="font-size:11px;color:var(--pink-deep);">↓18.21%</span></div><div style="font-size:10px;color:var(--ink-soft);">年货节 2.91 · 优于扭蛋 2.07</div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">参与次日留存</div><div style="font-size:20px;font-weight:800;color:var(--ink);">4.21<span style="font-size:12px;">%</span></div><div style="font-size:10px;color:var(--ink-soft);">年货节 6.18% · 扭蛋 3.40%</div></div>
+          <div><div style="font-size:11px;color:var(--ink-soft);">仅参与 1 天</div><div style="font-size:20px;font-weight:800;color:var(--pink-deep);">84<span style="font-size:12px;">%</span></div><div style="font-size:10px;color:var(--ink-soft);">三轮机制未拉高参与天数</div></div>
+        </div>
+      `);
+      els.hintText().textContent = '再抽一次，第三抽必中返现红包';
+    }
+    if (step === 3) {
+      addCard(cards, `
+        <span class="dcard-flag flag-data">返现红包</span>
+        <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">策略：<b>第三抽必中</b> + 提高老用户中奖概率 + <b>24h 倒计时</b>，引导主动成单。</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:10px;">
+          <div><div style="font-size:24px;font-weight:800;color:var(--ink);">18,493<span style="font-size:11px;"> 单</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">红包成单增量</div><div style="font-size:10px;color:var(--ink-soft);">日均 487 单</div></div>
+          <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;">8.02<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">活动成单增长率</div></div>
+          <div><div style="font-size:24px;font-weight:800;color:var(--gold-deep);">17.86<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">老用户核销率</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;padding-top:8px;border-top:1px solid var(--line);font-size:12px;line-height:1.6;">
+          <div>老用户 <b>+15,872 单</b> <span style="color:#3a8a2a;">↑7.64%</span></div>
+          <div>新用户 <b>+2,621 单</b> <span style="color:#3a8a2a;">↑10.33%</span></div>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);line-height:1.6;">● 老用户日均领红包 <b>967 人</b>，较 38 宠爱礼 <b style="color:var(--pink-deep);">-65%</b> —— 获得入口偏深，大盘渗透贡献有限</div>
+      `);
+      els.hintText().textContent = '次数用完 → 点击「获得次数」查看任务表现';
+      els.taskBtn().style.transform = 'scale(1.08)';
+      els.taskBtn().style.filter = 'drop-shadow(0 0 8px rgba(255,255,255,0.6))';
+    }
+  }
+
+  function clickTask() {
+    if (taskClicked || drawStep < 3) return;
+    taskClicked = true;
+    els.taskBtn().style.transform = '';
+    els.taskBtn().style.filter = '';
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">任务转化</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">规模收缩，但<b>链路效率</b>提升 —— 任务入口过深是主要瓶颈。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:10px;">
+        <div><div style="font-size:24px;font-weight:800;color:var(--ink);">11,255<span style="font-size:11px;"> 单</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">任务成单增量</div><div style="font-size:10px;color:var(--ink-soft);">日均 296 单</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--pink-deep);">-45.27<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">较年货节日均</div><div style="font-size:10px;color:var(--ink-soft);">430 → 296 单/日</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;">+109.73<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">任务点击成单率</div><div style="font-size:10px;color:var(--ink-soft);">3.74% → 7.84%</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.65;color:var(--ink);">
+        <div>● 任务曝光 <b style="color:var(--pink-deep);">-68.45%</b>，半弹窗触达率 55.51% → 33.54%</div>
+        <div>● 但参与用户质量更高：次日复购留存 <b style="color:#3a8a2a;">+85.03%</b>，7 日任务留存 <b style="color:#3a8a2a;">+136.96%</b></div>
+        <div>● <b>连续 3 天任务得柚子</b>、返现小问答（完成率 88.65%）验证有效，可扩大</div>
+      </div>
+    `);
+
+    setTimeout(() => {
+      addCard(els.cards(), `
+        <span class="dcard-flag flag-insight">复盘洞察</span>
+        <div class="dcard-desc" style="margin:0 0 10px;font-size:13px;">618 不是失败，而是帮我们划清了<b>可沉淀</b>与<b>需收敛</b>的边界。</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.7;">
+          <div>● 每轮 <b>30%-40%</b> 集齐用户未参与瓜分，未合成用户后续参与率 <b style="color:var(--pink-deep);">↓30%</b></div>
+          <div>● 合成奖励人均 <b>0.5 元</b>，对忠诚用户激励不足</div>
+          <div>● 任务需点击才可见，缺乏次数用完后的主动引导</div>
+        </div>
+        <div style="margin-top:10px;padding:8px 12px;background:rgba(245,184,64,0.08);border-radius:8px;font-size:12px;line-height:1.6;color:var(--ink-soft);">
+          → <b style="color:#3a8a2a;">沉淀</b>：返现红包、任务链路、小问答教育<br>
+          → <b style="color:var(--gold-deep);">收敛</b>：延迟瓜分、复杂集柚、深藏任务入口
+        </div>
+      `);
+      setTimeout(finishDemo, 500);
+    }, 600);
+  }
+
+  function finishDemo() {
+    if (completed) return;
+    completed = true;
+    els.bridge().classList.add('show');
+    document.getElementById('s3NextBtn').classList.add('show');
+    els.hintText().textContent = '✓ 618 演示完成 — 可进入返现红包';
+    els.hint().style.animation = 'none';
+    els.hint().style.background = 'rgba(104,192,90,0.12)';
+    els.hint().querySelector('.dot').style.background = '#4a9c3a';
+  }
+
+  async function draw() {
+    if (spinning || drawStep >= 3) return;
+    spinning = true;
+    const btn = els.drawBtn();
+    btn.disabled = true;
+    btn.textContent = '正在抽奖';
+
+    const outcome = DRAWS[drawStep];
+    const reelResults = outcome.type === 'redpack' ? [0, 0, 0, 0] : [1, 0, 2, 1];
+    await spinReels(reelResults);
+
+    if (outcome.type === 'pomelo') {
+      showToast('🍊', outcome.label);
+      updateCollect(outcome.idx);
+    } else {
+      showToast('🧧', outcome.label);
+    }
+
+    drawStep++;
+    showDataStep(drawStep);
+
+    btn.disabled = false;
+    btn.textContent = drawStep >= 3 ? '今日次数已用完' : '立即抽奖';
+    if (drawStep >= 3) btn.disabled = true;
+    spinning = false;
+  }
+
+  function reset() {
+    drawStep = 0; spinning = false; completed = false; taskClicked = false;
+    collectCount = 0;
+    pomCounts.fill(0);
+    els.cards().innerHTML = '';
+    els.bridge().classList.remove('show');
+    document.getElementById('s3NextBtn').classList.remove('show');
+    els.collectNum().textContent = '0';
+    els.collectFill().style.width = '0%';
+    POMELOS.forEach((p, i) => {
+      const el = document.getElementById('pom' + i);
+      const pc = document.getElementById('pc' + i);
+      if (el) { el.textContent = '?'; el.classList.remove('got'); }
+      if (pc) pc.textContent = 'x0';
+    });
+    els.reels().forEach(strip => {
+      strip.classList.remove('spinning');
+      strip.style.transform = '';
+    });
+    const btn = els.drawBtn();
+    btn.disabled = false;
+    btn.textContent = '立即抽奖';
+    els.taskBtn().style.transform = '';
+    els.taskBtn().style.filter = '';
+    els.hintText().textContent = '点击「立即抽奖」体验 618 抽奖机';
+    els.hint().style.animation = 'pulse 2s ease-in-out infinite';
+    els.hint().style.background = 'rgba(226,59,110,0.08)';
+    els.hint().querySelector('.dot').style.background = 'var(--pink-deep)';
+  }
+
+  function advance() {
+    if (drawStep < 3 && !spinning) {
+      draw();
+      return false;
+    } else if (drawStep >= 3 && !taskClicked) {
+      clickTask();
+      return false;
+    } else if (completed) {
+      return true;
+    }
+    return false;
+  }
+
+  return { draw, reset, advance };
+})();
+
+/* ============ 场景四：返现红包 ============ */
+const S4 = (() => {
+  let step = 0, completed = false, timerId = null;
+  let cdSec = 23 * 3600 + 59 * 60 + 59;
+
+  const els = {
+    banner: () => document.getElementById('s4Banner'),
+    overlay: () => document.getElementById('s4Overlay'),
+    goBtn: () => document.getElementById('s4GoBtn'),
+    countdown: () => document.getElementById('s4Countdown'),
+    admin: () => document.getElementById('s4Admin'),
+    cards: () => document.getElementById('s4Cards'),
+    bridge: () => document.getElementById('s4Bridge'),
+    evolution: () => document.getElementById('s4Evolution'),
+    evoCards: () => document.querySelectorAll('#s4Evolution .s4-evo-card'),
+    hintText: () => document.getElementById('s4HintText'),
+    hint: () => document.getElementById('s4Hint'),
+    timeline: () => document.querySelectorAll('#s4Timeline .s4-tl-dot'),
+  };
+
+  function setEvolutionStep(idx) {
+    els.evolution().classList.add('show');
+    els.evoCards().forEach((card, i) => {
+      card.classList.remove('active', 'done', 'reached');
+      if (i < idx) card.classList.add('done', 'reached');
+      else if (i === idx) card.classList.add('active', 'reached');
+    });
+  }
+
+  function fmtCountdown(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return [h, m, sec].map(n => String(n).padStart(2, '0')).join(':');
+  }
+
+  function startCountdown() {
+    stopCountdown();
+    cdSec = 23 * 3600 + 59 * 60 + 50;
+    els.countdown().textContent = fmtCountdown(cdSec);
+    timerId = setInterval(() => {
+      if (cdSec > 0) {
+        cdSec--;
+        els.countdown().textContent = fmtCountdown(cdSec);
+      }
+    }, 1000);
+  }
+
+  function stopCountdown() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+
+  function setTimeline(idx) {
+    els.timeline().forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < idx) d.classList.add('done');
+      else if (i === idx) d.classList.add('active');
+    });
+  }
+
+  function openRedPacket() {
+    if (step > 0) return;
+    step = 1;
+    els.overlay().classList.add('show');
+    startCountdown();
+    setTimeline(0);
+    setEvolutionStep(0);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">双旦 OS 1.0 · 成效</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px;margin-bottom:10px;">
+        <div><div style="font-size:28px;font-weight:800;color:var(--ink);">+360<span style="font-size:12px;"> 单/日</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">推全预估增量</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+4.1<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">成单渗透率</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+15.31<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">首单用户增长</div></div>
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:var(--ink-soft);">弹窗 CTR <b style="color:var(--ink)">12.6%</b>，【去下单】CTR <b style="color:var(--ink)">52%</b> —— 最小成本验证假设成立</div>
+    `);
+
+    els.hintText().textContent = '点击「去下单」—— 进入年货节二次验证';
+    els.goBtn().style.animation = 'pulse 1.5s ease-in-out infinite';
+  }
+
+  function clickGoOrder() {
+    if (step !== 1) return;
+    step = 2;
+    els.goBtn().style.animation = 'none';
+    setTimeline(1);
+    setEvolutionStep(1);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-compare">年货节 OS 1.1 · 成效</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px;margin-bottom:10px;">
+        <div><div style="font-size:28px;font-weight:800;color:var(--gold-deep);">1.78</div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">ROI</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:var(--ink);">+419<span style="font-size:12px;"> 单/日</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">日均成单增量</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+13.21<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">首单渗透率</div></div>
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:var(--ink-soft);">参与率 <b style="color:var(--ink)">39.96%</b>，<b style="color:var(--ink)">35.36%</b> 老用户跨天重复领取 —— ROI 可持续性验证通过</div>
+    `);
+
+    els.hintText().textContent = '按 Space 继续 — 38 宠爱礼';
+  }
+
+  function show38Card() {
+    if (step !== 2) return;
+    step = 3;
+    setTimeline(2);
+    setEvolutionStep(2);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">38 宠爱礼 · 成效</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px;margin-bottom:10px;">
+        <div><div style="font-size:28px;font-weight:800;color:var(--ink);">+3,523<span style="font-size:12px;"> 单/日</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">日均成单增量</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+10.51<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">渗透率提升</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+70.27<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">弹窗成单率</div></div>
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:var(--ink-soft);">活动合计 <b style="color:var(--ink)">6,438 单</b>，返现入口贡献增量 <b style="color:var(--ink)">81.49%</b></div>
+    `);
+
+    els.hintText().textContent = '按 Space 继续 — 产品化沉淀';
+  }
+
+  function showProductize() {
+    if (step !== 3) return;
+    step = 4;
+    els.overlay().classList.remove('show');
+    els.admin().classList.add('show');
+    setTimeline(3);
+    setEvolutionStep(3);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-insight">日常化 + 618 集成 · 成效</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px;margin-bottom:10px;">
+        <div><div style="font-size:28px;font-weight:800;color:var(--ink);">18,493<span style="font-size:12px;"> 单</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">618 红包合计增量</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+7.64<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">老用户增长</div></div>
+        <div><div style="font-size:28px;font-weight:800;color:#2d7a22;">+10.33<span style="font-size:12px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">新用户增长</div></div>
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:var(--ink-soft);">运营后台创建配置，通过<b style="color:var(--ink)">资源位</b>灵活发放 —— 沉淀为日常转化能力</div>
+    `);
+
+    setTimeout(finishDemo, 500);
+  }
+
+  function finishDemo() {
+    if (completed) return;
+    completed = true;
+    document.getElementById('s4NextBtn').classList.add('show');
+    els.hintText().textContent = '✓ 返现红包演示完成 — 可进入拼多多部分';
+    els.hint().style.animation = 'none';
+    els.hint().style.background = 'rgba(104,192,90,0.12)';
+    els.hint().querySelector('.dot').style.background = '#4a9c3a';
+  }
+
+  document.getElementById('s4Banner').onclick = openRedPacket;
+  document.getElementById('s4GoBtn').onclick = clickGoOrder;
+
+  function reset() {
+    step = 0; completed = false;
+    stopCountdown();
+    els.cards().innerHTML = '';
+    document.getElementById('s4NextBtn').classList.remove('show');
+    els.evoCards().forEach(c => c.classList.remove('active', 'done', 'reached'));
+    els.overlay().classList.remove('show');
+    els.admin().classList.remove('show');
+    els.goBtn().style.animation = '';
+    els.countdown().textContent = '23:59:59';
+    setTimeline(0);
+    els.hintText().textContent = '点击「立即抢」—— 体验红包领取与倒计时紧迫感';
+    els.hint().style.animation = 'pulse 2s ease-in-out infinite';
+    els.hint().style.background = 'rgba(226,59,110,0.08)';
+    els.hint().querySelector('.dot').style.background = 'var(--pink-deep)';
+  }
+
+  function advance() {
+    if (step === 0) {
+      openRedPacket();
+      return false;
+    } else if (step === 1) {
+      clickGoOrder();
+      return false;
+    } else if (step === 2) {
+      show38Card();
+      return false;
+    } else if (step === 3) {
+      showProductize();
+      return false;
+    } else if (completed) {
+      return true;
+    }
+    return false;
+  }
+
+  return { reset, advance };
+})();
+
+/* ============ 场景五：拼多多风控应对 ============ */
+const S5 = (() => {
+  let step = 0, completed = false, timerId = null;
+  let waitSec = 3600;
+
+  const els = {
+    search: () => document.getElementById('s5Search'),
+    searchTxt: () => document.getElementById('s5SearchTxt'),
+    overlay: () => document.getElementById('s5Overlay'),
+    collect: () => document.getElementById('s5Collect'),
+    waitCd: () => document.getElementById('s5WaitCd'),
+    collectGo: () => document.getElementById('s5CollectGo'),
+    cards: () => document.getElementById('s5Cards'),
+    responses: () => document.getElementById('s5Responses'),
+    respCards: () => document.querySelectorAll('#s5Responses .s5-resp-card'),
+    pathQuote: () => document.getElementById('s5PathQuote'),
+    hintText: () => document.getElementById('s5HintText'),
+    hint: () => document.getElementById('s5Hint'),
+  };
+
+  function fmtWait(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return [h, m, sec].map(n => String(n).padStart(2, '0')).join(':');
+  }
+
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+
+  function startWaitTimer() {
+    stopTimer();
+    waitSec = 3600;
+    els.waitCd().textContent = fmtWait(waitSec);
+    timerId = setInterval(() => {
+      if (waitSec > 0) {
+        waitSec--;
+        els.waitCd().textContent = fmtWait(waitSec);
+      }
+    }, 80);
+  }
+
+  function setRespStep(idx) {
+    els.responses().classList.add('show');
+    els.respCards().forEach((c, i) => {
+      c.classList.remove('active', 'done', 'reached');
+      if (i < idx) c.classList.add('done', 'reached');
+      else if (i === idx) c.classList.add('active', 'reached');
+    });
+  }
+
+  function doSearch() {
+    if (step > 0) return;
+    step = 1;
+    els.searchTxt().textContent = 'https://mobile.yangkeduo.com/goods.html?...';
+    els.overlay().classList.add('show');
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-insight">风控冲击 · 业务现状</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">拼多多新增比价计佣限制：用户先在官方 App 浏览商品，再通过媒体渠道下单 → <b>佣金归零</b>，原有「查返现→立刻下单」链路被截断。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:10px;">
+        <div><div style="font-size:24px;font-weight:800;color:var(--pink-deep);">~400<span style="font-size:11px;"> 单/日</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">风控后日均成单</div><div style="font-size:10px;color:var(--ink-soft);">从 ~1,500 断崖下滑</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--pink-deep);">-73<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">成单萎缩幅度</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--ink);">下线</div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">粘贴搜拼多多功能</div><div style="font-size:10px;color:var(--ink-soft);">有结果人数 2000+→470</div></div>
+      </div>
+      <div style="font-size:12px;line-height:1.65;color:var(--ink);">● 关键发现：比价判定存在 <b>1 小时冷却</b>，等待后可恢复返现 —— 这是后续策略的突破口</div>
+    `);
+
+    els.hintText().textContent = '点击「先收藏稍后买」—— 核心应对路径';
+    document.getElementById('s5OptWait').style.animation = 'pulse 1.5s ease-in-out infinite';
+  }
+
+  function clickWait() {
+    if (step !== 1) return;
+    step = 2;
+    document.getElementById('s5OptWait').style.animation = '';
+    els.overlay().classList.remove('show');
+    els.collect().classList.add('show');
+    startWaitTimer();
+    setRespStep(0);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-compare">① 调研 · 竞品策略 & 路径设计</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">调研返利网、省钱快报、高佣联盟等竞品，归纳三类应对路径，选定<b>「先收藏稍后买」</b>为主路径。</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.65;color:var(--ink);">
+        <div>● <b>收藏等待</b>：倒计时 + 收藏承接 + Push/日历到点召回（主路径）</div>
+        <div>● <b>切换账号</b>：用无浏览历史的新账号下单，规避比价判定</div>
+        <div>● <b>App 内搜索</b>：引导用户直接在拼多多 App 搜商品，而非复制链接</div>
+      </div>
+      <div style="margin-top:10px;padding:8px 12px;background:rgba(245,184,64,0.08);border-radius:8px;font-size:12px;line-height:1.6;color:var(--ink-soft);">
+        产品表达：「美柚已为你保留本次返现机会，到了可下单时间会提醒你」—— 将等待变成可理解的待办事项
+      </div>
+    `);
+
+    els.hintText().textContent = '按 Space 继续 — 查看搜链接返现重建成效';
+  }
+
+  function showRebuildCard() {
+    if (step !== 2) return;
+    step = 3;
+    setRespStep(1);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">② 重建 · 拼多多搜链接返现</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">重新接入链接识别与搜索能力，命中比价时弹出引导（收藏等待 / 切换账号），而非直接流失。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:10px;">
+        <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;">+141<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">拼多多下单人数</div><div style="font-size:10px;color:var(--ink-soft);">实验组 23→55 人</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;">+2.01<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">成单渗透率</div><div style="font-size:10px;color:var(--ink-soft);">p&lt;0.01 显著正向</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--ink);">+510<span style="font-size:11px;"> 单/日</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">推全预估增量</div><div style="font-size:10px;color:var(--ink-soft);">月增 ~15,000 单</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.65;color:var(--ink);">
+        <div>● 仅 <b>25%</b> 搜索用户命中比价，75% 可直接下单 —— 阻碍低于最初判断</div>
+        <div>● 命中比价用户转化率 <b>18.07%</b>，收藏等待路径有效挽回高意向订单</div>
+        <div>● 纯增量：未对其他商城造成替代效应</div>
+      </div>
+    `);
+
+    els.hintText().textContent = '按 Space 继续 — 查看好单库转链能力';
+  }
+
+  function showHaodankuCard() {
+    if (step !== 3) return;
+    step = 4;
+    setRespStep(2);
+
+    addCard(els.cards(), `
+      <span class="dcard-flag flag-data">③ 接入 · 好单库拼多多转链</span>
+      <div class="dcard-desc" style="margin:0 0 12px;font-size:13px;">官方回收超级红包等高级活动转链权限后，活动成单从 <b>100 单/日 → 40 单/日</b>。借助好单库高等级 API 重建跟单能力。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:10px;">
+        <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;">3.79<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">成单转化率</div><div style="font-size:10px;color:var(--ink-soft);">原 1.62%</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--ink);">26→64<span style="font-size:11px;"> 单/日</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">二级页日均成单</div><div style="font-size:10px;color:var(--ink-soft);">曝光基本持平</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:#3a8a2a;">+134<span style="font-size:11px;">%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">成单量提升</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.65;color:var(--ink);">
+        <div>● 核心驱动：高级活动跟单成功率更强，非流量增长（点击率仅 +4.16%）</div>
+        <div>● 有效对冲官方权限回收带来的负面影响</div>
+        <div>● 跟单稳定后，加强宣发可进一步放大订单量</div>
+      </div>
+    `);
+
+    setTimeout(finishDemo, 500);
+  }
+
+  function finishDemo() {
+    if (completed) return;
+    completed = true;
+    els.pathQuote().classList.add('show');
+    document.getElementById('s5NextBtn').classList.add('show');
+    els.hintText().textContent = '✓ 拼多多演示完成 — 可查看工作总结';
+    els.hint().style.animation = 'none';
+    els.hint().style.background = 'rgba(104,192,90,0.12)';
+    els.hint().querySelector('.dot').style.background = '#4a9c3a';
+  }
+
+  document.getElementById('s5Search').onclick = doSearch;
+  document.getElementById('s5OptWait').onclick = clickWait;
+
+  function reset() {
+    step = 0; completed = false;
+    stopTimer();
+    els.cards().innerHTML = '';
+    els.responses().classList.remove('show');
+    els.pathQuote().classList.remove('show');
+    document.getElementById('s5NextBtn').classList.remove('show');
+    els.respCards().forEach(c => c.classList.remove('active', 'done', 'reached'));
+    els.overlay().classList.remove('show');
+    els.collect().classList.remove('show');
+    els.searchTxt().textContent = '粘贴拼多多商品链接，查返现';
+    els.waitCd().textContent = '01:00:00';
+    els.collectGo().disabled = true;
+    els.collectGo().classList.remove('ready');
+    document.getElementById('s5OptWait').style.animation = '';
+    els.hintText().textContent = '点击搜索框 — 体验命中比价风控后的引导链路';
+    els.hint().style.animation = 'pulse 2s ease-in-out infinite';
+    els.hint().style.background = 'rgba(226,59,110,0.08)';
+    els.hint().querySelector('.dot').style.background = 'var(--pink-deep)';
+  }
+
+  function advance() {
+    if (step === 0) { doSearch(); return false; }
+    else if (step === 1) { clickWait(); return false; }
+    else if (step === 2) { showRebuildCard(); return false; }
+    else if (step === 3) { showHaodankuCard(); return false; }
+    else if (completed) { return true; }
+    return false;
+  }
+
+  return { reset, advance };
+})();
+
+/* ============ 场景六：工作总结与思考 ============ */
+const S6 = (() => {
+  let step = 0, completed = false;
+  const els = {
+    pillars: () => document.querySelectorAll('.s6-pillar'),
+    synthesis: () => document.getElementById('s6Synthesis'),
+    method: () => document.getElementById('s6Method'),
+    hint: () => document.getElementById('s6Hint'),
+  };
+
+  function showPillars() {
+    if (step > 0) return;
+    step = 1;
+    els.pillars().forEach(p => p.classList.add('show'));
+    els.hint().textContent = '按 Space 继续 — 查看综合思考';
+  }
+
+  function showSynthesis() {
+    if (step !== 1) return;
+    step = 2;
+    els.synthesis().classList.add('show');
+    els.hint().textContent = '按 Space 继续 — 查看工作方法';
+  }
+
+  function showMethod() {
+    if (step !== 2) return;
+    step = 3;
+    els.method().classList.add('show');
+    finishDemo();
+  }
+
+  function finishDemo() {
+    if (completed) return;
+    completed = true;
+    els.hint().textContent = '✓ 总结完成 — 可查看下半年期望';
+    els.hint().classList.add('done');
+    document.getElementById('s6NextBtn').classList.add('show');
+  }
+
+  function reset() {
+    step = 0; completed = false;
+    els.pillars().forEach(p => p.classList.remove('show'));
+    els.synthesis().classList.remove('show');
+    els.method().classList.remove('show');
+    els.hint().textContent = '按 Space 逐步展开';
+    els.hint().classList.remove('done');
+    document.getElementById('s6NextBtn').classList.remove('show');
+  }
+
+  function advance() {
+    if (step === 0) { showPillars(); return false; }
+    else if (step === 1) { showSynthesis(); return false; }
+    else if (step === 2) { showMethod(); return false; }
+    else if (completed) { return true; }
+    return false;
+  }
+
+  return { reset, advance };
+})();
+
+/* ============ 场景七：下半年期望 ============ */
+const S7 = (() => {
+  let step = 0, completed = false;
+  const els = {
+    cards: () => document.querySelectorAll('.s7-card'),
+    thanks: () => document.getElementById('s7Thanks'),
+    thanksSub: () => document.getElementById('s7ThanksSub'),
+    hint: () => document.getElementById('s7Hint'),
+  };
+
+  function showCards() {
+    if (step > 0) return;
+    step = 1;
+    els.cards().forEach(c => c.classList.add('show'));
+    els.hint().textContent = '按 Space — 结束';
+  }
+
+  function showThanks() {
+    if (step !== 1) return;
+    step = 2;
+    els.thanks().classList.add('show');
+    els.thanksSub().classList.add('show');
+    completed = true;
+    els.hint().textContent = '✓ 述职完毕，谢谢';
+    els.hint().classList.add('done');
+  }
+
+  function reset() {
+    step = 0; completed = false;
+    els.cards().forEach(c => c.classList.remove('show'));
+    els.thanks().classList.remove('show');
+    els.thanksSub().classList.remove('show');
+    els.hint().textContent = '按 Space 继续';
+    els.hint().classList.remove('done');
+  }
+
+  function advance() {
+    if (step === 0) { showCards(); return false; }
+    else if (step === 1) { showThanks(); return false; }
+    else if (completed) { return true; }
+    return false;
+  }
+
+  return { reset, advance };
+})();
+
+/* ============ 键盘导航 ============ */
+const sceneFns = [S1, S2, S3, S4, S5, S6, S7];
+let navLock = false;
+
+document.addEventListener('keydown', (e) => {
+  if (navLock) return;
+  if (e.code === 'Space' || e.code === 'ArrowRight') {
+    e.preventDefault();
+    navLock = true;
+    setTimeout(() => navLock = false, 600);
+
+    const fn = sceneFns[currentScene];
+    if (fn) {
+      const done = fn.advance();
+      if (done && currentScene < scenes.length - 1) {
+        goScene(currentScene + 1);
+      }
+    }
+  } else if (e.code === 'ArrowLeft' || e.code === 'Backspace') {
+    e.preventDefault();
+    if (currentScene > 0) {
+      navLock = true;
+      setTimeout(() => navLock = false, 600);
+      goScene(currentScene - 1);
+    }
+  }
+});
+</script>
+</body>
+</html>

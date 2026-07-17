@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>美柚返现首页 · 资产入口 2.0</title>
+<style>
+:root {
+  --brand: #ff4d88;
+  --brand-soft: rgba(255,77,136,.08);
+  --brand-light: #fff3f5;
+  --surface: #ffffff;
+  --black-a: #323232;
+  --black-m: #666666;
+  --black-b: #999999;
+  --black-j: #cccccc;
+  --success: #00cc99;
+  --warning: #ff9500;
+  --danger: #ff4d4d;
+  --line: rgba(0,0,0,.08);
+  --r8: 8px; --r12: 12px;
+  --sbh: 44px; --nbh: 44px; --tbh: 83px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+button { border: none; cursor: pointer; background: none; font-family: inherit; }
+
+body {
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  background: #b0b0b4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 0 48px;
+}
+
+/* ── Demo Controls ── */
+.demo-bar {
+  width: 375px;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  margin-top: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  padding: 13px 16px 11px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.demo-bar-title { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; }
+.demo-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.demo-row-label { font-size: 10px; color: #999; white-space: nowrap; }
+.d-btn {
+  padding: 4px 11px; border-radius: 20px;
+  border: 1.5px solid #e0e0e0; font-size: 11px; color: #666; background: #fff;
+  transition: all .12s;
+}
+.d-btn.on { border-color: var(--brand); color: var(--brand); background: #fff0f5; font-weight: 600; }
+
+/* ── Phone wrapper (clips bottom sheet) ── */
+.phone-wrap {
+  width: 375px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+
+/* ── Phone ── */
+.phone {
+  width: 375px;
+  background: var(--brand-light);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Status Bar ── */
+.sb {
+  height: var(--sbh);
+  background: var(--brand-light);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; flex-shrink: 0;
+}
+.sb-time { font-size: 15px; font-weight: 600; color: var(--black-a); }
+.sb-right { display: flex; align-items: center; gap: 5px; }
+
+/* ── Nav Bar ── */
+.nav {
+  height: var(--nbh);
+  background: var(--brand-light);
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0;
+}
+.nav-search {
+  height: 28px; background: rgba(0,0,0,.06); border-radius: 14px;
+  display: flex; align-items: center; padding: 0 9px; gap: 5px;
+}
+.nav-search svg { width: 13px; height: 13px; flex-shrink: 0; }
+.nav-search span { font-size: 13px; color: #bbb; }
+.nav-title { font-size: 17px; font-weight: 600; color: var(--black-a); text-align: center; white-space: nowrap; }
+.nav-right { display: flex; justify-content: flex-end; }
+.money-btn {
+  display: flex; align-items: center; gap: 3px; padding: 5px 9px;
+  background: linear-gradient(135deg, var(--danger), var(--brand));
+  border-radius: 14px; color: #fff; font-size: 11px; font-weight: 500;
+}
+.money-btn svg { width: 12px; height: 12px; }
+
+/* ── Page Scroll ── */
+.page {
+  overflow-y: auto; max-height: 568px; padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ════════════════════════════════════════
+   ★ 2.0 Asset Entry Card (always visible)
+   ════════════════════════════════════════ */
+.asset-entry {
+  margin: 10px 12px 0;
+  background: var(--surface);
+  border-radius: var(--r12);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+/* Two-column layout */
+.ae-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+}
+.ae-divider {
+  background: var(--line);
+  align-self: stretch;
+  margin: 12px 0;
+}
+.ae-cell {
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+  transition: background .12s;
+  -webkit-tap-highlight-color: rgba(255,77,136,.06);
+}
+.ae-cell:active { background: var(--brand-soft); }
+
+.ae-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ae-icon.red    { background: linear-gradient(135deg, #ff6b6b, #ff4d88); }
+.ae-icon.purple { background: linear-gradient(135deg, #7b6cf0, #a770ef); }
+.ae-icon.gray   { background: #f0f0f2; }
+.ae-icon svg { width: 17px; height: 17px; }
+
+.ae-body { flex: 1; min-width: 0; }
+.ae-label { font-size: 11px; color: var(--black-b); margin-bottom: 3px; }
+.ae-value { font-size: 14px; font-weight: 600; color: var(--black-a); line-height: 1; font-variant-numeric: tabular-nums; }
+.ae-value.highlight { color: var(--brand); }
+.ae-value.purple    { color: #7b6cf0; }
+.ae-value.muted     { color: var(--black-b); font-weight: 400; }
+
+.ae-arrow { color: var(--black-j); flex-shrink: 0; }
+.ae-arrow svg { width: 14px; height: 14px; }
+
+/* Badge on icon */
+.ae-badge-wrap { position: relative; }
+.ae-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 16px; height: 16px; padding: 0 3px;
+  background: var(--danger); border-radius: 8px;
+  font-size: 9px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--surface);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Original query card ── */
+.query-card {
+  margin: 8px 12px 0;
+  background: #ffdbe7; border-radius: var(--r12); overflow: hidden;
+}
+.query-hint { padding: 10px 16px 7px; font-size: 12px; color: var(--brand); line-height: 1.4; }
+.query-inner { margin: 0 10px 10px; background: var(--surface); border-radius: var(--r8); padding: 13px; }
+.pform-row { display: flex; align-items: center; gap: 8px; }
+.plat-stack { display: flex; }
+.plat-chip {
+  width: 30px; height: 30px; border-radius: 7px; margin-left: -5px;
+  border: 2px solid var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.plat-chip:first-child { margin-left: 0; }
+.pc0{background:#ff7a00;}.pc1{background:#ff3d2e;}.pc2{background:#e6007e;}.pc3{background:#111827;}.pc4{background:#f94144;}
+.pform-copy { flex: 1; min-width: 0; }
+.pform-copy p { font-size: 13px; font-weight: 500; color: var(--black-a); line-height: 1.3; display: flex; align-items: center; gap: 3px; }
+.pform-copy p svg { width: 12px; height: 12px; flex-shrink: 0; }
+.pform-copy span { font-size: 11px; color: var(--brand); display: block; margin-top: 2px; }
+.tutorial-btn {
+  padding: 5px 9px; border-radius: 12px; border: 1px solid var(--brand);
+  font-size: 12px; color: var(--brand); flex-shrink: 0;
+  display: flex; align-items: center; gap: 3px;
+}
+.tutorial-btn svg { width: 11px; height: 11px; }
+.paste-area {
+  margin-top: 10px; min-height: 100px; background: #f7f7f9;
+  border-radius: var(--r8); padding: 13px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 10px;
+}
+.paste-ph { font-size: 13px; color: var(--black-b); line-height: 1.55; flex: 1; align-self: flex-start; }
+.paste-btn {
+  padding: 8px 20px; background: var(--brand); color: #fff;
+  border-radius: var(--r8); font-size: 14px; font-weight: 500; flex-shrink: 0;
+}
+
+/* ── 新人1元购 ── */
+.newin-card { margin: 8px 12px 0; background: var(--surface); border-radius: var(--r12); overflow: hidden; }
+.newin-hd { padding: 12px 16px 6px; display: flex; align-items: flex-end; justify-content: space-between; }
+.newin-title { display: flex; align-items: baseline; }
+.nt-normal { font-size: 16px; font-weight: 700; color: var(--black-a); }
+.nt-big    { font-size: 22px; font-weight: 800; color: var(--brand); }
+.newin-sub { font-size: 10px; color: var(--black-b); }
+.newin-grid { display: grid; grid-template-columns: repeat(4,1fr); padding: 6px 8px 12px; }
+.ni-item { padding: 5px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ni-img { width: 70px; height: 70px; border-radius: var(--r8); }
+.ni-img.p0{background:linear-gradient(145deg,#e8f0fe,#d2e3fc);}
+.ni-img.p1{background:linear-gradient(145deg,#f3e5f5,#e1bee7);}
+.ni-img.p2{background:linear-gradient(145deg,#e8f5e9,#c8e6c9);}
+.ni-img.p3{background:linear-gradient(145deg,#fff8e1,#ffecb3);}
+.ni-name { font-size: 11px; color: var(--black-a); text-align: center; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ni-price { font-size: 11px; color: var(--brand); font-weight: 500; }
+
+/* ── 大家都在用 ── */
+.popular-row { margin: 8px 12px 0; background: var(--surface); border-radius: var(--r12); padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
+.popular-label { font-size: 13px; color: var(--black-a); font-weight: 500; white-space: nowrap; margin-right: 2px; }
+.pop-chip { display: flex; align-items: center; gap: 3px; padding: 5px 9px; border-radius: 12px; background: #f7f7f9; }
+.pop-chip span { font-size: 12px; color: var(--black-a); }
+.pop-tag { padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 600; line-height: 1.5; }
+.pop-tag.red    { background: linear-gradient(135deg,#ff4d4d,#ff4d88); color: #fff; }
+.pop-tag.purple { background: #f0e8ff; color: #7b6cf0; }
+
+/* ── 商城返现 ── */
+.mall-card { margin: 8px 12px 0; background: var(--surface); border-radius: var(--r12); overflow: hidden; }
+.mall-hd { padding: 12px 16px 8px; display: flex; align-items: center; justify-content: space-between; }
+.mall-hd-title { font-size: 14px; font-weight: 600; color: var(--black-a); }
+.mall-more { font-size: 12px; color: var(--black-b); display: flex; align-items: center; gap: 1px; }
+.mall-more svg { width: 14px; height: 14px; }
+.mall-grid { display: grid; grid-template-columns: repeat(5,1fr); padding: 0 8px 12px; }
+.mg-item { padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.mg-logo { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.mg-logo-text { font-size: 16px; font-weight: 800; color: #fff; }
+.ml-tb{background:#ff6000;}.ml-jd{background:#e01222;}.ml-dy{background:#111;}.ml-pdd{background:#e03030;}.ml-vip{background:#c03ac0;}
+.mg-name { font-size: 11px; color: var(--black-a); text-align: center; }
+.mg-rate { font-size: 10px; color: var(--brand); text-align: center; }
+
+/* ── Tab Bar ── */
+.tabbar {
+  height: var(--tbh); background: var(--surface); border-top: .5px solid var(--line);
+  display: grid; grid-template-columns: repeat(5,1fr); flex-shrink: 0;
+}
+.tb-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding-bottom: 14px; position: relative; }
+.tb-item svg { width: 22px; height: 22px; display: block; }
+.tb-label { font-size: 10px; color: var(--black-b); }
+.tb-item.active .tb-label { color: var(--brand); }
+.tb-center-wrap {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg,var(--danger),var(--brand));
+  display: flex; align-items: center; justify-content: center;
+  position: relative; top: -4px;
+}
+.tb-center-wrap svg { width: 20px; height: 20px; }
+.tb-msg-badge {
+  position: absolute; top: 6px; right: 10px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: var(--danger); border-radius: 8px;
+  font-size: 9px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--surface);
+}
+
+/* ════════════════════════════════════════
+   ★ Bottom Sheet
+   ════════════════════════════════════════ */
+.sheet-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.36);
+  opacity: 0; pointer-events: none;
+  transition: opacity .28s ease;
+  z-index: 100;
+}
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,.72,0,1);
+  z-index: 101;
+  display: flex; flex-direction: column;
+  max-height: 75%;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sheet.open { transform: translateY(0); }
+
+/* drag handle */
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--black-j); margin: 10px auto 0;
+}
+
+/* sheet header */
+.sheet-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 0;
+}
+.sheet-title { font-size: 15px; font-weight: 600; color: var(--black-a); }
+.sheet-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #f2f2f5;
+  display: flex; align-items: center; justify-content: center;
+}
+.sheet-close svg { width: 14px; height: 14px; }
+
+/* tabs */
+.sheet-tabs {
+  display: flex; padding: 10px 16px 0; gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-top: 6px;
+}
+.sheet-tab {
+  padding: 8px 16px;
+  font-size: 14px; color: var(--black-b);
+  position: relative; cursor: pointer;
+  transition: color .15s;
+}
+.sheet-tab.active { color: var(--brand); font-weight: 600; }
+.sheet-tab.active::after {
+  content: ''; position: absolute; bottom: -1px; left: 16px; right: 16px;
+  height: 2px; background: var(--brand); border-radius: 1px;
+}
+
+/* sheet body scroll */
+.sheet-body {
+  flex: 1; overflow-y: auto; padding: 12px 16px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Red Packet List ── */
+.rp-list { display: flex; flex-direction: column; gap: 10px; }
+.rp-card {
+  border-radius: var(--r12);
+  display: grid; grid-template-columns: 88px 1fr;
+  overflow: hidden;
+  border: 1px solid rgba(255,77,136,.14);
+}
+.rp-left {
+  background: linear-gradient(135deg, #ff6b6b, #ff4d88);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 14px 8px; gap: 3px;
+}
+.rp-amount {
+  font-size: 28px; font-weight: 800; color: #fff;
+  line-height: 1; font-variant-numeric: tabular-nums;
+}
+.rp-amount .unit { font-size: 14px; font-weight: 500; }
+.rp-type { font-size: 10px; color: rgba(255,255,255,.85); text-align: center; line-height: 1.3; }
+
+.rp-right { background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+.rp-name { font-size: 13px; font-weight: 500; color: var(--black-a); }
+.rp-meta { display: flex; flex-direction: column; gap: 3px; }
+.rp-scope { font-size: 11px; color: var(--black-b); }
+.rp-expire { font-size: 11px; color: var(--warning); }
+.rp-expire.soon { color: var(--danger); }
+.rp-footer { display: flex; align-items: center; justify-content: space-between; }
+.rp-status { font-size: 11px; }
+.rp-status.avail { color: var(--success); }
+.rp-status.used  { color: var(--black-b); }
+.rp-use-btn {
+  padding: 5px 14px; background: var(--brand); color: #fff;
+  border-radius: 12px; font-size: 12px; font-weight: 500;
+}
+.rp-use-btn.disabled { background: var(--black-j); color: #fff; }
+
+/* used/expired card overlay */
+.rp-card.dim .rp-left { background: linear-gradient(135deg, #ccc, #bbb); }
+.rp-card.dim .rp-amount { opacity: .6; }
+
+/* empty hint */
+.sheet-empty {
+  padding: 32px 0; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.sheet-empty svg { width: 40px; height: 40px; opacity: .25; }
+.sheet-empty p { font-size: 13px; color: var(--black-b); }
+.sheet-empty a { font-size: 13px; color: var(--brand); margin-top: 4px; }
+
+/* ── Order List ── */
+.order-list { display: flex; flex-direction: column; gap: 10px; }
+.order-card {
+  background: var(--surface);
+  border-radius: var(--r12);
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+}
+.order-card-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.order-platform-tag {
+  padding: 2px 7px; border-radius: 4px;
+  font-size: 10px; font-weight: 600; color: #fff;
+}
+.pt-tb  { background: #ff6000; }
+.pt-jd  { background: #e01222; }
+.pt-dy  { background: #111; }
+.order-no { font-size: 11px; color: var(--black-b); flex: 1; }
+.order-date { font-size: 11px; color: var(--black-b); }
+
+.order-product-row { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: center; }
+.order-img {
+  width: 52px; height: 52px; border-radius: var(--r8);
+  flex-shrink: 0;
+}
+.order-img.p0{background:linear-gradient(145deg,#e8f0fe,#d2e3fc);}
+.order-img.p1{background:linear-gradient(145deg,#e8f5e9,#c8e6c9);}
+.order-meta { display: flex; flex-direction: column; gap: 3px; }
+.order-name { font-size: 13px; font-weight: 500; color: var(--black-a); line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.order-price { font-size: 12px; color: var(--black-b); }
+
+.order-divider { border: none; border-top: 1px solid var(--line); margin: 10px 0; }
+
+.order-cashback-row { display: flex; align-items: center; justify-content: space-between; }
+.ocr-left { display: flex; flex-direction: column; gap: 2px; }
+.ocr-label { font-size: 11px; color: var(--black-b); }
+.ocr-amount { font-size: 15px; font-weight: 600; color: var(--black-a); font-variant-numeric: tabular-nums; }
+.ocr-amount.pending { color: var(--warning); }
+.ocr-amount.done    { color: var(--success); }
+.order-status-badge {
+  padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;
+}
+.osb-tracking { background: #fff8e6; color: var(--warning); }
+.osb-shipped  { background: #e8f5e9; color: var(--success); }
+.osb-done     { background: #f0f0f2; color: var(--black-b); }
+.osb-pending  { background: #fff0f5; color: var(--brand); }
+
+.order-hint { font-size: 11px; color: var(--black-b); margin-top: 6px; line-height: 1.5; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Demo Controls -->
+<div class="demo-bar">
+  <div class="demo-bar-title">美柚返现首页 · 资产入口 2.0 探索</div>
+  <div class="demo-row">
+    <span class="demo-row-label">用户状态</span>
+    <button class="d-btn on"  id="s0" onclick="setS(0)">有红包·未下单</button>
+    <button class="d-btn"     id="s1" onclick="setS(1)">首单追踪中</button>
+    <button class="d-btn"     id="s2" onclick="setS(2)">新用户空状态</button>
+  </div>
+</div>
+
+<!-- Phone wrapper (clips sheet) -->
+<div class="phone-wrap">
+<div class="phone">
+
+  <!-- Status Bar -->
+  <div class="sb">
+    <span class="sb-time">20:07</span>
+    <div class="sb-right">
+      <svg width="17" height="13" viewBox="0 0 17 13" fill="none">
+        <rect x="0" y="9" width="3" height="4" rx=".5" fill="#323232"/>
+        <rect x="4.5" y="6" width="3" height="7" rx=".5" fill="#323232" opacity=".8"/>
+        <rect x="9" y="3" width="3" height="10" rx=".5" fill="#323232" opacity=".7"/>
+        <rect x="13.5" y="0" width="3" height="13" rx=".5" fill="#323232" opacity=".4"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#323232" stroke-linecap="round">
+        <path d="M1 4a10 10 0 0 1 14 0" stroke-width="1.5"/>
+        <path d="M3 7a6.5 6.5 0 0 1 10 0" stroke-width="1.5"/>
+        <path d="M5.5 10a3.5 3.5 0 0 1 5 0" stroke-width="1.5"/>
+        <circle cx="8" cy="12" r=".8" fill="#323232" stroke="none"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x=".75" y=".75" width="20.5" height="10.5" rx="2.25" stroke="#323232" stroke-width="1.5"/>
+        <rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="#323232"/>
+        <path d="M22.5 4v4" stroke="#323232" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Nav Bar -->
+  <div class="nav">
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+      </svg>
+      <span>卫生巾</span>
+    </div>
+    <span class="nav-title">美柚返现</span>
+    <div class="nav-right">
+      <button class="money-btn">
+        <svg viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.2"/>
+          <path d="M8 4.5v7M5.5 6.5c0-1.1.9-2 2.5-2s2.5.9 2.5 2-1.12 2-2.5 2-2.5.9-2.5 2 .9 2 2.5 2 2.5-.9 2.5-2" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        领现金
+      </button>
+    </div>
+  </div>
+
+  <!-- Page -->
+  <div class="page">
+
+    <!-- ★ 2.0 Asset Entry Card -->
+    <div class="asset-entry">
+      <div class="ae-grid">
+
+        <!-- Left: 红包 -->
+        <button class="ae-cell" id="ae-redpack" onclick="openSheet('redpack')">
+          <div class="ae-badge-wrap">
+            <div class="ae-icon red" id="ae-rp-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="8" width="18" height="13" rx="2" fill="rgba(255,255,255,.25)" stroke="#fff" stroke-width="1.5"/>
+                <path d="M3 12h18" stroke="#fff" stroke-width="1.5"/>
+                <path d="M8 8V7a4 4 0 0 1 8 0v1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 15v2M11 16h2" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="ae-badge hidden" id="ae-rp-badge">1</span>
+          </div>
+          <div class="ae-body">
+            <div class="ae-label">我的红包</div>
+            <div class="ae-value" id="ae-rp-val">--</div>
+          </div>
+          <div class="ae-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </button>
+
+        <div class="ae-divider"></div>
+
+        <!-- Right: 订单 -->
+        <button class="ae-cell" id="ae-order" onclick="openSheet('order')">
+          <div class="ae-badge-wrap">
+            <div class="ae-icon purple" id="ae-ord-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <span class="ae-badge hidden" id="ae-ord-badge">1</span>
+          </div>
+          <div class="ae-body">
+            <div class="ae-label">我的订单</div>
+            <div class="ae-value" id="ae-ord-val">--</div>
+          </div>
+          <div class="ae-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Query Card (1:1 original) -->
+    <div class="query-card">
+      <div class="query-hint">从美柚去淘宝/京东/抖音下单，可额外获得现金返还</div>
+      <div class="query-inner">
+        <div class="pform-row">
+          <div class="plat-stack">
+            <div class="plat-chip pc0">淘</div>
+            <div class="plat-chip pc2">唯</div>
+            <div class="plat-chip pc3">抖</div>
+            <div class="plat-chip pc4">拼</div>
+            <div class="plat-chip pc1">京</div>
+          </div>
+          <div class="pform-copy">
+            <p>复制商品链接
+              <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              快速查返现
+            </p>
+            <span>下单约返1%~6%</span>
+          </div>
+          <button class="tutorial-btn">
+            教程
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <div class="paste-area">
+          <div class="paste-ph">购物下单前，从电商平台复制商品链接/口令，粘贴到这里可以查询是否有隐藏的返现，让你少花冤枉钱</div>
+          <button class="paste-btn">粘贴</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新人1元购 -->
+    <div class="newin-card">
+      <div class="newin-hd">
+        <div class="newin-title">
+          <span class="nt-normal">新人</span><span class="nt-big">1元购</span>
+        </div>
+        <span class="newin-sub">先到先得，仅限1单</span>
+      </div>
+      <div class="newin-grid">
+        <div class="ni-item"><div class="ni-img p0"></div><div class="ni-name">安睡裤3片</div><div class="ni-price">返后价¥1</div></div>
+        <div class="ni-item"><div class="ni-img p1"></div><div class="ni-name">蓬松高颜顶排骨</div><div class="ni-price">返后价¥1</div></div>
+        <div class="ni-item"><div class="ni-img p2"></div><div class="ni-name">双头微距修眉刀</div><div class="ni-price">返后价¥1</div></div>
+        <div class="ni-item"><div class="ni-img p3"></div><div class="ni-name">防蚊花露水</div><div class="ni-price">返后价¥1</div></div>
+      </div>
+    </div>
+
+    <!-- 大家都在用 -->
+    <div class="popular-row">
+      <span class="popular-label">大家都在用</span>
+      <div class="pop-chip"><span>外卖返现</span><span class="pop-tag red">红包</span></div>
+      <div class="pop-chip"><span>拼多多</span><span class="pop-tag purple">收藏夹</span></div>
+      <div class="pop-chip"><span>打车返现</span></div>
+    </div>
+
+    <!-- 商城返现 -->
+    <div class="mall-card">
+      <div class="mall-hd">
+        <span class="mall-hd-title">商城返现</span>
+        <span class="mall-more">全部商城
+          <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </div>
+      <div class="mall-grid">
+        <div class="mg-item"><div class="mg-logo ml-tb"><span class="mg-logo-text">淘</span></div><div class="mg-name">淘宝</div><div class="mg-rate">约返5%</div></div>
+        <div class="mg-item"><div class="mg-logo ml-jd"><span class="mg-logo-text">京</span></div><div class="mg-name">京东</div><div class="mg-rate">约返3%</div></div>
+        <div class="mg-item"><div class="mg-logo ml-dy"><span class="mg-logo-text" style="font-size:13px">抖音</span></div><div class="mg-name">抖音</div><div class="mg-rate">约返7%</div></div>
+        <div class="mg-item"><div class="mg-logo ml-pdd"><span class="mg-logo-text">拼</span></div><div class="mg-name">拼多多</div><div class="mg-rate">约返2.5%</div></div>
+        <div class="mg-item"><div class="mg-logo ml-vip"><span class="mg-logo-text">唯</span></div><div class="mg-name">唯品会</div><div class="mg-rate">约返5%</div></div>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+  </div><!-- /page -->
+
+  <!-- Tab Bar -->
+  <div class="tabbar">
+    <div class="tb-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="tb-label">美柚</span>
+    </div>
+    <div class="tb-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span class="tb-label">记录</span>
+    </div>
+    <div class="tb-item active" style="padding-bottom:10px">
+      <div class="tb-center-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <span class="tb-label" style="color:var(--brand)">返现</span>
+    </div>
+    <div class="tb-item" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span class="tb-msg-badge">1</span>
+      <span class="tb-label">消息</span>
+    </div>
+    <div class="tb-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="tb-label">我</span>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<!-- ★ Bottom Sheet -->
+<div class="sheet-backdrop" id="backdrop" onclick="closeSheet()"></div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hd">
+    <span class="sheet-title" id="sheet-title">我的红包</span>
+    <button class="sheet-close" onclick="closeSheet()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="sheet-tabs">
+    <div class="sheet-tab active" id="tab-rp" onclick="switchTab('redpack')">我的红包</div>
+    <div class="sheet-tab"       id="tab-ord" onclick="switchTab('order')">我的订单</div>
+  </div>
+  <div class="sheet-body">
+
+    <!-- 红包 Tab Content -->
+    <div id="pane-redpack">
+      <!-- State 0: has red packet -->
+      <div id="rp-pane-0">
+        <div class="rp-list">
+          <div class="rp-card">
+            <div class="rp-left">
+              <div class="rp-amount"><span class="unit">¥</span>5</div>
+              <div class="rp-type">返现红包</div>
+            </div>
+            <div class="rp-right">
+              <div class="rp-name">新人专属返现红包</div>
+              <div class="rp-meta">
+                <div class="rp-scope">适用：全平台，无门槛</div>
+                <div class="rp-expire soon">还剩 2 天到期</div>
+              </div>
+              <div class="rp-footer">
+                <span class="rp-status avail">可使用</span>
+                <button class="rp-use-btn">立即使用</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:12px 0 0; font-size:11px; color:var(--black-b); line-height:1.6;">
+          使用说明：通过美柚跳转电商平台下单时，可选择用红包抵扣，返现后自动到账钱包。
+        </div>
+      </div>
+      <!-- State 1: no red packet (used) -->
+      <div id="rp-pane-1" class="hidden">
+        <div class="rp-list">
+          <div class="rp-card dim">
+            <div class="rp-left">
+              <div class="rp-amount"><span class="unit">¥</span>5</div>
+              <div class="rp-type">返现红包</div>
+            </div>
+            <div class="rp-right">
+              <div class="rp-name">新人专属返现红包</div>
+              <div class="rp-meta">
+                <div class="rp-scope">适用：全平台，无门槛</div>
+                <div class="rp-expire" style="color:var(--black-b)">已使用 · 2026.06.28</div>
+              </div>
+              <div class="rp-footer">
+                <span class="rp-status used">已使用</span>
+                <button class="rp-use-btn disabled">已使用</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- State 2: no red packet yet -->
+      <div id="rp-pane-2" class="hidden">
+        <div class="sheet-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round">
+            <rect x="3" y="8" width="18" height="13" rx="2"/>
+            <path d="M3 12h18"/><path d="M8 8V7a4 4 0 0 1 8 0v1"/>
+          </svg>
+          <p>暂无可用红包</p>
+          <a href="#">领取新人专属红包 ></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 订单 Tab Content -->
+    <div id="pane-order" class="hidden">
+      <!-- State 0: no orders -->
+      <div id="ord-pane-0">
+        <div class="sheet-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <p>暂无返现订单</p>
+          <a href="#">去下单，用红包抵扣 ></a>
+        </div>
+      </div>
+      <!-- State 1: has order tracking -->
+      <div id="ord-pane-1" class="hidden">
+        <div class="order-list">
+          <div class="order-card">
+            <div class="order-card-hd">
+              <span class="order-platform-tag pt-tb">淘宝</span>
+              <span class="order-no">订单号 8271930284...</span>
+              <span class="order-date">06-28</span>
+            </div>
+            <div class="order-product-row">
+              <div class="order-img p0"></div>
+              <div class="order-meta">
+                <div class="order-name">安睡裤3片（新人1元购）</div>
+                <div class="order-price">实付 ¥1.00 · 已发货</div>
+              </div>
+            </div>
+            <hr class="order-divider">
+            <div class="order-cashback-row">
+              <div class="ocr-left">
+                <div class="ocr-label">预计返现</div>
+                <div class="ocr-amount pending">¥4.80</div>
+              </div>
+              <div class="order-status-badge osb-shipped">已发货，待确认</div>
+            </div>
+            <div class="order-hint">确认收货后约 7 天内自动返现至钱包</div>
+          </div>
+        </div>
+      </div>
+      <!-- State 2: no orders -->
+      <div id="ord-pane-2" class="hidden">
+        <div class="sheet-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <p>暂无返现订单</p>
+          <a href="#">去下单，用红包抵扣 ></a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sheet-body -->
+</div><!-- /sheet -->
+
+</div><!-- /phone-wrap -->
+
+<script>
+/* ── State Config ── */
+const states = [
+  { // 0: has red packet, no order
+    rpVal: '1张 ¥5.00 可用', rpValClass: 'highlight',
+    rpBadge: '1', rpIconGray: false,
+    ordVal: '暂无订单', ordValClass: 'muted',
+    ordBadge: null, ordIconGray: true,
+    rpPane: 0, ordPane: 0,
+  },
+  { // 1: red packet used, order tracking
+    rpVal: '1张已使用', rpValClass: 'muted',
+    rpBadge: null, rpIconGray: true,
+    ordVal: '1笔追踪中', ordValClass: 'purple',
+    ordBadge: '1', ordIconGray: false,
+    rpPane: 1, ordPane: 1,
+  },
+  { // 2: brand new, empty
+    rpVal: '暂无红包', rpValClass: 'muted',
+    rpBadge: null, rpIconGray: true,
+    ordVal: '暂无订单', ordValClass: 'muted',
+    ordBadge: null, ordIconGray: true,
+    rpPane: 2, ordPane: 2,
+  },
+];
+
+let curState = 0;
+let curTab = 'redpack';
+
+function setS(n) {
+  curState = n;
+  [0,1,2].forEach(i => document.getElementById('s'+i).classList.toggle('on', i===n));
+  applyState();
+  if (document.getElementById('sheet').classList.contains('open')) {
+    applySheetContent();
+  }
+}
+
+function applyState() {
+  const c = states[curState];
+
+  // Red packet cell
+  const rpVal = document.getElementById('ae-rp-val');
+  rpVal.textContent = c.rpVal;
+  rpVal.className = 'ae-value ' + c.rpValClass;
+  const rpBadge = document.getElementById('ae-rp-badge');
+  if (c.rpBadge) { rpBadge.textContent = c.rpBadge; rpBadge.classList.remove('hidden'); }
+  else { rpBadge.classList.add('hidden'); }
+  document.getElementById('ae-rp-icon').className = 'ae-icon ' + (c.rpIconGray ? 'gray' : 'red');
+
+  // Order cell
+  const ordVal = document.getElementById('ae-ord-val');
+  ordVal.textContent = c.ordVal;
+  ordVal.className = 'ae-value ' + c.ordValClass;
+  const ordBadge = document.getElementById('ae-ord-badge');
+  if (c.ordBadge) { ordBadge.textContent = c.ordBadge; ordBadge.classList.remove('hidden'); }
+  else { ordBadge.classList.add('hidden'); }
+  document.getElementById('ae-ord-icon').className = 'ae-icon ' + (c.ordIconGray ? 'gray' : 'purple');
+}
+
+function openSheet(tab) {
+  curTab = tab;
+  applySheetContent();
+  document.getElementById('backdrop').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+
+function closeSheet() {
+  document.getElementById('backdrop').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+}
+
+function switchTab(tab) {
+  curTab = tab;
+  applySheetContent();
+}
+
+function applySheetContent() {
+  const c = states[curState];
+
+  // tabs
+  document.getElementById('tab-rp').classList.toggle('active', curTab === 'redpack');
+  document.getElementById('tab-ord').classList.toggle('active', curTab === 'order');
+  document.getElementById('pane-redpack').classList.toggle('hidden', curTab !== 'redpack');
+  document.getElementById('pane-order').classList.toggle('hidden', curTab !== 'order');
+
+  // pane visibility (by state)
+  [0,1,2].forEach(i => {
+    document.getElementById('rp-pane-'+i).classList.toggle('hidden', i !== c.rpPane);
+    document.getElementById('ord-pane-'+i).classList.toggle('hidden', i !== c.ordPane);
+  });
+}
+
+applyState();
+</script>
+</body>
+</html>

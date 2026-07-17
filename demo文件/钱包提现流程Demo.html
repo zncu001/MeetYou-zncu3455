@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>钱包提现流程 Demo</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #C0C0C5;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ctrl {
+  width: 228px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 24px;
+}
+.ccard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+}
+.ctitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: #AAA;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.sbtn {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  margin-bottom: 5px;
+  text-align: left;
+}
+.sbtn:hover { background: #F5F5F5; }
+.sbtn.on { background: #333; border-color: #333; color: #fff; }
+.fsel {
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px 9px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.note { font-size: 11px; color: #888; line-height: 1.65; }
+
+.phone {
+  width: 375px;
+  height: 812px;
+  border-radius: 50px;
+  overflow: hidden;
+  position: relative;
+  background: #111;
+  box-shadow:
+    inset 0 0 0 1px #4A4A4A,
+    0 0 0 8px #2A2A2A,
+    0 0 0 10px #1A1A1A,
+    0 30px 80px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 112px; height: 30px;
+  background: #0A0A0A;
+  border-radius: 20px;
+  z-index: 200;
+  pointer-events: none;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  background: #F5F5F7;
+  overflow-y: auto;
+  scrollbar-width: none;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+}
+.page.active { transform: translateX(0); }
+.page::-webkit-scrollbar { display: none; }
+
+.t-wrap {
+  position: absolute;
+  bottom: 68px; left: 0; right: 0;
+  display: flex; justify-content: center;
+  pointer-events: none; z-index: 500;
+}
+.t-pill {
+  background: rgba(0,0,0,0.72);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.t-pill.show { opacity: 1; }
+
+.top-white { background: #fff; }
+.sbar {
+  height: 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 20px 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.nav {
+  padding: 2px 14px 10px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.nav-bk { font-size: 22px; color: #333; line-height: 1; width: 30px; cursor: pointer; }
+.nav-title {
+  position: absolute; left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px; font-weight: 600;
+}
+.nav-more { margin-left: auto; font-size: 18px; color: #666; letter-spacing: 1px; }
+
+.tabs {
+  display: flex;
+  padding: 0 8px 12px;
+  background: #fff;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding-top: 4px;
+}
+.tab-name { font-size: 15px; color: #666; line-height: 1.3; }
+.tab-item.on .tab-name { color: #FF4D7A; font-weight: 500; }
+.tab-item.on { position: relative; }
+.tab-item.on::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; left: 50%;
+  transform: translateX(-50%);
+  width: 20px; height: 2px;
+  background: #FF4D7A;
+  border-radius: 1px;
+}
+.tab-sub { font-size: 11px; color: #999; margin-top: 4px; line-height: 1.2; }
+.tab-item.on .tab-sub { color: #FF4D7A; }
+
+.page-body { padding: 10px 12px 16px; }
+
+.mod-card {
+  background: #fff;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.mod-acct { padding: 14px 16px 16px; cursor: pointer; }
+.acct-title { font-size: 15px; color: #333; font-weight: 500; margin-bottom: 12px; }
+
+/* 收支明细页 */
+.dt-tabs {
+  display: flex;
+  background: #F2F2F5;
+  padding: 14px 16px 6px;
+  gap: 24px;
+}
+.dt-tab {
+  font-size: 16px;
+  color: #666;
+  padding: 4px 0 8px;
+  position: relative;
+  cursor: pointer;
+}
+.dt-tab.on { color: #FF2D7C; font-weight: 600; }
+.dt-tab.on::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 3px;
+  border-radius: 1.5px;
+  background: #FF2D7C;
+}
+
+.dt-body { padding: 12px; background: #F2F2F5; min-height: 100%; }
+.dt-card { background: #fff; border-radius: 10px; overflow: hidden; }
+.dt-section-hd {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  padding: 14px 16px 10px;
+  border-bottom: 0.5px solid #F0F0F0;
+}
+.dt-row {
+  display: flex;
+  padding: 14px 16px;
+  border-top: 0.5px solid #F0F0F0;
+  cursor: pointer;
+  align-items: flex-start;
+}
+.dt-row:first-of-type { border-top: none; }
+.dt-l { flex: 1; min-width: 0; padding-right: 12px; }
+.dt-t {
+  font-size: 15px;
+  color: #1A1A1A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dt-tag {
+  display: inline-block;
+  background: #FFE6EE;
+  color: #FF2D7C;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  font-weight: 400;
+}
+.dt-time { font-size: 12px; color: #999; margin-top: 6px; }
+.dt-r { text-align: right; flex-shrink: 0; min-width: 90px; }
+.dt-amt { font-size: 16px; font-weight: 600; color: #1A1A1A; }
+.dt-amt.pos { color: #FF2D7C; }
+.dt-sub { font-size: 12px; color: #999; margin-top: 6px; line-height: 1.4; }
+.dt-sub.hot { color: #FF2D7C; }
+.dt-sub .gt { color: #BBB; margin-left: 2px; }
+
+/* 钱包菜单半弹窗 */
+.wmenu-sheet { padding: 0 0 12px; }
+.wmenu-item {
+  padding: 16px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  border-top: 0.5px solid #F0F0F0;
+  cursor: pointer;
+}
+.wmenu-item:first-child { border-top: none; }
+.wmenu-cancel {
+  padding: 16px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  border-top: 6px solid #F2F2F5;
+}
+.acct-line { display: flex; align-items: center; gap: 10px; }
+.channel-icon {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.channel-icon.alipay { background: #1677FF; }
+.channel-icon.wechat { background: #07C160; }
+.acct-num { flex: 1; font-size: 15px; color: #333; }
+.acct-placeholder { flex: 1; font-size: 15px; color: #C8C8C8; }
+.acct-arrow { color: #C8C8C8; font-size: 18px; }
+
+.mod-wd { padding: 14px 16px 16px; }
+.wd-title { font-size: 14px; color: #666; margin-bottom: 12px; }
+.wd-title em { font-style: normal; color: #333; font-weight: 500; }
+.wd-row { display: flex; align-items: stretch; gap: 10px; }
+.wd-input-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #F5F5F7;
+  border-radius: 6px;
+  padding: 0 12px;
+  min-height: 44px;
+  min-width: 0;
+}
+.wd-input-box .yen { font-size: 16px; color: #999; margin-right: 6px; flex-shrink: 0; }
+.wd-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #333;
+  min-width: 0;
+}
+.wd-input::placeholder { color: #C8C8C8; }
+.wd-input:disabled { color: #AAA; }
+.btn-wd {
+  width: 72px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 6px;
+  background: #1677FF;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.btn-wd:disabled { background: #CCC; cursor: not-allowed; }
+.wd-all {
+  display: block;
+  width: 72px;
+  margin-left: auto;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #1677FF;
+  text-align: center;
+  cursor: pointer;
+}
+.wd-all:disabled { color: #BBB; cursor: not-allowed; }
+.wd-tip { margin-top: 12px; font-size: 12px; color: #999; line-height: 1.4; }
+.wd-err { margin-top: 8px; font-size: 12px; color: #FF3B30; display: none; }
+.wd-err.show { display: block; }
+
+.mod-prog { padding: 14px 16px 16px; position: relative; }
+.prog-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 14px; }
+.prog-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #BBB;
+  cursor: pointer;
+  line-height: 1;
+}
+.prog-line { display: flex; font-size: 13px; line-height: 1.6; margin-bottom: 4px; }
+.prog-line .k { color: #999; width: 72px; flex-shrink: 0; }
+.prog-line .v { color: #333; flex: 1; }
+.prog-line .detail { color: #1677FF; font-size: 13px; cursor: pointer; flex-shrink: 0; }
+.prog-line .v .manage { color: #1677FF; cursor: pointer; margin-left: 4px; }
+.prog-fail { margin-top: 8px; font-size: 13px; color: #333; line-height: 1.5; }
+
+.axis-wrap { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.axis-wrap.open { max-height: 220px; }
+.axis { padding: 14px 0 4px 2px; }
+
+.tl-row { display: flex; gap: 12px; position: relative; }
+.tl-row:not(:last-child) { padding-bottom: 16px; }
+.tl-row:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 9px; top: 20px; bottom: 0;
+  width: 2px; margin-left: -1px;
+}
+.tl-row.done-line:not(:last-child)::before { background: #1677FF; }
+.tl-row.dash-line:not(:last-child)::before {
+  background: repeating-linear-gradient(to bottom, #D8D8D8 0, #D8D8D8 4px, transparent 4px, transparent 8px);
+}
+.tl-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  position: relative;
+  z-index: 1;
+}
+.tl-dot.done { background: #1A1A1A; color: #fff; }
+.tl-dot.proc { background: #1A1A1A; color: #fff; font-size: 10px; }
+.tl-dot.pend { background: #fff; border: 1.5px solid #D0D0D0; }
+.tl-dot.fail { background: #1A1A1A; color: #fff; font-size: 11px; }
+.tl-row.fail-line:not(:last-child)::before { background: #1A1A1A; }
+.tl-text .nm { font-size: 14px; color: #333; }
+.tl-text .tm { font-size: 12px; color: #999; margin-top: 3px; }
+.tl-text .hint { font-size: 12px; color: #999; margin-top: 3px; }
+.tl-text .reason { font-size: 12px; color: #999; margin-top: 3px; }
+
+.mod-chg { padding-bottom: 4px; }
+.chg-hd {
+  padding: 14px 16px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chg-hd-t { font-size: 16px; font-weight: 600; color: #333; }
+.chg-hd-m { font-size: 13px; color: #999; }
+.chg-row { display: flex; padding: 12px 16px; border-top: 0.5px solid #F0F0F0; }
+.chg-l { flex: 1; min-width: 0; }
+.chg-t { font-size: 14px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chg-time { font-size: 12px; color: #999; margin-top: 4px; }
+.chg-r { text-align: right; flex-shrink: 0; padding-left: 12px; }
+.chg-amt { font-size: 15px; font-weight: 600; color: #333; }
+.chg-sub { font-size: 12px; color: #999; margin-top: 4px; }
+
+.safe { height: 20px; }
+
+/* 绑定页 */
+.bind-body { padding: 16px; }
+.bind-tip { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 16px; }
+.bind-field {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.bind-label { font-size: 14px; color: #666; margin-bottom: 10px; }
+.bind-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #333;
+  background: #F5F5F7;
+  border-radius: 6px;
+  padding: 12px;
+}
+.bind-input::placeholder { color: #C8C8C8; }
+.bind-btn {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 6px;
+  background: #1677FF;
+  color: #fff;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+.bind-btn:disabled { background: #CCC; }
+
+.channel-pick { display: flex; gap: 10px; margin-bottom: 10px; }
+.channel-opt {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+}
+.channel-opt.on { border-color: #1677FF; }
+.channel-opt .ico {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.channel-opt .nm { font-size: 14px; color: #333; }
+
+/* 弹层 */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: flex-end;
+  z-index: 300;
+}
+.overlay.show { display: flex; }
+.overlay.center { align-items: center; justify-content: center; padding: 20px; }
+
+.sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  padding: 16px 16px 28px;
+}
+.sheet-hd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 16px;
+}
+.sheet-title { font-size: 16px; font-weight: 600; color: #333; }
+.sheet-close {
+  position: absolute;
+  right: 0;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.apply-sheet { padding-bottom: 20px; max-height: 72%; overflow-y: auto; }
+.apply-know {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 16px 16px 0;
+  height: 44px;
+  border: none;
+  border-radius: 22px;
+  background: #1677FF;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.apply-kv {
+  display: flex;
+  font-size: 14px;
+  line-height: 2;
+  color: #333;
+}
+.apply-kv .k { color: #999; width: 72px; flex-shrink: 0; }
+.apply-kv .v { flex: 1; }
+.apply-prog-title {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  margin: 16px 0 12px;
+}
+.apply-axis { padding-left: 2px; }
+
+.btn-processing {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 22px;
+  background: #ECECEC;
+  color: #999;
+  font-size: 15px;
+  margin-top: 12px;
+  cursor: not-allowed;
+}
+
+.dialog {
+  width: 280px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.dialog-body { padding: 20px 16px; text-align: center; }
+.dialog-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+.dialog-text { font-size: 14px; color: #666; line-height: 1.5; }
+.dialog-actions { display: flex; border-top: 0.5px solid #E5E5E5; }
+.dialog-btn {
+  flex: 1;
+  height: 46px;
+  border: none;
+  background: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.dialog-btn.primary { color: #1677FF; font-weight: 500; }
+.dialog-btn + .dialog-btn { border-left: 0.5px solid #E5E5E5; }
+
+.wechat-sheet { background: #EDEDED; }
+.wechat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px 16px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.wechat-logo {
+  width: 40px; height: 40px;
+  background: #07C160;
+  border-radius: 8px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+}
+.wechat-from { font-size: 12px; color: #999; margin-bottom: 8px; }
+.wechat-amt { font-size: 26px; color: #333; font-weight: 500; margin-bottom: 4px; }
+.wechat-reason { font-size: 12px; color: #999; }
+.wechat-confirm {
+  width: 100%;
+  height: 44px;
+  background: #07C160;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.loading-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+.loading-mask.show { display: flex; }
+.loading-box {
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  body { flex-direction: column; align-items: center; }
+  .ctrl { width: 375px; position: static; }
+}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <div class="ccard">
+    <div class="ctitle">场景模拟</div>
+    <button class="sbtn on" id="sb-idle" onclick="setScene('idle')">初始状态</button>
+    <button class="sbtn" id="sb-processing" onclick="setScene('processing')">提现处理中</button>
+    <button class="sbtn" id="sb-success" onclick="setScene('success')">提现成功</button>
+    <button class="sbtn" id="sb-failed" onclick="setScene('failed')">提现失败</button>
+    <div id="fail-opts" style="display:none">
+      <select class="fsel" id="fail-sel" onchange="setFail(this.value)"></select>
+    </div>
+  </div>
+  <div class="ccard">
+    <div class="ctitle">提交后结果</div>
+    <select class="fsel" id="result-sel" onchange="setDemoResult(this.value)">
+      <option value="processing">提现处理中</option>
+      <option value="success">提现成功</option>
+      <option value="failed">提现失败</option>
+    </select>
+  </div>
+  <div class="ccard">
+    <div class="ctitle">提现渠道</div>
+    <select class="fsel" id="channel-sel" onchange="setChannel(this.value)">
+      <option value="alipay">支付宝</option>
+      <option value="wechat">微信</option>
+    </select>
+  </div>
+  <div class="ccard">
+    <div class="ctitle">说明</div>
+    <div class="note" id="scene-desc"></div>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="viewport">
+    <div class="page active" id="page-wallet"></div>
+    <div class="page" id="page-bind"></div>
+    <div class="page" id="page-account"></div>
+    <div class="page" id="page-detail"></div>
+  </div>
+
+  <div class="overlay" id="wmenu-overlay" onclick="hideWalletMenu(event)">
+    <div class="sheet wmenu-sheet" onclick="event.stopPropagation()">
+      <div class="wmenu-item" onclick="goDetail()">收支明细</div>
+      <div class="wmenu-cancel" onclick="hideWalletMenu()">取消</div>
+    </div>
+  </div>
+
+  <div class="overlay" id="tx-detail-overlay">
+    <div class="sheet apply-sheet">
+      <div class="sheet-hd">
+        <span class="sheet-title" id="tx-detail-title"></span>
+        <span class="sheet-close" onclick="closeTxDetail()">×</span>
+      </div>
+      <div id="tx-detail-body"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="apply-success-overlay">
+    <div class="sheet apply-sheet">
+      <div class="sheet-hd">
+        <span class="sheet-title">提现申请成功</span>
+        <span class="sheet-close" onclick="closeApplySuccess()">×</span>
+      </div>
+      <div id="apply-success-body"></div>
+      <button class="apply-know" onclick="closeApplySuccess()">知道了</button>
+    </div>
+  </div>
+
+  <div class="overlay center" id="confirm-overlay">
+    <div class="dialog">
+      <div class="dialog-body">
+        <div class="dialog-title">确认绑定</div>
+        <div class="dialog-text" id="confirm-text"></div>
+      </div>
+      <div class="dialog-actions">
+        <button class="dialog-btn" onclick="closeConfirm()">取消</button>
+        <button class="dialog-btn primary" onclick="confirmBind()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="wechat-overlay">
+    <div class="sheet wechat-sheet">
+      <div class="sheet-hd">
+        <span class="sheet-title">待确认收款</span>
+        <span class="sheet-close" onclick="closeWechat()">×</span>
+      </div>
+      <div class="wechat-card">
+        <div class="wechat-logo">微</div>
+        <div class="wechat-from">来自美柚的转账</div>
+        <div class="wechat-amt" id="wechat-amt">¥0.00</div>
+        <div class="wechat-reason">请在24小时内确认收款</div>
+      </div>
+      <button class="wechat-confirm" onclick="confirmWechat()">确认收款</button>
+    </div>
+  </div>
+
+  <div class="loading-mask" id="loading"><div class="loading-box">提交中...</div></div>
+  <div class="t-wrap"><div class="t-pill" id="toast"></div></div>
+</div>
+
+<script>
+var S = {
+  page: 'wallet',
+  scene: 'idle',
+  demoResult: 'processing',
+  failReason: 'account',
+  channel: 'alipay',
+  bound: true,
+  amount: '',
+  bindTarget: 'alipay',
+  bindInput: '',
+  progClosed: false,
+  axisOpen: true,
+  pendingScene: 'processing',
+  detailTab: 'cash'
+};
+
+var D = {
+  account: '138****7307',
+  withdrawAmt: 1.00,
+  processingTipAmt: 7.88,
+  withdrawable: 131.79,
+  applyTime: '2026-04-12 01:56:29',
+  processTime: '2026-04-12 01:56:30',
+  successTime: '2026-04-12 02:23:05',
+  changes: [
+    { title: '提现到支付宝', time: '2026-04-12 02:23:05', amt: 1.00, sign: '-', durationLabel: '30秒到账' },
+    { title: '提现到支付宝', time: '2026-04-12 08:23:05', amt: 100, sign: '-', durationLabel: '25秒到账' },
+    { title: '返现订单（NIKE男鞋Air...）', time: '2026-04-12 08:23:05', amt: 4.68, sign: '+', subsidyLabel: '含补贴0.35元' }
+  ]
+};
+
+var TXS = [
+  { kind: 'withdraw', channel: 'wechat', amt: 200,   time: '05-23 10:23:43', state: 'processing', node: 2 },
+  { kind: 'withdraw', channel: 'alipay', amt: 88,    time: '05-23 09:15:02', state: 'processing', node: 1 },
+  { kind: 'withdraw', channel: 'alipay', amt: 151,   time: '05-22 11:23:43', state: 'success',    durSec: 12 },
+  { kind: 'withdraw', channel: 'wechat', amt: 60,    time: '05-20 18:42:11', state: 'success',    durSec: 80 },
+  { kind: 'cashback', title: '返现-比比赞黄油全麦鲜奶...', amt: 12.06, time: '05-08 11:23:02', subs: ['含补贴1.12元', '红包0.28元'] },
+  { kind: 'withdraw', channel: 'alipay', amt: 151,   time: '05-02 11:23:43', state: 'failed' },
+  { kind: 'cashback', title: '返现-MY爆款2024冬季新...', amt: 1.03, time: '05-08 11:23:02', subs: ['含补贴1.12元'] },
+  { kind: 'activity', tag: '活动', title: '发布1篇有效帖子', amt: 0.99, time: '2025-12-23 10:38:02' },
+  { kind: 'cashback', title: '返现-超值字母秋冬款吸汗...', amt: 1.38, time: '2025-05-03 11:00:27', subs: ['维权订单'], deduct: true },
+  { kind: 'redpack',  title: '"拼手气 抽现金"红包', amt: 1.55, time: '2024-1-22 11:23:02' },
+  { kind: 'activity', tag: '活动', title: '2023年终报告分享返现', amt: 1.55, time: '2024-1-22 11:23' }
+];
+
+var FAIL_OPTS = {
+  alipay: [
+    { v: 'account', label: '账号不存在或姓名有误', msg: '收款账户不存在或姓名有误，请核实账户姓名是否准确' },
+    { v: 'quota',   label: '收款额度已达上限',     msg: '收款账户额度已达上限，请咨询支付宝客服' },
+    { v: 'frozen',  label: '账号被冻结',           msg: '收款账户被冻结，无法收款，请咨询支付宝客服' },
+    { v: 'other',   label: '其他（返回错误码）',   msg: 'ALI_ERR_9999，请咨询支付宝客服' }
+  ],
+  wechat: [
+    { v: 'name_mismatch', label: '姓名与微信实名不一致', msg: '用户姓名与收款微信实名不符' },
+    { v: 'timeout',       label: '超时未确认收款',       msg: '未在微信确认收款，请重新发起提现' }
+  ]
+};
+
+function failMsg(v) {
+  var list = FAIL_OPTS[S.channel] || [];
+  for (var i = 0; i < list.length; i++) if (list[i].v === v) return list[i].msg;
+  return list.length ? list[0].msg : '';
+}
+
+function renderFailSel() {
+  var sel = document.getElementById('fail-sel');
+  if (!sel) return;
+  var list = FAIL_OPTS[S.channel] || [];
+  var valid = list.some(function(o) { return o.v === S.failReason; });
+  if (!valid) S.failReason = list.length ? list[0].v : '';
+  sel.innerHTML = list.map(function(o) {
+    return '<option value="' + o.v + '"' + (o.v === S.failReason ? ' selected' : '') + '>' + o.label + '</option>';
+  }).join('');
+}
+
+var DESC = {
+  idle: '初始：输入金额后点击提现，直接弹出申请成功半弹窗。',
+  processing: '关闭半弹窗后：页面展示提现处理中模块。',
+  success: '成功：进度轴三步完成，展示到账时间。',
+  failed: '失败：进度轴第三步红色，展示对应三方失败原因。'
+};
+
+function channelName() { return S.channel === 'wechat' ? '微信' : '支付宝'; }
+function channelIcon() { return S.channel === 'wechat' ? '微' : '支'; }
+function channelClass() { return S.channel === 'wechat' ? 'wechat' : 'alipay'; }
+function wd() {
+  return S.scene === 'processing' ? D.withdrawable - D.processingTipAmt : D.withdrawable;
+}
+
+function showPage(name) {
+  S.page = name;
+  ['wallet', 'bind', 'account', 'detail'].forEach(function(p) {
+    document.getElementById('page-' + p).classList.toggle('active', p === name);
+  });
+  renderAll();
+}
+
+function renderAll() {
+  if (S.page === 'wallet') renderWallet();
+  else if (S.page === 'bind') renderBind();
+  else if (S.page === 'account') renderAccount();
+  else if (S.page === 'detail') renderDetail();
+}
+
+function renderWallet() {
+  var isProc = S.scene === 'processing';
+  var showProg = S.scene !== 'idle' && !S.progClosed;
+  var showAll = S.scene !== 'processing';
+  var amt = parseFloat(S.amount) || 0;
+  var overLimit = amt > wd();
+  var btnOff = !S.amount || amt <= 0 || isProc || overLimit || !S.bound;
+  var h = '';
+
+  h += '<div class="top-white">';
+  h += '<div class="sbar"><span>01:25</span><span>📶 🔋</span></div>';
+  h += '<div class="nav"><span class="nav-bk">‹</span><span class="nav-title">钱包</span><span class="nav-more" onclick="showWalletMenu()">···</span></div>';
+  h += '<div class="tabs">';
+  h += '<div class="tab-item on"><div class="tab-name">现金</div><div class="tab-sub">¥ ' + D.withdrawable.toFixed(2) + '</div></div>';
+  h += '<div class="tab-item"><div class="tab-name">金豆</div><div class="tab-sub">6540个</div></div>';
+  h += '<div class="tab-item"><div class="tab-name">卡券</div><div class="tab-sub">0张</div></div>';
+  h += '<div class="tab-item"><div class="tab-name">红包</div><div class="tab-sub">0个</div></div>';
+  h += '</div></div>';
+
+  h += '<div class="page-body">';
+
+  h += '<div class="mod-card mod-acct" onclick="goAccount()">';
+  h += '<div class="acct-title">收款账号</div><div class="acct-line">';
+  if (S.bound) {
+    h += '<span class="channel-icon ' + channelClass() + '">' + channelIcon() + '</span>';
+    h += '<span class="acct-num">' + D.account + '</span>';
+  } else {
+    h += '<span class="acct-placeholder">请绑定收款账号</span>';
+  }
+  h += '<span class="acct-arrow">›</span></div></div>';
+
+  h += '<div class="mod-card mod-wd">';
+  h += '<div class="wd-title">可提现余额(元): <em>' + wd().toFixed(2) + '</em></div>';
+  h += '<div class="wd-row">';
+  h += '<div class="wd-input-box"><span class="yen">¥</span>';
+  h += '<input class="wd-input" id="amt-inp" type="number" placeholder="请输入提现金额" value="' + S.amount + '"';
+  if (isProc) h += ' disabled';
+  h += ' oninput="onAmt(this.value)" /></div>';
+  if (!isProc) {
+    h += '<button class="btn-wd" id="tixian-btn"' + (btnOff ? ' disabled' : '') + ' onclick="startWithdraw()">提现</button>';
+  }
+  h += '</div>';
+  if (isProc) {
+    h += '<button class="btn-processing" disabled>一笔提现处理中</button>';
+  }
+  if (showAll) {
+    h += '<button class="wd-all"' + (isProc ? ' disabled' : '') + ' onclick="fillAll()">全部提现</button>';
+  }
+  h += '<div class="wd-err' + (overLimit && S.amount ? ' show' : '') + '" id="wd-err">输入金额超过可用余额</div>';
+  if (isProc) {
+    h += '<div class="wd-tip">' + D.processingTipAmt.toFixed(2) + '元提现中，请勿重复操作。</div>';
+  }
+  h += '</div>';
+
+  if (showProg) h += buildProg();
+  h += buildChg();
+  h += '</div><div class="safe"></div>';
+
+  document.getElementById('page-wallet').innerHTML = h;
+}
+
+function buildProg() {
+  var sc = S.scene;
+  var title = sc === 'processing' ? '提现处理中' : (sc === 'success' ? '提现成功' : '提现失败');
+  var isFailed = sc === 'failed';
+  var h = '<div class="mod-card mod-prog">';
+  h += '<div class="prog-title">' + title + '</div>';
+  if (isFailed) {
+    h += '<span class="prog-close" onclick="closeProg()">×</span>';
+  }
+  h += '<div class="prog-line"><span class="k">提现金额</span><span class="v">' + D.withdrawAmt.toFixed(2) + '元</span></div>';
+  h += '<div class="prog-line"><span class="k">提现渠道</span><span class="v">' + channelName() + '</span></div>';
+  h += '<div class="prog-line"><span class="k">收款账户</span><span class="v">' + D.account + '</span></div>';
+  h += '<div class="prog-line"><span class="k">创建时间</span><span class="v">' + D.applyTime + '</span>';
+  if (!isFailed) {
+    h += '<span class="detail" onclick="toggleAxis()">详情 <span id="axis-arr">' + (S.axisOpen ? '▲' : '▼') + '</span></span>';
+  }
+  h += '</div>';
+  if (isFailed) {
+    var showManage = S.channel === 'alipay' && S.failReason === 'account';
+    h += '<div class="prog-line"><span class="k">失败原因</span><span class="v">' + failMsg(S.failReason) + (showManage ? '<span class="manage" onclick="goAccount()">查看收款账户信息</span>' : '') + '</span></div>';
+  } else {
+    h += '<div class="axis-wrap' + (S.axisOpen ? ' open' : '') + '" id="axis-wrap">';
+    h += '<div class="axis">' + buildProgressAxis(S.scene) + '</div></div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function buildProgressAxis(mode) {
+  var procLabel = channelName() + '处理中';
+  var h = '';
+  if (mode === 'success') {
+    h += tlRow('done', '发起提现申请', D.applyTime, '', '');
+    h += tlRow('done', procLabel, D.processTime, '', '');
+    h += tlRow('done', '到账成功', D.successTime, '', '');
+  } else if (mode === 'failed') {
+    h += tlRow('done', '发起提现申请', D.applyTime, '', '');
+    h += tlRow('done', procLabel, D.processTime, '', '');
+    h += tlRow('fail', '提现失败', D.processTime, '', failMsg(S.failReason));
+  } else {
+    h += tlRow('done', '发起提现申请', D.applyTime, '', '');
+    h += tlRow('proc', procLabel, D.processTime, '', '');
+    h += tlRow('pend', '到账成功', '', '', '');
+  }
+  return h;
+}
+
+function tlRow(type, name, time, hint, reason) {
+  var lineClass;
+  if (type === 'pend') lineClass = 'dash-line';
+  else if (type === 'fail') lineClass = 'fail-line';
+  else lineClass = 'done-line';
+  var dotClass = type === 'done' ? 'done' : (type === 'proc' ? 'proc' : (type === 'fail' ? 'fail' : 'pend'));
+  var dotContent = type === 'done' ? '✓' : (type === 'proc' ? '◷' : (type === 'fail' ? '✕' : ''));
+  var h = '<div class="tl-row ' + lineClass + '">';
+  h += '<span class="tl-dot ' + dotClass + '">' + dotContent + '</span>';
+  h += '<div class="tl-text"><div class="nm">' + name + '</div>';
+  if (time) h += '<div class="tm">' + time + '</div>';
+  if (reason) h += '<div class="reason">失败原因：' + reason + '</div>';
+  if (hint) h += '<div class="hint">' + hint + '</div>';
+  h += '</div></div>';
+  return h;
+}
+
+function buildChg() {
+  var h = '<div class="mod-card mod-chg">';
+  h += '<div class="chg-hd"><span class="chg-hd-t">余额变动</span><span class="chg-hd-m">全部 ></span></div>';
+  D.changes.forEach(function(c) {
+    h += '<div class="chg-row"><div class="chg-l">';
+    h += '<div class="chg-t">' + c.title + '</div><div class="chg-time">' + c.time + '</div></div>';
+    h += '<div class="chg-r"><div class="chg-amt">' + c.sign + ' ¥ ' + c.amt.toFixed(2) + '</div>';
+    if (c.durationLabel) h += '<div class="chg-sub">' + c.durationLabel + '</div>';
+    if (c.subsidyLabel) h += '<div class="chg-sub">' + c.subsidyLabel + '</div>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function renderBind() {
+  var h = '';
+  h += '<div class="top-white">';
+  h += '<div class="sbar"><span>01:25</span><span>📶 🔋</span></div>';
+  h += '<div class="nav"><span class="nav-bk" onclick="showPage(\'wallet\')">‹</span><span class="nav-title">绑定收款账号</span><span class="nav-more">···</span></div></div>';
+  h += '<div class="bind-body">';
+  h += '<div class="channel-pick">';
+  h += channelOpt('alipay', '支', '#1677FF', '支付宝');
+  h += channelOpt('wechat', '微', '#07C160', '微信');
+  h += '</div>';
+  h += '<div class="bind-field"><div class="bind-label">' + (S.bindTarget === 'wechat' ? '微信' : '支付宝') + '账号</div>';
+  h += '<input class="bind-input" id="bind-inp" placeholder="请输入' + (S.bindTarget === 'wechat' ? '微信' : '支付宝') + '绑定手机号" value="' + S.bindInput + '" oninput="onBindInput(this.value)" /></div>';
+  h += '<div class="bind-tip">请确保' + (S.bindTarget === 'wechat' ? '微信' : '支付宝') + '账号已完成实名认证，且姓名与美柚实名一致。</div>';
+  var ok = S.bindInput.length >= 11;
+  h += '<button class="bind-btn" id="bind-btn"' + (ok ? '' : ' disabled') + ' onclick="showBindConfirm()">下一步</button>';
+  h += '</div>';
+  document.getElementById('page-bind').innerHTML = h;
+}
+
+function channelOpt(key, icon, color, name) {
+  var on = S.bindTarget === key ? ' on' : '';
+  return '<div class="channel-opt' + on + '" onclick="pickBind(\'' + key + '\')"><div class="ico" style="background:' + color + '">' + icon + '</div><div class="nm">' + name + '</div></div>';
+}
+
+function renderAccount() {
+  var h = '';
+  h += '<div class="top-white">';
+  h += '<div class="sbar"><span>01:25</span><span>📶 🔋</span></div>';
+  h += '<div class="nav"><span class="nav-bk" onclick="showPage(\'wallet\')">‹</span><span class="nav-title">收款账号</span><span class="nav-more">···</span></div></div>';
+  h += '<div class="page-body">';
+  h += '<div class="mod-card mod-acct"><div class="acct-title">当前账号</div><div class="acct-line">';
+  h += '<span class="channel-icon ' + channelClass() + '">' + channelIcon() + '</span>';
+  h += '<span class="acct-num">' + D.account + '</span></div></div>';
+  h += '<div class="mod-card mod-acct" onclick="goBind()" style="text-align:center;padding:16px;color:#1677FF;font-size:15px;">更换收款账号</div>';
+  h += '</div>';
+  document.getElementById('page-account').innerHTML = h;
+}
+
+function pickBind(key) { S.bindTarget = key; renderBind(); }
+function goBind() { S.bindInput = ''; showPage('bind'); }
+function goAccount() {
+  if (!S.bound) { goBind(); return; }
+  showPage('account');
+}
+
+function showWalletMenu() {
+  document.getElementById('wmenu-overlay').classList.add('show');
+}
+function hideWalletMenu(e) {
+  if (e && e.target && e.target.id !== 'wmenu-overlay') return;
+  document.getElementById('wmenu-overlay').classList.remove('show');
+}
+function goDetail() {
+  hideWalletMenu();
+  showPage('detail');
+}
+
+function renderDetail() {
+  var h = '';
+  h += '<div class="top-white">';
+  h += '<div class="sbar"><span>9:41</span><span>📶 🔋</span></div>';
+  h += '<div class="nav"><span class="nav-bk" onclick="showPage(\'wallet\')">‹</span><span class="nav-title">明细</span><span class="nav-more"></span></div>';
+  h += '<div class="dt-tabs">';
+  ['cash', 'bean', 'coin'].forEach(function(k) {
+    var nm = k === 'cash' ? '现金' : (k === 'bean' ? '金豆' : '柚币');
+    h += '<div class="dt-tab' + (S.detailTab === k ? ' on' : '') + '" onclick="setDetailTab(\'' + k + '\')">' + nm + '</div>';
+  });
+  h += '</div></div>';
+  h += '<div class="dt-body">';
+  if (S.detailTab !== 'cash') {
+    h += '<div class="dt-card"><div class="dt-section-hd">暂无数据</div></div>';
+  } else {
+    h += '<div class="dt-card"><div class="dt-section-hd">本月</div>';
+    TXS.forEach(function(tx, idx) { h += renderTxRow(tx, idx); });
+    h += '</div>';
+  }
+  h += '</div>';
+  document.getElementById('page-detail').innerHTML = h;
+}
+
+function setDetailTab(k) {
+  S.detailTab = k;
+  renderDetail();
+  if (k !== 'cash') toast(k === 'bean' ? '金豆明细暂未开通' : '柚币明细暂未开通');
+}
+
+function renderTxRow(tx, idx) {
+  var amtCls = '', sign = '', sub = '', subCls = 'dt-sub', clickAttr = '';
+  if (tx.kind === 'withdraw') {
+    var chName = tx.channel === 'wechat' ? '微信' : '支付宝';
+    var title = '提现到' + chName;
+    if (tx.state === 'processing') {
+      sign = '¥';
+      sub = tx.node === 1 ? '发起提现申请' : (chName + '处理中');
+      subCls = 'dt-sub hot';
+    } else if (tx.state === 'success') {
+      sign = '-¥';
+      sub = formatDuration(tx.durSec) + '<span class="gt">›</span>';
+    } else {
+      sign = '¥';
+      sub = '提现失败<span class="gt">›</span>';
+    }
+    clickAttr = ' onclick="openTxSheet(' + idx + ')"';
+    return '<div class="dt-row"' + clickAttr + '>' +
+      '<div class="dt-l"><div class="dt-t">' + title + '</div><div class="dt-time">' + tx.time + '</div></div>' +
+      '<div class="dt-r"><div class="dt-amt">' + sign + tx.amt + '</div><div class="' + subCls + '">' + sub + '</div></div>' +
+      '</div>';
+  }
+  var titleHtml = (tx.tag ? '<span class="dt-tag">' + tx.tag + '</span>' : '') + '<span>' + tx.title + '</span>';
+  var pos = !tx.deduct;
+  sign = pos ? '+¥' : '-¥';
+  amtCls = pos ? 'dt-amt pos' : 'dt-amt';
+  var subHtml = '';
+  if (tx.subs && tx.subs.length) {
+    subHtml = tx.subs.map(function(s) { return '<div class="dt-sub">' + s + '</div>'; }).join('');
+  }
+  return '<div class="dt-row" onclick="openOrder(' + idx + ')">' +
+    '<div class="dt-l"><div class="dt-t">' + titleHtml + '</div><div class="dt-time">' + tx.time + '</div></div>' +
+    '<div class="dt-r"><div class="' + amtCls + '">' + sign + tx.amt + '</div>' + subHtml + '</div>' +
+    '</div>';
+}
+
+function openOrder(idx) {
+  var tx = TXS[idx];
+  if (!tx) return;
+  toast('跳转至订单详情页：' + (tx.title || '').slice(0, 12));
+}
+
+function openTxSheet(idx) {
+  var tx = TXS[idx];
+  if (!tx || tx.kind !== 'withdraw') return;
+  var chName = tx.channel === 'wechat' ? '微信' : '支付宝';
+  var title = tx.state === 'processing' ? '提现处理中' : (tx.state === 'success' ? '提现成功' : '提现失败');
+  document.getElementById('tx-detail-title').textContent = title;
+  var year = (tx.time.indexOf('-') === 4) ? '' : '2026-';
+  var fullTime = year + tx.time;
+  var apiTime = fullTime.replace(/(\d{2}:\d{2}:)(\d{2})$/, function(m, p, s) {
+    var n = (parseInt(s, 10) + 1) % 60;
+    return p + (n < 10 ? '0' + n : n);
+  });
+  var endTime = fullTime.replace(/(\d{2}):(\d{2}):(\d{2})$/, function(m, h, mi, s) {
+    var nm = (parseInt(mi, 10) + 1) % 60;
+    return h + ':' + (nm < 10 ? '0' + nm : nm) + ':' + s;
+  });
+  var h = '';
+  h += '<div class="apply-kv"><span class="k">提现金额</span><span class="v">' + tx.amt + '元</span></div>';
+  h += '<div class="apply-kv"><span class="k">提现渠道</span><span class="v">' + chName + '</span></div>';
+  h += '<div class="apply-kv"><span class="k">收款账户</span><span class="v">' + D.account + '</span></div>';
+  h += '<div class="apply-kv"><span class="k">创建时间</span><span class="v">' + fullTime + '</span></div>';
+  if (tx.state === 'failed') {
+    var failKey = tx.channel === 'wechat' ? 'name_mismatch' : 'account';
+    var msg = failMsg(failKey);
+    var showManage = tx.channel === 'alipay' && failKey === 'account';
+    h += '<div class="apply-kv"><span class="k">失败原因</span><span class="v">' + msg + (showManage ? ' <span style="color:#1677FF;cursor:pointer;" onclick="closeTxDetail();goAccount();">查看收款账户信息</span>' : '') + '</span></div>';
+  } else {
+    h += '<div class="apply-prog-title">提现进度</div>';
+    h += '<div class="apply-axis">';
+    if (tx.state === 'success') {
+      h += tlRow('done', '发起提现申请', fullTime, '', '');
+      h += tlRow('done', chName + '处理中', apiTime, '', '');
+      h += tlRow('done', '到账成功', endTime, '', '');
+    } else if (tx.node === 1) {
+      h += tlRow('done', '发起提现申请', fullTime, '', '');
+      h += tlRow('pend', chName + '处理中', '', '', '');
+      h += tlRow('pend', '到账成功', '', '', '');
+    } else {
+      h += tlRow('done', '发起提现申请', fullTime, '', '');
+      h += tlRow('proc', chName + '处理中', apiTime, '', '');
+      h += tlRow('pend', '到账成功', '', '', '');
+    }
+    h += '</div>';
+  }
+  document.getElementById('tx-detail-body').innerHTML = h;
+  document.getElementById('tx-detail-overlay').classList.add('show');
+}
+function closeTxDetail() {
+  document.getElementById('tx-detail-overlay').classList.remove('show');
+}
+
+function showBindConfirm() {
+  document.getElementById('confirm-text').textContent = '确认绑定' + (S.bindTarget === 'wechat' ? '微信' : '支付宝') + '账号 ' + S.bindInput.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') + ' ？';
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('show'); }
+function confirmBind() {
+  closeConfirm();
+  S.bound = true;
+  S.channel = S.bindTarget;
+  D.account = S.bindInput.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  document.getElementById('channel-sel').value = S.channel;
+  showPage('wallet');
+  toast('绑定成功');
+}
+
+function onAmt(v) {
+  S.amount = v;
+  updateWithdrawUI();
+}
+
+function updateWithdrawUI() {
+  var isProc = S.scene === 'processing';
+  var amt = parseFloat(S.amount) || 0;
+  var overLimit = amt > wd();
+  var btnOff = !S.amount || amt <= 0 || isProc || overLimit || !S.bound;
+  var btn = document.getElementById('tixian-btn');
+  if (btn) btn.disabled = btnOff;
+  var err = document.getElementById('wd-err');
+  if (err) err.classList.toggle('show', overLimit && !!S.amount);
+}
+
+function onBindInput(v) {
+  S.bindInput = v;
+  var btn = document.getElementById('bind-btn');
+  if (btn) btn.disabled = v.length < 11;
+}
+
+function fillAll() {
+  S.amount = wd().toFixed(2);
+  var inp = document.getElementById('amt-inp');
+  if (inp) inp.value = S.amount;
+  updateWithdrawUI();
+}
+
+function startWithdraw() {
+  if (!S.bound) { goBind(); return; }
+  var amt = parseFloat(S.amount);
+  if (!amt || amt <= 0) { toast('请输入提现金额'); return; }
+  if (amt > wd()) return;
+  if (S.scene === 'processing') {
+    toast(D.processingTipAmt.toFixed(2) + '元提现中，请勿重复操作');
+    return;
+  }
+  submitWithdraw(amt);
+}
+
+function buildApplySuccessContent() {
+  var h = '';
+  h += '<div class="apply-kv"><span class="k">提现金额</span><span class="v">' + D.withdrawAmt.toFixed(2) + '元</span></div>';
+  h += '<div class="apply-kv"><span class="k">提现渠道</span><span class="v">' + channelName() + '</span></div>';
+  h += '<div class="apply-kv"><span class="k">收款账户</span><span class="v">' + D.account + '</span></div>';
+  h += '<div class="apply-kv"><span class="k">创建时间</span><span class="v">' + D.applyTime + '</span></div>';
+  h += '<div class="apply-prog-title">提现进度</div>';
+  h += '<div class="apply-axis">' + buildProgressAxis('popup') + '</div>';
+  return h;
+}
+
+function padTime(n) { return n < 10 ? '0' + n : '' + n; }
+
+function formatDuration(sec) {
+  if (sec == null) return '已到账';
+  sec = parseInt(sec, 10) || 0;
+  if (sec <= 60) return sec + '秒到账';
+  var m = Math.floor(sec / 60);
+  var s = sec % 60;
+  return m + '分钟' + (s > 0 ? s + '秒' : '') + '到账';
+}
+
+function formatDate(d) {
+  return d.getFullYear() + '-' + padTime(d.getMonth() + 1) + '-' + padTime(d.getDate()) +
+    ' ' + padTime(d.getHours()) + ':' + padTime(d.getMinutes()) + ':' + padTime(d.getSeconds());
+}
+
+function setWithdrawTimes() {
+  var apply = new Date();
+  D.applyTime = formatDate(apply);
+  var api = new Date(apply.getTime() + 1000);
+  D.processTime = formatDate(api);
+  var success = new Date(api.getTime() + 20000);
+  D.successTime = formatDate(success);
+}
+
+function showApplySuccessSheet() {
+  document.getElementById('apply-success-body').innerHTML = buildApplySuccessContent();
+  document.getElementById('apply-success-overlay').classList.add('show');
+}
+
+function closeApplySuccess() {
+  document.getElementById('apply-success-overlay').classList.remove('show');
+  S.scene = S.pendingScene;
+  S.progClosed = false;
+  S.axisOpen = S.pendingScene !== 'processing';
+  syncCtrl();
+  renderWallet();
+  if (S.pendingScene === 'processing' && S.channel === 'wechat') {
+    document.getElementById('wechat-amt').textContent = '¥' + D.withdrawAmt.toFixed(2);
+    document.getElementById('wechat-overlay').classList.add('show');
+  }
+}
+
+function submitWithdraw(amt) {
+  D.withdrawAmt = amt;
+  D.processingTipAmt = amt;
+  S.amount = '';
+  setWithdrawTimes();
+  if (S.demoResult === 'failed') {
+    S.scene = 'failed';
+    S.progClosed = false;
+    S.axisOpen = true;
+    syncCtrl();
+    renderWallet();
+    return;
+  }
+  S.pendingScene = S.demoResult;
+  showApplySuccessSheet();
+}
+
+function closeWechat() { document.getElementById('wechat-overlay').classList.remove('show'); }
+function confirmWechat() { closeWechat(); toast('已模拟微信确认收款'); }
+
+function closeProg() {
+  S.progClosed = true;
+  renderWallet();
+}
+
+function toggleAxis() {
+  S.axisOpen = !S.axisOpen;
+  var w = document.getElementById('axis-wrap');
+  var a = document.getElementById('axis-arr');
+  if (w) w.classList.toggle('open', S.axisOpen);
+  if (a) a.textContent = S.axisOpen ? '▲' : '▼';
+}
+
+function setScene(sc) {
+  S.scene = sc;
+  S.amount = '';
+  S.progClosed = false;
+  S.axisOpen = sc !== 'idle';
+  if (sc !== 'idle') {
+    S.demoResult = sc;
+    document.getElementById('result-sel').value = sc;
+    setWithdrawTimes();
+  }
+  syncCtrl();
+  showPage('wallet');
+}
+
+function setDemoResult(v) {
+  S.demoResult = v;
+}
+
+function setFail(v) {
+  S.failReason = v;
+  if (S.scene === 'failed') renderWallet();
+}
+
+function setChannel(v) {
+  S.channel = v;
+  D.changes[0].title = '提现到' + channelName();
+  D.changes[1].title = '提现到' + channelName();
+  renderFailSel();
+  renderAll();
+}
+
+function syncCtrl() {
+  ['idle', 'processing', 'success', 'failed'].forEach(function(k) {
+    var el = document.getElementById('sb-' + k);
+    if (el) el.classList.toggle('on', S.scene === k);
+  });
+  renderFailSel();
+  document.getElementById('fail-opts').style.display = S.scene === 'failed' ? 'block' : 'none';
+  document.getElementById('scene-desc').textContent = DESC[S.scene] || '';
+}
+
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function() { el.classList.remove('show'); }, 2200);
+}
+
+syncCtrl();
+renderAll();
+</script>
+</body>
+</html>

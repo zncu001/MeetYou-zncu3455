@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>资源位管理 · 测试计划后台原型</title>
+  <style>
+    :root {
+      --primary: #409eff;
+      --primary-light: #ecf5ff;
+      --success: #67c23a;
+      --warning: #e6a23c;
+      --danger: #f56c6c;
+      --info: #909399;
+      --text-main: #303133;
+      --text-regular: #606266;
+      --text-secondary: #909399;
+      --border-color: #dcdfe6;
+      --border-light: #ebeef5;
+      --bg-color: #f5f7fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    /* 顶部导航 */
+    .header {
+      background: #fff;
+      height: 60px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 1px 4px rgba(0,21,41,0.08);
+      font-size: 18px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: var(--text-regular);
+      font-weight: normal;
+      margin-left: 20px;
+    }
+    .breadcrumb span { color: var(--text-secondary); margin: 0 8px; }
+
+    /* 主内容区 */
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      padding: 32px 40px;
+    }
+
+    /* 区块标题 */
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--primary);
+      margin-right: 8px;
+      border-radius: 2px;
+    }
+
+    /* 表单样式 */
+    .form-group {
+      display: flex;
+      margin-bottom: 22px;
+    }
+    .form-label {
+      width: 120px;
+      text-align: right;
+      padding-right: 12px;
+      line-height: 36px;
+      color: var(--text-regular);
+      font-size: 14px;
+    }
+    .form-label.required::before {
+      content: '*';
+      color: var(--danger);
+      margin-right: 4px;
+    }
+    .form-content {
+      flex: 1;
+      max-width: 600px;
+    }
+    .form-control {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.3s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .form-control[disabled] {
+      background-color: var(--bg-color);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+    }
+    .form-tip {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* 提示框 (Alert) */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+    .alert-primary {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid #d9ecff;
+    }
+    .alert-warning {
+      background-color: #fdf6ec;
+      color: var(--warning);
+      border: 1px solid #faecd8;
+    }
+    .alert-icon {
+      margin-right: 8px;
+      font-weight: bold;
+    }
+    .alert-content p { margin-bottom: 4px; }
+    .alert-content p:last-child { margin-bottom: 0; }
+    .alert-content strong { color: var(--text-main); }
+
+    /* 按钮 */
+    .btn {
+      display: inline-block;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      color: var(--text-regular);
+      -webkit-appearance: none;
+      text-align: center;
+      box-sizing: border-box;
+      outline: none;
+      margin: 0;
+      transition: .1s;
+      font-weight: 500;
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+    .btn:hover { color: var(--primary); border-color: #c6e2ff; background-color: var(--primary-light); }
+    .btn-primary { color: #fff; background-color: var(--primary); border-color: var(--primary); }
+    .btn-primary:hover { background: #66b1ff; border-color: #66b1ff; color: #fff; }
+    .btn-text { color: var(--primary); border: none; background: transparent; padding: 0; }
+    .btn-text:hover { color: #66b1ff; background: transparent; }
+    .btn-danger-text { color: var(--danger); border: none; background: transparent; padding: 0; }
+    .btn-danger-text:hover { color: #f78989; background: transparent; }
+    .btn-sm { padding: 7px 15px; font-size: 12px; border-radius: 3px; }
+
+    /* 表格 */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .table th, .table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .table th {
+      background-color: #f8f9fa;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .table tr:hover > td { background-color: #f5f7fa; }
+    
+    .status-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 12px;
+      border-radius: 12px;
+    }
+    .status-active { background: #f0f9eb; color: var(--success); border: 1px solid #e1f3d8; }
+    .status-pending { background: #fdf6ec; color: var(--warning); border: 1px solid #faecd8; }
+    .status-ended { background: #f4f4f5; color: var(--info); border: 1px solid #e9e9eb; }
+
+    /* 底部操作区 */
+    .footer-actions {
+      border-top: 1px solid var(--border-light);
+      padding-top: 24px;
+      margin-top: 40px;
+      text-align: center;
+    }
+    .footer-actions .btn { margin: 0 10px; width: 120px; }
+
+    /* 弹窗 Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal {
+      background: #fff;
+      width: 600px;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+    }
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-close { cursor: pointer; color: var(--text-secondary); font-size: 20px; }
+    .modal-close:hover { color: var(--text-main); }
+    .modal-body { padding: 24px 20px; }
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-light);
+      text-align: right;
+    }
+    .modal-footer .btn { margin-left: 12px; }
+
+    .radio-group { display: flex; gap: 16px; margin-top: 8px; }
+    .radio-label { display: flex; align-items: center; font-size: 14px; cursor: pointer; }
+    .radio-label input { margin-right: 6px; }
+
+    .old-field-strike {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    返现灵感后台
+    <div class="breadcrumb">
+      返现首页 <span>/</span> 资源位管理 <span>/</span> 配置资源位
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- 1. 基础信息 -->
+    <div class="section-title">基础信息</div>
+    <div class="form-group">
+      <div class="form-label required">资源位名称</div>
+      <div class="form-content">
+        <input type="text" class="form-control" value="返现首页-新人1元购横幅">
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label required">默认素材</div>
+      <div class="form-content">
+        <button class="btn btn-sm">上传图片</button>
+        <span style="font-size: 12px; color: #909399; margin-left: 8px;">1yuan-banner-v2.png</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label required">跳转链接</div>
+      <div class="form-content">
+        <input type="text" class="form-control" value="meiyou://cashback/new_user_1yuan">
+      </div>
+    </div>
+
+    <!-- 2. 定向信息（正式投放） -->
+    <div class="section-title" style="margin-top: 40px;">定向信息（正式投放）</div>
+    <div class="alert alert-warning">
+      <div class="alert-icon">i</div>
+      <div class="alert-content">
+        <p><strong>注意：</strong>下方规则对正式线上用户生效。如果需要用测试账号进行配置验证，请勿在此修改正式规则，请在底部的<strong>「测试计划」</strong>中配置验证。</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label required">上线时间</div>
+      <div class="form-content">
+        <input type="text" class="form-control" value="2026-07-01 00:00:00 至 2026-07-31 23:59:59">
+        <div class="form-tip">不在该时间段内，线上用户将无法看到该资源位。</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">定向人群</div>
+      <div class="form-content">
+        <select class="form-control">
+          <option>新人首单用户包 (ID: 8901)</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- 演示原字段被移除 -->
+    <div class="form-group old-field-strike">
+      <div class="form-label">测试账号 UID</div>
+      <div class="form-content">
+        <input type="text" class="form-control" value="" disabled placeholder="此字段已废弃">
+        <div class="form-tip" style="color: var(--danger); text-decoration: none; opacity: 1;">
+          该字段已移除。为避免多规则冲突和影响线上用户，测试相关配置已整体迁移至下方「测试计划」。
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 测试计划模块 (核心改造) -->
+    <div class="section-title" style="margin-top: 40px;">
+      测试计划
+      <span style="font-size: 12px; font-weight: normal; color: var(--success); margin-left: 12px; background: #f0f9eb; padding: 2px 8px; border-radius: 10px;">★ P0 最高优先级</span>
+    </div>
+    
+    <div class="alert alert-primary">
+      <div class="alert-icon">i</div>
+      <div class="alert-content">
+        <p><strong>生效逻辑说明：</strong></p>
+        <p>1. <strong>优先级最高</strong>：用户请求时，若命中此处进行中的测试计划（UID在白名单 + 在测试时段内），将直接返回测试素材。</p>
+        <p>2. <strong>短路正式规则</strong>：测试账号将<strong>无视</strong>上方的「上线时间」、「定向人群」等全部正式规则，实现所见即所得的预览。</p>
+        <p>3. <strong>相互隔离安全</strong>：计划到期后自动失效；线上普通用户永远无法命中测试计划，互不干扰。</p>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 16px; text-align: right;">
+      <button class="btn btn-primary" onclick="openModal()">+ 新增测试计划</button>
+    </div>
+
+    <table class="table" id="testPlanTable">
+      <thead>
+        <tr>
+          <th width="15%">计划名称</th>
+          <th width="20%">测试 UID</th>
+          <th width="30%">测试有效时间</th>
+          <th width="15%">状态</th>
+          <th width="20%">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>日常链路验收</td>
+          <td>11090, 22091</td>
+          <td>2026-06-28 10:00 - 2026-06-28 18:00</td>
+          <td><span class="status-tag status-active">进行中</span></td>
+          <td>
+            <button class="btn btn-text">编辑</button>
+            <button class="btn btn-danger-text">结束</button>
+          </td>
+        </tr>
+        <tr>
+          <td>UI还原走查</td>
+          <td>55891</td>
+          <td>2026-06-27 15:00 - 2026-06-27 15:30</td>
+          <td><span class="status-tag status-ended">已结束</span></td>
+          <td>
+            <button class="btn btn-text">查看</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <!-- 底部保存 -->
+    <div class="footer-actions">
+      <button class="btn">取消</button>
+      <button class="btn btn-primary">保存资源位配置</button>
+    </div>
+
+  </div>
+
+  <!-- 新增测试计划弹窗 -->
+  <div class="modal-overlay" id="testPlanModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">新增测试计划</div>
+        <div class="modal-close" onclick="closeModal()">&times;</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <div class="form-label required" style="width: 100px;">计划名称</div>
+          <div class="form-content">
+            <input type="text" class="form-control" id="planName" placeholder="如：XX活动上线前验证">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label required" style="width: 100px;">测试 UID</div>
+          <div class="form-content">
+            <textarea class="form-control" id="planUids" style="height: 60px; padding: 8px 12px; resize: none;" placeholder="请输入美柚 UID，多个 UID 请用英文逗号分隔"></textarea>
+            <div class="form-tip">配置后，仅这些 UID 能在下方时间段内看到测试效果。</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label required" style="width: 100px;">测试时间段</div>
+          <div class="form-content">
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <button class="btn btn-sm btn-primary">未来 10 分钟</button>
+              <button class="btn btn-sm">未来 24 小时</button>
+              <button class="btn btn-sm">自定义时间</button>
+            </div>
+            <input type="text" class="form-control" id="planTime" value="2026-06-28 19:40:00 - 2026-06-28 19:50:00" disabled style="background: #f5f7fa;">
+            <div class="form-tip">测试到期后，计划自动结束，UID 规则回落至正式投放规则。</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label" style="width: 100px;">展示素材</div>
+          <div class="form-content">
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="material" checked> 沿用正式素材</label>
+              <label class="radio-label"><input type="radio" name="material"> 上传独立测试素材</label>
+            </div>
+            <div class="form-tip">若正式素材尚未定稿，可上传临时素材进行跳转链路验证。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="savePlan()">确定添加</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('testPlanModal');
+    
+    function openModal() {
+      // 简单的时间 mock
+      const now = new Date();
+      const tenMinsLater = new Date(now.getTime() + 10 * 60000);
+      const formatTime = (d) => {
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+      };
+      document.getElementById('planTime').value = `${formatTime(now)} - ${formatTime(tenMinsLater)}`;
+      
+      modal.style.display = 'flex';
+    }
+    
+    function closeModal() {
+      modal.style.display = 'none';
+      // reset forms
+      document.getElementById('planName').value = '';
+      document.getElementById('planUids').value = '';
+    }
+
+    function savePlan() {
+      const name = document.getElementById('planName').value;
+      const uids = document.getElementById('planUids').value;
+      const time = document.getElementById('planTime').value;
+
+      if(!name || !uids) {
+        alert("请填写计划名称和测试UID");
+        return;
+      }
+
+      const tbody = document.querySelector('#testPlanTable tbody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${uids}</td>
+        <td>${time}</td>
+        <td><span class="status-tag status-active">进行中</span></td>
+        <td>
+          <button class="btn btn-text">编辑</button>
+          <button class="btn btn-danger-text">结束</button>
+        </td>
+      `;
+      // 插入到首行
+      tbody.insertBefore(tr, tbody.firstChild);
+      closeModal();
+    }
+  </script>
+</body>
+</html>

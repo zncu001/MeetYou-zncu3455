@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>美柚返现首页 · 新人体验改造 Demo</title>
+<style>
+:root {
+  --brand: #ff4d88;
+  --brand-soft: rgba(255,77,136,.08);
+  --brand-light: #fff3f5;
+  --surface: #ffffff;
+  --black-a: #323232;
+  --black-m: #666666;
+  --black-b: #999999;
+  --black-j: #cccccc;
+  --success: #00cc99;
+  --warning: #ff9500;
+  --danger: #ff4d4d;
+  --line: rgba(0,0,0,.08);
+  --r8: 8px; --r12: 12px;
+  --sbh: 44px; --nbh: 44px; --tbh: 83px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+button { border: none; cursor: pointer; background: none; font-family: inherit; }
+
+/* ── Page Shell ── */
+body {
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  background: #b0b0b4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 0 48px;
+}
+
+/* ── Demo Controls ── */
+.demo-bar {
+  width: 375px;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  margin-top: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.demo-bar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+.demo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.demo-row + .demo-row { margin-top: 7px; }
+.demo-row-label {
+  font-size: 10px;
+  color: #999;
+  white-space: nowrap;
+}
+.d-btn {
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1.5px solid #e0e0e0;
+  font-size: 11px;
+  color: #666;
+  background: #fff;
+  transition: all .12s;
+}
+.d-btn.on { border-color: var(--brand); color: var(--brand); background: #fff0f5; font-weight: 600; }
+.d-btn.on-v { border-color: #5b8cc8; color: #5b8cc8; background: #f0f5ff; font-weight: 600; }
+
+/* ── Phone ── */
+.phone {
+  width: 375px;
+  background: var(--brand-light);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+
+/* ── Status Bar ── */
+.sb {
+  height: var(--sbh);
+  background: var(--brand-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  flex-shrink: 0;
+}
+.sb-time { font-size: 15px; font-weight: 600; color: var(--black-a); }
+.sb-right { display: flex; align-items: center; gap: 5px; }
+.sb-right svg { display: block; }
+
+/* ── Nav Bar ── */
+.nav {
+  height: var(--nbh);
+  background: var(--brand-light);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.nav-search {
+  height: 28px;
+  background: rgba(0,0,0,.06);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  gap: 5px;
+}
+.nav-search svg { width: 13px; height: 13px; flex-shrink: 0; }
+.nav-search span { font-size: 13px; color: #bbb; }
+.nav-title { font-size: 17px; font-weight: 600; color: var(--black-a); text-align: center; white-space: nowrap; }
+.nav-right { display: flex; justify-content: flex-end; }
+.money-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 9px;
+  background: linear-gradient(135deg, var(--danger), var(--brand));
+  border-radius: 14px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+}
+.money-btn svg { width: 12px; height: 12px; }
+
+/* ── Scroll Area ── */
+.page {
+  overflow-y: auto;
+  max-height: 568px;
+  padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── ★ NEW: Compact Asset Strip ── */
+.asset-strip {
+  margin: 10px 12px 0;
+  background: #fff5f8;
+  border: 1px solid rgba(255,77,136,.18);
+  border-radius: var(--r12);
+  padding: 10px 12px 10px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.as-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.as-icon.red  { background: linear-gradient(135deg, #ff6b6b, #ff4d88); }
+.as-icon.purple { background: linear-gradient(135deg, #7b6cf0, #a770ef); }
+.as-icon.soft { background: linear-gradient(135deg, #ffcce0, #ffb8d0); }
+.as-icon svg { width: 18px; height: 18px; }
+.as-body { flex: 1; min-width: 0; }
+.as-main { font-size: 13px; color: var(--black-a); line-height: 1.3; }
+.as-main strong { color: var(--brand); }
+.as-sub { font-size: 11px; color: var(--black-b); margin-top: 2px; }
+.as-cta {
+  padding: 6px 13px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.as-cta.purple { background: #7b6cf0; }
+.as-cta.outline {
+  background: transparent;
+  border: 1px solid var(--brand);
+  color: var(--brand);
+}
+
+/* ── Query Card (original, 1:1) ── */
+.query-card {
+  margin: 8px 12px 0;
+  background: #ffdbe7;
+  border-radius: var(--r12);
+  overflow: hidden;
+}
+.query-hint {
+  padding: 10px 16px 7px;
+  font-size: 12px;
+  color: var(--brand);
+  line-height: 1.4;
+}
+.query-inner {
+  margin: 0 10px 10px;
+  background: var(--surface);
+  border-radius: var(--r8);
+  padding: 13px;
+}
+.pform-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plat-stack { display: flex; }
+.plat-chip {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  margin-left: -5px;
+  border: 2px solid var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+.plat-chip:first-child { margin-left: 0; }
+.pc0 { background: #ff7a00; } /* 淘宝 */
+.pc1 { background: #ff3d2e; } /* 京东 */
+.pc2 { background: #e6007e; } /* 唯品会 */
+.pc3 { background: #111827; } /* 抖音 */
+.pc4 { background: #f94144; } /* 拼多多 */
+.pform-copy { flex: 1; min-width: 0; }
+.pform-copy p { font-size: 13px; font-weight: 500; color: var(--black-a); line-height: 1.3; display: flex; align-items: center; gap: 3px; }
+.pform-copy p svg { width: 12px; height: 12px; flex-shrink: 0; }
+.pform-copy span { font-size: 11px; color: var(--brand); display: block; margin-top: 2px; }
+.tutorial-btn {
+  padding: 5px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--brand);
+  font-size: 12px;
+  color: var(--brand);
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 3px;
+}
+.tutorial-btn svg { width: 11px; height: 11px; }
+.paste-area {
+  margin-top: 10px;
+  min-height: 100px;
+  background: #f7f7f9;
+  border-radius: var(--r8);
+  padding: 13px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+.paste-ph {
+  font-size: 13px;
+  color: var(--black-b);
+  line-height: 1.55;
+  flex: 1;
+  align-self: flex-start;
+}
+.paste-btn {
+  padding: 8px 20px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: var(--r8);
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── 新人1元购 (original, 1:1) ── */
+.newin-card {
+  margin: 8px 12px 0;
+  background: var(--surface);
+  border-radius: var(--r12);
+  overflow: hidden;
+}
+.newin-hd {
+  padding: 12px 16px 6px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.newin-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+.nt-normal { font-size: 16px; font-weight: 700; color: var(--black-a); }
+.nt-big    { font-size: 22px; font-weight: 800; color: var(--brand); }
+.newin-hd-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.newin-sub { font-size: 10px; color: var(--black-b); }
+.newin-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 6px 8px 12px;
+}
+.ni-item {
+  padding: 5px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.ni-img {
+  width: 70px;
+  height: 70px;
+  border-radius: var(--r8);
+  background: #f4f4f4;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+/* product image placeholders – colored blocks to suggest real photos */
+.ni-img.p0 { background: linear-gradient(145deg, #e8f0fe, #d2e3fc); }
+.ni-img.p1 { background: linear-gradient(145deg, #f3e5f5, #e1bee7); }
+.ni-img.p2 { background: linear-gradient(145deg, #e8f5e9, #c8e6c9); }
+.ni-img.p3 { background: linear-gradient(145deg, #fff8e1, #ffecb3); }
+.ni-name {
+  font-size: 11px;
+  color: var(--black-a);
+  text-align: center;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.ni-price { font-size: 11px; color: var(--brand); font-weight: 500; }
+
+/* ── 大家都在用 (original, 1:1) ── */
+.popular-row {
+  margin: 8px 12px 0;
+  background: var(--surface);
+  border-radius: var(--r12);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.popular-label { font-size: 13px; color: var(--black-a); font-weight: 500; white-space: nowrap; margin-right: 2px; }
+.pop-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: #f7f7f9;
+}
+.pop-chip span { font-size: 12px; color: var(--black-a); }
+.pop-tag {
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.pop-tag.red  { background: linear-gradient(135deg, #ff4d4d, #ff4d88); color: #fff; }
+.pop-tag.purple { background: #f0e8ff; color: #7b6cf0; }
+
+/* ── 商城返现 (original, 1:1) ── */
+.mall-card {
+  margin: 8px 12px 0;
+  background: var(--surface);
+  border-radius: var(--r12);
+  overflow: hidden;
+}
+.mall-hd {
+  padding: 12px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mall-hd-title { font-size: 14px; font-weight: 600; color: var(--black-a); }
+.mall-more { font-size: 12px; color: var(--black-b); display: flex; align-items: center; gap: 1px; }
+.mall-more svg { width: 14px; height: 14px; }
+.mall-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 0 8px 12px;
+}
+.mg-item {
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.mg-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mg-logo svg { width: 26px; height: 26px; }
+.ml-tb  { background: #ff6000; }
+.ml-jd  { background: #e01222; }
+.ml-dy  { background: #111; }
+.ml-pdd { background: #e03030; }
+.ml-vip { background: #c03ac0; }
+.mg-logo-text { font-size: 16px; font-weight: 800; color: #fff; }
+.mg-name { font-size: 11px; color: var(--black-a); text-align: center; }
+.mg-rate { font-size: 10px; color: var(--brand); text-align: center; }
+
+/* ── Tab Bar ── */
+.tabbar {
+  height: var(--tbh);
+  background: var(--surface);
+  border-top: .5px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  flex-shrink: 0;
+}
+.tb-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding-bottom: 14px;
+  position: relative;
+}
+.tb-item svg { width: 22px; height: 22px; display: block; }
+.tb-label { font-size: 10px; color: var(--black-b); }
+.tb-item.active .tb-label { color: var(--brand); }
+.tb-center-wrap {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--danger), var(--brand));
+  display: flex; align-items: center; justify-content: center;
+  position: relative; top: -4px;
+}
+.tb-center-wrap svg { width: 20px; height: 20px; }
+.tb-msg-badge {
+  position: absolute;
+  top: 6px; right: 10px;
+  min-width: 16px; height: 16px;
+  background: var(--danger);
+  border-radius: 8px;
+  font-size: 9px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--surface);
+}
+
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ── Demo Controls ── -->
+<div class="demo-bar">
+  <div class="demo-bar-title">美柚返现首页 · 新人体验改造 Demo</div>
+  <div class="demo-row">
+    <span class="demo-row-label">用户状态</span>
+    <button class="d-btn on"  id="s0" onclick="setS(0)">有红包·未下单</button>
+    <button class="d-btn"     id="s1" onclick="setS(1)">首单追踪中</button>
+    <button class="d-btn"     id="s2" onclick="setS(2)">新用户空状态</button>
+  </div>
+  <div class="demo-row">
+    <span class="demo-row-label">查看版本</span>
+    <button class="d-btn on-v" id="v0" onclick="setV(0)">改造后（实验组）</button>
+    <button class="d-btn"      id="v1" onclick="setV(1)">改造前（对照组）</button>
+  </div>
+</div>
+
+<!-- ── Phone ── -->
+<div class="phone">
+
+  <!-- Status Bar -->
+  <div class="sb">
+    <span class="sb-time">20:07</span>
+    <div class="sb-right">
+      <!-- Signal bars -->
+      <svg width="17" height="13" viewBox="0 0 17 13" fill="none">
+        <rect x="0" y="9" width="3" height="4" rx=".5" fill="#323232"/>
+        <rect x="4.5" y="6" width="3" height="7" rx=".5" fill="#323232" opacity=".8"/>
+        <rect x="9" y="3" width="3" height="10" rx=".5" fill="#323232" opacity=".7"/>
+        <rect x="13.5" y="0" width="3" height="13" rx=".5" fill="#323232" opacity=".4"/>
+      </svg>
+      <!-- Wifi -->
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#323232" stroke-linecap="round">
+        <path d="M1 4a10 10 0 0 1 14 0" stroke-width="1.5"/>
+        <path d="M3 7a6.5 6.5 0 0 1 10 0" stroke-width="1.5"/>
+        <path d="M5.5 10a3.5 3.5 0 0 1 5 0" stroke-width="1.5"/>
+        <circle cx="8" cy="12" r=".8" fill="#323232" stroke="none"/>
+      </svg>
+      <!-- Battery -->
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x=".75" y=".75" width="20.5" height="10.5" rx="2.25" stroke="#323232" stroke-width="1.5"/>
+        <rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="#323232"/>
+        <path d="M22.5 4v4" stroke="#323232" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Nav Bar -->
+  <div class="nav">
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+      </svg>
+      <span>卫生巾</span>
+    </div>
+    <span class="nav-title">美柚返现</span>
+    <div class="nav-right">
+      <button class="money-btn">
+        <!-- coin icon -->
+        <svg viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.2"/>
+          <path d="M8 4.5v7M5.5 6.5c0-1.1.9-2 2.5-2s2.5.9 2.5 2-1.12 2-2.5 2-2.5.9-2.5 2 .9 2 2.5 2 2.5-.9 2.5-2" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        领现金
+      </button>
+    </div>
+  </div>
+
+  <!-- Page -->
+  <div class="page" id="pg">
+
+
+    <!-- ★ KEY NEW FEATURE: Compact Asset Strip (实验组可见) -->
+    <div id="strips-wrap">
+
+      <!-- State 0: Has red packet -->
+      <div class="asset-strip" id="strip0">
+        <div class="as-icon red">
+          <!-- red packet icon -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="8" width="18" height="13" rx="2" fill="rgba(255,255,255,.3)" stroke="#fff" stroke-width="1.5"/>
+            <path d="M3 11h18" stroke="#fff" stroke-width="1.5"/>
+            <path d="M8 8V7a4 4 0 0 1 8 0v1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 14v3M10.5 15.5h3" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="as-body">
+          <div class="as-main">新人专属返现红包 <strong>¥5.00</strong> 可用</div>
+          <div class="as-sub">还剩 2 天到期 · 去下单即可抵扣</div>
+        </div>
+        <button class="as-cta">立即使用</button>
+      </div>
+
+      <!-- State 1: Order tracking -->
+      <div class="asset-strip hidden" id="strip1">
+        <div class="as-icon purple">
+          <!-- box icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div class="as-body">
+          <div class="as-main">订单返现追踪中 <strong style="color:#7b6cf0">¥4.80</strong> 待返现</div>
+          <div class="as-sub">安睡裤3片 · 已发货，确认收货后自动返现</div>
+        </div>
+        <button class="as-cta purple">查看</button>
+      </div>
+
+      <!-- State 2: New user empty -->
+      <div class="asset-strip hidden" id="strip2">
+        <div class="as-icon soft">
+          <!-- gift icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff4d88" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 12 20 22 4 22 4 12"/>
+            <rect x="2" y="7" width="20" height="5" rx="1"/>
+            <line x1="12" y1="22" x2="12" y2="7"/>
+            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+          </svg>
+        </div>
+        <div class="as-body">
+          <div class="as-main">领新人红包，首单最高返 <strong>¥15</strong></div>
+          <div class="as-sub">100w+ 用户已领取 · 下单即返现金</div>
+        </div>
+        <button class="as-cta outline">去领取</button>
+      </div>
+
+    </div><!-- /strips-wrap -->
+
+    <!-- ── Query Card (1:1 original) ── -->
+    <div class="query-card">
+      <div class="query-hint">从美柚去淘宝/京东/抖音下单，可额外获得现金返还</div>
+      <div class="query-inner">
+        <div class="pform-row">
+          <div class="plat-stack">
+            <div class="plat-chip pc0">淘</div>
+            <div class="plat-chip pc2">唯</div>
+            <div class="plat-chip pc3">抖</div>
+            <div class="plat-chip pc4">拼</div>
+            <div class="plat-chip pc1">京</div>
+          </div>
+          <div class="pform-copy">
+            <p>
+              复制商品链接
+              <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              快速查返现
+            </p>
+            <span>下单约返1%~6%</span>
+          </div>
+          <button class="tutorial-btn">
+            教程
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <div class="paste-area">
+          <div class="paste-ph">购物下单前，从电商平台复制商品链接/口令，粘贴到这里可以查询是否有隐藏的返现，让你少花冤枉钱</div>
+          <button class="paste-btn">粘贴</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 新人1元购 (1:1 original) ── -->
+    <div class="newin-card">
+      <div class="newin-hd">
+        <div>
+          <div class="newin-title">
+            <span class="nt-normal">新人</span><span class="nt-big">1元购</span>
+          </div>
+        </div>
+        <div class="newin-hd-right">
+          <span class="newin-sub">先到先得，仅限1单</span>
+        </div>
+      </div>
+      <div class="newin-grid">
+        <div class="ni-item">
+          <div class="ni-img p0"></div>
+          <div class="ni-name">安睡裤3片</div>
+          <div class="ni-price">返后价¥1</div>
+        </div>
+        <div class="ni-item">
+          <div class="ni-img p1"></div>
+          <div class="ni-name">蓬松高颜顶排骨</div>
+          <div class="ni-price">返后价¥1</div>
+        </div>
+        <div class="ni-item">
+          <div class="ni-img p2"></div>
+          <div class="ni-name">双头微距修眉刀</div>
+          <div class="ni-price">返后价¥1</div>
+        </div>
+        <div class="ni-item">
+          <div class="ni-img p3"></div>
+          <div class="ni-name">防蚊花露水</div>
+          <div class="ni-price">返后价¥1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 大家都在用 (1:1 original) ── -->
+    <div class="popular-row">
+      <span class="popular-label">大家都在用</span>
+      <div class="pop-chip">
+        <span>外卖返现</span><span class="pop-tag red">红包</span>
+      </div>
+      <div class="pop-chip">
+        <span>拼多多</span><span class="pop-tag purple">收藏夹</span>
+      </div>
+      <div class="pop-chip">
+        <span>打车返现</span>
+      </div>
+    </div>
+
+    <!-- ── 商城返现 (1:1 original) ── -->
+    <div class="mall-card">
+      <div class="mall-hd">
+        <span class="mall-hd-title">商城返现</span>
+        <span class="mall-more">
+          全部商城
+          <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </div>
+      <div class="mall-grid">
+        <div class="mg-item">
+          <div class="mg-logo ml-tb"><span class="mg-logo-text">淘</span></div>
+          <div class="mg-name">淘宝</div>
+          <div class="mg-rate">约返5%</div>
+        </div>
+        <div class="mg-item">
+          <div class="mg-logo ml-jd"><span class="mg-logo-text">京</span></div>
+          <div class="mg-name">京东</div>
+          <div class="mg-rate">约返3%</div>
+        </div>
+        <div class="mg-item">
+          <div class="mg-logo ml-dy"><span class="mg-logo-text" style="font-size:13px;">抖音</span></div>
+          <div class="mg-name">抖音</div>
+          <div class="mg-rate">约返7%</div>
+        </div>
+        <div class="mg-item">
+          <div class="mg-logo ml-pdd"><span class="mg-logo-text">拼</span></div>
+          <div class="mg-name">拼多多</div>
+          <div class="mg-rate">约返2.5%</div>
+        </div>
+        <div class="mg-item">
+          <div class="mg-logo ml-vip"><span class="mg-logo-text">唯</span></div>
+          <div class="mg-name">唯品会</div>
+          <div class="mg-rate">约返5%</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+  </div><!-- /page -->
+
+  <!-- Tab Bar -->
+  <div class="tabbar">
+    <!-- 美柚 -->
+    <div class="tb-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="tb-label">美柚</span>
+    </div>
+    <!-- 记录 -->
+    <div class="tb-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="8" y1="14" x2="8" y2="14"/>
+        <line x1="12" y1="14" x2="12" y2="14"/>
+        <line x1="16" y1="14" x2="16" y2="14"/>
+      </svg>
+      <span class="tb-label">记录</span>
+    </div>
+    <!-- 返现 (active center) -->
+    <div class="tb-item active" style="padding-bottom:10px">
+      <div class="tb-center-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <span class="tb-label" style="color:var(--brand)">返现</span>
+    </div>
+    <!-- 消息 (badge 1) -->
+    <div class="tb-item" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span class="tb-msg-badge">1</span>
+      <span class="tb-label">消息</span>
+    </div>
+    <!-- 我 -->
+    <div class="tb-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="tb-label">我</span>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+let curState = 0, curView = 0;
+
+function setS(n) {
+  curState = n;
+  [0,1,2].forEach(i => document.getElementById('s'+i).classList.toggle('on', i===n));
+  applyState();
+}
+
+function setV(n) {
+  curView = n;
+  [0,1].forEach(i => {
+    const b = document.getElementById('v'+i);
+    b.classList.toggle('on-v', i===n);
+    b.classList.toggle('on', false);
+    if (i===n) b.classList.add('on-v');
+    else b.classList.remove('on-v');
+  });
+  // show/hide new feature
+  document.getElementById('strips-wrap').classList.toggle('hidden', n===1);
+}
+
+function applyState() {
+  [0,1,2].forEach(i => document.getElementById('strip'+i).classList.toggle('hidden', i!==curState));
+}
+
+// Init
+applyState();
+</script>
+</body>
+</html>

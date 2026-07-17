@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>灵感管理后台 · 定制人群优化</title>
+<style>
+  :root{
+    --side:#3d444f;--side-sub:#353b46;--side-text:#c7ccd5;--pink:#ff6c91;--pink-dark:#d56497;
+    --bg:#f5f7fa;--text:#303133;--text2:#606266;--text3:#909399;--text4:#c0c4cc;
+    --line:#e4e7ed;--line2:#ebeef5;--danger:#f56c6c;--radius:4px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:210px;background:var(--side);color:var(--side-text);flex-shrink:0;}
+  .brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.06);color:#fff;font-size:14px;}
+  .logo{width:32px;height:32px;border-radius:4px;background:#f5c518;display:flex;align-items:center;justify-content:center;font-size:10px;color:#ff6c91;font-weight:700;}
+  .nav{padding:6px 0;}
+  .nav-item{height:42px;padding:0 16px;display:flex;align-items:center;gap:10px;color:var(--side-text);font-size:13px;}
+  .nav-item .caret{margin-left:auto;color:#8a919c;font-size:11px;}
+  .nav-item.open{color:#fff;}
+  .nav-sub{background:var(--side-sub);}
+  .nav-sub .nav-item{padding-left:44px;}
+  .nav-sub .active{background:var(--pink-dark);color:#fff;}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{height:50px;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;gap:14px;padding:0 18px;}
+  .burger{font-size:18px;color:var(--text2);}
+  .crumb{font-size:13px;color:var(--text3);display:flex;gap:6px;}
+  .crumb b{color:var(--text);font-weight:500;}
+  .avatar{margin-left:auto;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ffc1cf,#ff8aa9);border:2px solid #ffd5e0;}
+  .body{flex:1;padding:18px 22px 80px;overflow:auto;}
+
+  .card{background:#fff;border:1px solid var(--line2);border-radius:2px;margin-bottom:14px;}
+  .group-title{font-size:14px;font-weight:600;padding:14px 18px 10px;display:flex;align-items:center;gap:8px;}
+  .group-title::before{content:"";width:3px;height:14px;background:var(--pink);border-radius:2px;}
+  .form{padding:6px 18px 22px;}
+  .row{display:flex;align-items:flex-start;padding:8px 0;min-height:38px;}
+  .row-center{align-items:center;}
+  .row-center .label{padding-top:0;}
+  .label{width:130px;flex-shrink:0;text-align:right;padding-top:8px;padding-right:12px;color:var(--text2);font-size:13px;line-height:1.4;}
+  .req{color:var(--danger);margin-right:2px;}
+  .ctrl{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+  .input,.select{height:32px;border:1px solid var(--line);border-radius:var(--radius);padding:0 11px;color:var(--text);background:#fff;outline:none;font-size:13px;}
+  .input::placeholder{color:var(--text4);}
+  .input:focus,.select:focus{border-color:var(--pink);}
+  .input.sm{width:120px;}
+  .input.md{width:220px;}
+  .input.long{width:680px;max-width:100%;}
+  .select{appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22><path d=%22M1 1l4 4 4-4%22 stroke=%22%23999%22 fill=%22none%22 stroke-width=%221.4%22 stroke-linecap=%22round%22/></svg>') no-repeat right 10px center;padding-right:28px;}
+  .inline{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .radios,.checks{display:flex;flex-wrap:wrap;gap:18px 22px;align-items:center;}
+  .checks-col{flex-direction:column;align-items:flex-start;gap:8px;padding-top:6px;}
+  .radio,.check{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2);}
+  .radio input,.check input{accent-color:var(--pink);width:14px;height:14px;}
+  .help{color:var(--text3);font-size:12px;line-height:1.6;}
+  .help-red{color:var(--danger);font-size:12px;line-height:1.6;}
+  .upload-btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid var(--line);background:#fff;color:var(--text2);font-size:13px;border-radius:var(--radius);cursor:pointer;}
+  .upload-btn:hover{border-color:var(--pink);color:var(--pink);}
+
+  /* 问号 1:1 还原 */
+  .q-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:18px;height:18px;min-width:18px;border-radius:50%;
+    background:#e83e8c;color:#fff;font-size:11px;font-weight:700;
+    cursor:pointer;user-select:none;line-height:1;flex-shrink:0;
+  }
+  .ca-item{position:relative;display:flex;align-items:center;padding:5px 0;}
+  .ca-item input[type="checkbox"]{width:14px;height:14px;margin-right:8px;accent-color:#e83e8c;cursor:pointer;}
+  .ca-label{font-size:14px;color:#333;line-height:22px;margin-right:6px;}
+  .q-tooltip{
+    display:none;position:absolute;left:0;bottom:calc(100% + 6px);
+    background:rgba(40,40,40,.9);color:#fff;font-size:12px;line-height:20px;
+    padding:6px 10px;border-radius:4px;white-space:nowrap;z-index:100;pointer-events:none;
+  }
+  .q-tooltip::after{
+    content:'';position:absolute;top:100%;left:16px;
+    border:5px solid transparent;border-top-color:rgba(40,40,40,.9);
+  }
+  .q-tooltip.visible{display:block;}
+  .q-tooltip-wrap{white-space:normal;max-width:420px;}
+
+  /* 定制人群：左右并列，两类同时可见 */
+  .audience-cols{display:flex;gap:32px;padding-top:6px;max-width:900px;}
+  .audience-col{flex:1;min-width:0;}
+  .audience-col-title{font-size:13px;color:var(--text2);margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--line2);}
+  .audience-col-list{max-height:220px;overflow-y:auto;}
+  .ca-item{align-items:flex-start;}
+  .ca-item input[type="checkbox"]{margin-top:4px;}
+  .ca-label{white-space:normal;}
+
+  .footbar{position:fixed;bottom:0;left:210px;right:0;height:58px;background:#fff;border-top:1px solid var(--line2);display:flex;align-items:center;justify-content:center;gap:14px;z-index:10;}
+  .btn-save,.btn-cancel{height:34px;padding:0 24px;border:none;border-radius:var(--radius);color:#fff;cursor:pointer;font-size:13px;}
+  .btn-save{background:linear-gradient(180deg,#5bd49a,#37c787);}
+  .btn-cancel{background:linear-gradient(180deg,#ffb1c4,#ff8aa9);}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">MY</span><span>灵感管理后台</span></div>
+    <nav class="nav">
+      <div class="nav-item">商城管理 <span class="caret">▾</span></div>
+      <div class="nav-item">推广管理 <span class="caret">▾</span></div>
+      <div class="nav-item open">返现首页管理 <span class="caret">▾</span></div>
+      <div class="nav-sub">
+        <div class="nav-item active">功能营销管理</div>
+        <div class="nav-item">信息流管理</div>
+      </div>
+      <div class="nav-item">搜索中间页管理 <span class="caret">▾</span></div>
+      <div class="nav-item">打卡领补贴管理 <span class="caret">▾</span></div>
+      <div class="nav-item">营销-营销页管理 <span class="caret">▾</span></div>
+      <div class="nav-item">资源位管理 <span class="caret">▾</span></div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <span class="burger">≡</span>
+      <div class="crumb"><b>首页</b> / 返现首页管理 / 功能营销管理 / <b>功能详情</b></div>
+      <div class="avatar"></div>
+    </div>
+
+    <div class="body">
+      <div class="card">
+        <div class="group-title">基础信息</div>
+        <div class="form">
+          <div class="row"><div class="label"><span class="req">*</span>功能类型：</div><div class="ctrl"><select class="select" style="width:260px;"><option selected>搜索金刚位功能</option></select></div></div>
+          <div class="row"><div class="label"><span class="req">*</span>名称：</div><div class="ctrl"><input class="input long" placeholder="仅用于后台记录，前台不可见" /></div></div>
+          <div class="row"><div class="label"><span class="req">*</span>排序：</div><div class="ctrl"><input class="input md" placeholder="越大展示越靠前" /></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="group-title">功能信息</div>
+        <div class="form">
+          <div class="row row-center"><div class="label"><span class="req">*</span>通知栏icon：</div><div class="ctrl"><button type="button" class="upload-btn">上传图片</button></div></div>
+          <div class="row"><div class="label"><span class="req">*</span>通知栏文案：</div><div class="ctrl"><input class="input long" placeholder="0/24" /></div></div>
+          <div class="row row-center"><div class="label"><span class="req">*</span>头图：</div><div class="ctrl"><div class="inline"><button type="button" class="upload-btn">上传图片</button><button type="button" class="upload-btn">暗黑模式</button></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="group-title">定向信息</div>
+        <div class="form">
+          <div class="row row-center">
+            <div class="label">指定人群身份：</div>
+            <div class="ctrl">
+              <div class="checks">
+                <label class="check"><input type="checkbox" />经期</label>
+                <label class="check"><input type="checkbox" />怀孕</label>
+                <label class="check"><input type="checkbox" />备孕</label>
+                <label class="check"><input type="checkbox" />辣妈</label>
+                <label class="check"><input type="checkbox" />亲友</label>
+              </div>
+            </div>
+          </div>
+          <div class="row row-center">
+            <div class="label">指定人群包：</div>
+            <div class="ctrl"><div class="inline"><input class="input long" placeholder="输入表名，不填默认全部用户" /><span class="q-icon" onclick="toggleTip(event,'tip-pack')">?</span></div></div>
+          </div>
+          <div class="row row-center">
+            <div class="label">排除人群包：</div>
+            <div class="ctrl"><div class="inline"><input class="input long" placeholder="输入表名，不填默认为空" /><span class="q-icon" onclick="toggleTip(event,'tip-exclude')">?</span></div></div>
+          </div>
+
+          <div class="row">
+            <div class="label">定制人群：</div>
+            <div class="ctrl">
+              <div class="audience-cols">
+                <div class="audience-col">
+                  <div class="audience-col-title">常用人群</div>
+                  <div class="audience-col-list">
+                    <div class="ca-item">
+                      <input type="checkbox" id="c1" checked /><label class="ca-label" for="c1">返现新用户（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c1')">?</span>
+                      <div class="q-tooltip" id="tip-c1">首次进入返现业务的新用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="c2" /><label class="ca-label" for="c2">首次访问用户（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c2')">?</span>
+                      <div class="q-tooltip" id="tip-c2">当日首次访问返现首页的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="c3" /><label class="ca-label" for="c3">0单用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c3')">?</span>
+                      <div class="q-tooltip" id="tip-c3">在返现业务内历史成交订单数为 0 的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="c4" /><label class="ca-label" for="c4">淘宝0单用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c4')">?</span>
+                      <div class="q-tooltip" id="tip-c4">在淘宝渠道历史成交订单数为 0 的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="c5" /><label class="ca-label" for="c5">抖音0单用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c5')">?</span>
+                      <div class="q-tooltip" id="tip-c5">在抖音渠道历史成交订单数为 0 的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="c6" /><label class="ca-label" for="c6">返现uid尾号为双号人群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c6')">?</span>
+                      <div class="q-tooltip" id="tip-c6">返现 uid 尾号为偶数的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="c7" /><label class="ca-label" for="c7">返现uid尾号为单号人群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-c7')">?</span>
+                      <div class="q-tooltip" id="tip-c7">返现 uid 尾号为奇数的用户</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="audience-col">
+                  <div class="audience-col-title">临时人群</div>
+                  <div class="audience-col-list">
+                    <div class="ca-item">
+                      <input type="checkbox" id="t1" /><label class="ca-label" for="t1">三八节抢红包活动-可领取现金红包的用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-t1')">?</span>
+                      <div class="q-tooltip" id="tip-t1">在三八节活动中，从未领取或红包已过期的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="t2" /><label class="ca-label" for="t2">三八节抢红包活动-可使用现金红包的用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-t2')">?</span>
+                      <div class="q-tooltip" id="tip-t2">在三八节活动中，已领取红包且红包未核销仍在有效期的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="t3" /><label class="ca-label" for="t3">三八节抢红包活动-现金红包待到账的用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-t3')">?</span>
+                      <div class="q-tooltip" id="tip-t3">在三八节活动中，领取后在有效期内下单，但返现未到账的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="t4" /><label class="ca-label" for="t4">三八节抢红包活动-现金红包已到账的用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-t4')">?</span>
+                      <div class="q-tooltip" id="tip-t4">在三八节活动中，领取后在有效期内下单，且返现已到账的用户</div>
+                    </div>
+                    <div class="ca-item">
+                      <input type="checkbox" id="t5" checked /><label class="ca-label" for="t5">26年618抽奖活动-当日已访问过活动页面的用户群（实时）</label><span class="q-icon" onclick="toggleTip(event,'tip-t5')">?</span>
+                      <div class="q-tooltip q-tooltip-wrap" id="tip-t5">在26年618抽奖活动期间，当天（自然日）已访问过活动页面的用户。生效时间：2026.6.1-2026.6.22</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="help">两类人群可同时勾选，已选人群之间为「或」关系</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="label">是否定制人群取反：</div>
+            <div class="ctrl">
+              <div class="radios">
+                <label class="radio"><input type="radio" name="invert" checked />否</label>
+                <label class="radio"><input type="radio" name="invert" />是</label>
+              </div>
+              <p class="help-red">说明：选择「是」后，定向人群为所选定制人群以外的用户群。</p>
+              <p class="help-red">举例：定制人群=首次访问用户（实时），【是否定制人群取反=是】，则定向【非首次访问用户群（实时）】</p>
+            </div>
+          </div>
+          <div class="row row-center">
+            <div class="label">测试账号：</div>
+            <div class="ctrl"><div class="inline"><input class="input long" placeholder="输入 uid；若人群包/排除包/定制人群均未配置，则仅填入 uid 可见" /><span class="q-icon" onclick="toggleTip(event,'tip-test')">?</span></div></div>
+          </div>
+          <div class="row"><div class="label">指定实验可见：</div><div class="ctrl"><input class="input long" placeholder="配置格式为 A-B（A 表示实验 id，B 表示分组 id），英文逗号隔开" /></div></div>
+          <div class="row"><div class="label">排除实验：</div><div class="ctrl"><input class="input long" placeholder="配置格式为 A-B（A 表示实验 id，B 表示分组 id），英文逗号隔开" /></div></div>
+          <div class="row">
+            <div class="label"><span class="req">*</span>平台和版本：</div>
+            <div class="ctrl">
+              <div class="inline" style="margin-bottom:8px;"><label class="check"><input type="checkbox" />iOS</label><input class="input sm" placeholder="请输入版本" /><span style="color:var(--text3);">~</span><input class="input sm" placeholder="请输入版本" /><span class="q-icon" onclick="toggleTip(event,'tip-ver')">?</span></div>
+              <div class="inline" style="margin-bottom:8px;"><label class="check"><input type="checkbox" />Android</label><input class="input sm" placeholder="请输入版本" /><span style="color:var(--text3);">~</span><input class="input sm" placeholder="请输入版本" /></div>
+              <div class="inline"><label class="check"><input type="checkbox" />Harmony</label><input class="input sm" placeholder="请输入版本" /><span style="color:var(--text3);">~</span><input class="input sm" placeholder="请输入版本" /></div>
+              <p class="help-red">说明：仅适用于 8.96.0.0 及以上版本</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="label"><span class="req">*</span>上线时间：</div>
+            <div class="ctrl">
+              <div class="inline"><input class="input md" type="datetime-local" /><span style="color:var(--text3);">至</span><input class="input md" type="datetime-local" /></div>
+            </div>
+          </div>
+          <div class="row row-center">
+            <div class="label"><span class="req">*</span>状态：</div>
+            <div class="ctrl"><div class="radios"><label class="radio"><input type="radio" name="status" checked />上线</label><label class="radio"><input type="radio" name="status" />下线</label></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footbar">
+      <button type="button" class="btn-save">✔ 保存</button>
+      <button type="button" class="btn-cancel">✖ 取消</button>
+    </div>
+  </main>
+</div>
+
+<script>
+  function toggleTip(e, id) {
+    e.stopPropagation();
+    const tip = document.getElementById(id);
+    const isVisible = tip && tip.classList.contains('visible');
+    document.querySelectorAll('.q-tooltip').forEach(t => t.classList.remove('visible'));
+    if (tip && !isVisible) tip.classList.add('visible');
+  }
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.q-tooltip').forEach(t => t.classList.remove('visible'));
+  });
+</script>
+</body>
+</html>

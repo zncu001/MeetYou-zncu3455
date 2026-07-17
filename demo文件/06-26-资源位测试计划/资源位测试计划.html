@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>资源位测试计划 · 产品流程图</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #5c5c7a;
+      --border: #e8eaef;
+      --brand: #4f46e5;
+      --brand-light: #eef2ff;
+      --success: #059669;
+      --warning: #d97706;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: #fff;
+      padding: 32px 24px 28px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 14px;
+      opacity: 0.88;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    nav.toc {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      box-shadow: var(--shadow);
+    }
+
+    nav.toc a {
+      font-size: 13px;
+      color: var(--brand);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--brand-light);
+      transition: background 0.15s;
+    }
+
+    nav.toc a:hover { background: #ddd6fe; }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
+
+    section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    section .section-head {
+      padding: 20px 24px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section .section-head h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    section .section-head p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .diagram-wrap {
+      padding: 24px 16px 32px;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .diagram-wrap .mermaid {
+      min-width: 100%;
+    }
+
+    .summary-table {
+      width: calc(100% - 48px);
+      margin: 0 24px 24px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .summary-table th {
+      background: #f8f9fb;
+      font-weight: 600;
+      width: 28%;
+    }
+
+    .summary-table tr:nth-child(even) td { background: #fafbfc; }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .tag-p0 { background: #dcfce7; color: #166534; }
+    .tag-p1 { background: #fef3c7; color: #92400e; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>灵感后台 · 资源位测试计划</h1>
+  <p>解耦测试计划与线上定向信息，实现可预期、可隔离、可并行的资源位效果验证</p>
+</header>
+
+<nav class="toc">
+  <a href="#s1">现状 vs 目标</a>
+  <a href="#s2">整体架构</a>
+  <a href="#s3">运营配置</a>
+  <a href="#s4">服务端匹配</a>
+  <a href="#s5">并行测试</a>
+  <a href="#s6">生命周期</a>
+  <a href="#s7">请求时序</a>
+  <a href="#s8">价值对比</a>
+</nav>
+
+<main>
+
+  <!-- 1 -->
+  <section id="s1">
+    <div class="section-head">
+      <h2>1. 现状痛点 vs 目标方案</h2>
+      <p>测试与线上定向混配导致黑盒，新方案通过独立模块解耦</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'flowchart': {'curve': 'linear', 'padding': 16, 'nodeSpacing': 40, 'rankSpacing': 50}}}%%
+flowchart TB
+  subgraph OLD["❌ 现状痛点"]
+    direction TB
+    O1["在定向信息里混填<br/>人群包 / 实验ID / 测试ID"]
+    O2["多规则叠加 → 黑盒逻辑"]
+    O3["无法确认谁能看到"]
+    O4["多人并行测试互相干扰"]
+    O1 --> O2 --> O3 --> O4
+  end
+
+  subgraph NEW["✅ 目标方案"]
+    direction TB
+    N1["新增独立「测试计划」模块"]
+    N2["与线上定向信息解耦"]
+    N3["仅指定 测试UID + 时间段"]
+    N4["服务端 P0 优先匹配<br/>无视其他规则"]
+    N1 --> N2 --> N3 --> N4
+  end
+
+  OLD ~~~ NEW
+      </pre>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="s2">
+    <div class="section-head">
+      <h2>2. 整体产品架构（解耦关系）</h2>
+      <p>测试计划与线上定向并行存在，请求先走测试层再走线上层</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'flowchart': {'curve': 'linear', 'padding': 16, 'nodeSpacing': 35, 'rankSpacing': 45}}}%%
+flowchart TB
+  OP["👤 运营人员"]
+
+  subgraph BACKEND["运营后台"]
+    direction TB
+    RP["资源位配置"]
+    PROD["线上定向信息<br/>人群包 · 实验 · 上下线 · 版本"]
+    TP["测试计划模块<br/>UID白名单 · 时间段 · 测试素材"]
+    RP --> PROD
+    RP --> TP
+  end
+
+  OP --> RP
+
+  subgraph SERVER["服务端 · 资源位匹配引擎"]
+    direction TB
+    MATCH["接收用户请求"]
+    P0["P0 测试计划匹配"]
+    P1["P1 线上规则匹配"]
+    OUT1["返回测试素材"]
+    OUT2["返回线上素材"]
+    OUT3["不展示"]
+    MATCH --> P0
+    P0 -->|"UID+时段命中"| OUT1
+    P0 -->|"未命中"| P1
+    P1 -->|"规则命中"| OUT2
+    P1 -->|"未命中"| OUT3
+  end
+
+  PROD -.->|"正式投放规则"| P1
+  TP -.->|"测试投放规则"| P0
+
+  subgraph USERS["用户端"]
+    direction LR
+    U1["测试用户"]
+    U2["普通用户"]
+  end
+
+  U1 & U2 --> MATCH
+      </pre>
+    </div>
+    <table class="summary-table">
+      <tr><th>匹配优先级</th><th>说明</th></tr>
+      <tr><td><span class="tag tag-p0">P0 测试计划</span></td><td>UID 在白名单且处于有效时段 → 直接返回测试素材，跳过后续全部规则</td></tr>
+      <tr><td><span class="tag tag-p1">P1 线上定向</span></td><td>仅对未命中任何测试计划的用户生效，按现有规则匹配</td></tr>
+    </table>
+  </section>
+
+  <!-- 3 -->
+  <section id="s3">
+    <div class="section-head">
+      <h2>3. 运营配置流程</h2>
+      <p>测试 UID 不再填入定向信息，通过独立测试计划管理</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'flowchart': {'curve': 'linear', 'padding': 16, 'nodeSpacing': 30, 'rankSpacing': 40}}}%%
+flowchart TB
+  START(["进入资源位编辑页"])
+  BASE["配置基础信息<br/>资源位ID · 素材 · 跳转"]
+  PROD_CFG["配置线上定向信息<br/>用于正式投放"]
+  NEED{"需要验证效果?"}
+  SAVE["保存并上线"]
+  ADD["新增测试计划"]
+  FORM["填写测试计划表单"]
+  F1["计划名称 / 备注"]
+  F2["测试 UID 列表"]
+  F3["测试时间段<br/>10分钟 / 24小时 / 自定义"]
+  F4["测试素材（可覆盖展示内容）"]
+  MORE{"继续添加<br/>其他测试计划?"}
+  SAVE_ALL["保存资源位 + 全部测试计划"]
+  LIST["测试计划列表<br/>待生效 / 进行中 / 已结束"]
+
+  START --> BASE --> PROD_CFG --> NEED
+  NEED -->|"否"| SAVE
+  NEED -->|"是"| ADD --> FORM
+  FORM --> F1 & F2 & F3 & F4
+  F4 --> MORE
+  MORE -->|"是"| ADD
+  MORE -->|"否"| SAVE_ALL --> LIST
+      </pre>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="s4">
+    <div class="section-head">
+      <h2>4. 服务端匹配流程（核心逻辑）</h2>
+      <p>线性决策树，避免交叉连线；命中测试计划后短路全部线上规则</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'flowchart': {'curve': 'linear', 'padding': 16, 'nodeSpacing': 28, 'rankSpacing': 38}}}%%
+flowchart TB
+  REQ(["用户请求资源位"])
+  UID["获取当前用户 UID"]
+  LOAD["加载该资源位下<br/>所有「进行中」测试计划"]
+  HAS{"存在有效<br/>测试计划?"}
+
+  LOOP["按顺序遍历测试计划"]
+  C_UID{"UID 在<br/>计划白名单中?"}
+  C_TIME{"当前时间在<br/>计划时段内?"}
+  HIT["✅ 命中测试计划"]
+  SKIP["⛔ 无视以下全部规则"]
+  SKIP_LIST["人群包 · 排除包 · 定制人群<br/>实验分组 · 上下线 · 版本限制"]
+  RET_TEST["返回测试计划素材"]
+
+  PROD["走线上定向匹配"]
+  PROD_RULES["人群包 ∩ 实验 ∩ 上下线 ∩ 版本 …"]
+  PROD_HIT{"命中?"}
+  RET_PROD["返回线上素材"]
+  RET_NULL["不展示"]
+  END(["响应客户端"])
+
+  REQ --> UID --> LOAD --> HAS
+  HAS -->|"否"| PROD
+  HAS -->|"是"| LOOP --> C_UID
+  C_UID -->|"否，还有下一条"| LOOP
+  C_UID -->|"否，已无计划"| PROD
+  C_UID -->|"是"| C_TIME
+  C_TIME -->|"否，还有下一条"| LOOP
+  C_TIME -->|"否，已无计划"| PROD
+  C_TIME -->|"是"| HIT --> SKIP --> SKIP_LIST --> RET_TEST --> END
+
+  PROD --> PROD_RULES --> PROD_HIT
+  PROD_HIT -->|"是"| RET_PROD --> END
+  PROD_HIT -->|"否"| RET_NULL --> END
+      </pre>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section id="s5">
+    <div class="section-head">
+      <h2>5. 多人并行测试场景</h2>
+      <p>同一资源位可挂多条测试计划，UID 白名单隔离，互不干扰</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'flowchart': {'curve': 'linear', 'padding': 16, 'nodeSpacing': 30, 'rankSpacing': 40}}}%%
+flowchart TB
+  subgraph SLOT["资源位 R-001"]
+    direction TB
+    TP1["测试计划① · 运营甲<br/>UID: 1001, 1002 · 10:00–10:10 · 素材A"]
+    TP2["测试计划② · 运营乙<br/>UID: 2001, 2002 · 24小时 · 素材B"]
+    TP3["测试计划③ · 运营丙<br/>UID: 3001 · 14:00–14:30 · 素材C"]
+    PROD["线上定向 · 人群包X + 实验组Y"]
+  end
+
+  subgraph RESULT["用户看到的内容"]
+    direction TB
+    R1["UID 1001 → 方案A"]
+    R2["UID 2001 → 方案B"]
+    R3["UID 3001 → 方案C"]
+    R4["UID 9999 → 正式素材 / 不展示"]
+  end
+
+  TP1 -.-> R1
+  TP2 -.-> R2
+  TP3 -.-> R3
+  PROD -.-> R4
+      </pre>
+    </div>
+    <table class="summary-table">
+      <tr><th>隔离维度</th><th>规则</th></tr>
+      <tr><td>测试用户之间</td><td>UID 白名单隔离，各看各的方案</td></tr>
+      <tr><td>测试 vs 线上</td><td>测试用户不走线上定向；普通用户永远看不到测试素材</td></tr>
+      <tr><td>时间到期</td><td>计划自动「已结束」，测试 UID 回落到线上规则</td></tr>
+    </table>
+  </section>
+
+  <!-- 6 -->
+  <section id="s6">
+    <div class="section-head">
+      <h2>6. 测试计划生命周期</h2>
+      <p>仅「进行中」状态参与 P0 匹配；到期或手动终止后自动退出</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'flowchart': {'curve': 'linear', 'padding': 20}}}%%
+stateDiagram-v2
+  direction LR
+
+  [*] --> 待生效: 运营创建并保存
+
+  待生效 --> 进行中: 到达开始时间
+  待生效 --> 已删除: 运营删除
+
+  进行中 --> 已结束: 到达结束时间
+  进行中 --> 已手动终止: 运营点击终止
+
+  已结束 --> [*]
+  已手动终止 --> [*]
+  已删除 --> [*]
+
+  note right of 进行中
+    参与 P0 匹配
+    对 UID 白名单精准投放
+  end note
+
+  note right of 已结束
+    不再参与匹配
+    测试 UID 回归线上规则
+  end note
+      </pre>
+    </div>
+    <table class="summary-table">
+      <tr><th>预设时段</th><th>适用场景</th></tr>
+      <tr><td>10 分钟</td><td>快速验证素材展示、跳转是否正常</td></tr>
+      <tr><td>24 小时</td><td>跨时段、跨端完整体验验证</td></tr>
+      <tr><td>自定义</td><td>灵活指定起止时间</td></tr>
+    </table>
+  </section>
+
+  <!-- 7 -->
+  <section id="s7">
+    <div class="section-head">
+      <h2>7. 端到端请求时序</h2>
+      <p>一次请求的完整路径：配置 → 匹配 → 响应</p>
+    </div>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+%%{init: {'sequence': {'mirrorActors': false, 'boxMargin': 10, 'messageMargin': 35}}}%%
+sequenceDiagram
+  autonumber
+  participant 运营
+  participant 后台
+  participant 服务端
+  participant 测试用户
+  participant 普通用户
+
+  运营->>后台: 配置资源位 + 新增测试计划
+  Note over 后台: UID列表 + 10分钟时段 + 测试素材
+  后台->>服务端: 同步测试计划配置
+
+  rect rgb(236, 253, 245)
+    Note over 测试用户,服务端: 测试用户请求
+    测试用户->>服务端: 请求资源位
+    服务端->>服务端: P0: UID ∈ 白名单 且 时段有效
+    服务端-->>测试用户: 返回测试素材（无视人群包/上下线）
+  end
+
+  rect rgb(255, 251, 235)
+    Note over 普通用户,服务端: 普通用户请求
+    普通用户->>服务端: 请求资源位
+    服务端->>服务端: P0 未命中 → P1 线上规则
+    服务端-->>普通用户: 返回线上素材 / 不展示
+  end
+
+  rect rgb(239, 246, 255)
+    Note over 测试用户,服务端: 10分钟后计划自动结束
+    测试用户->>服务端: 再次请求
+    服务端->>服务端: P0 计划已结束 → 走 P1
+    服务端-->>测试用户: 按线上规则返回 / 不展示
+  end
+      </pre>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section id="s8">
+    <div class="section-head">
+      <h2>8. 产品价值对比</h2>
+      <p>测试计划方案 vs 现状（在定向信息里混测）</p>
+    </div>
+    <table class="summary-table" style="margin-top: 20px;">
+      <tr>
+        <th>维度</th>
+        <th>现状（定向信息混测）</th>
+        <th>测试计划方案</th>
+      </tr>
+      <tr>
+        <td>可预期性</td>
+        <td>黑盒，不知道谁会看到</td>
+        <td>仅 UID 白名单 + 时段内可见</td>
+      </tr>
+      <tr>
+        <td>隔离性</td>
+        <td>与人群包 / 实验耦合</td>
+        <td>精准隔离，互不影响</td>
+      </tr>
+      <tr>
+        <td>并行测试</td>
+        <td>多人易冲突</td>
+        <td>多计划并行，各测各的</td>
+      </tr>
+      <tr>
+        <td>线上安全</td>
+        <td>测试可能影响真实用户</td>
+        <td>非测试 UID 永远不走测试素材</td>
+      </tr>
+      <tr>
+        <td>时效控制</td>
+        <td>需手动改配置或下线</td>
+        <td>到期自动结束，无需干预</td>
+      </tr>
+    </table>
+  </section>
+
+</main>
+
+<footer>资源位测试计划 · 产品流程图 · 2026-06-26</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#eef2ff',
+      primaryTextColor: '#1a1a2e',
+      primaryBorderColor: '#4f46e5',
+      lineColor: '#6366f1',
+      secondaryColor: '#f0fdf4',
+      tertiaryColor: '#fffbeb',
+      fontFamily: '-apple-system, BlinkMacSystemFont, PingFang SC, sans-serif',
+      fontSize: '14px'
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'linear',
+      padding: 16,
+      nodeSpacing: 35,
+      rankSpacing: 45,
+      useMaxWidth: true
+    },
+    sequence: {
+      mirrorActors: false,
+      messageMargin: 35,
+      boxMargin: 10,
+      useMaxWidth: true
+    },
+    state: {
+      useMaxWidth: true
+    }
+  });
+</script>
+
+</body>
+</html>

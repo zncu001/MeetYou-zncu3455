@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提现结果通知 · 产品原型</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #C0C0C5;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  padding: 28px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ctrl {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 28px;
+}
+.ccard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+}
+.ctitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: #AAA;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.sbtn {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1.5px solid #E8E8E8;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  margin-bottom: 6px;
+  text-align: left;
+  transition: all 0.15s;
+}
+.sbtn:hover { border-color: #999; background: #F7F7F7; }
+.sbtn.on  { background: #333; border-color: #333; color: #fff; }
+.grp { font-size: 11px; color: #AAA; margin: 8px 0 4px; }
+
+.phone {
+  width: 375px;
+  height: 812px;
+  border-radius: 50px;
+  overflow: hidden;
+  position: relative;
+  background: #111;
+  box-shadow:
+    inset 0 0 0 1px #4A4A4A,
+    0 0 0 8px #2A2A2A,
+    0 0 0 10px #1A1A1A,
+    0 30px 80px rgba(0,0,0,0.55);
+  flex-shrink: 0;
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 112px; height: 30px;
+  background: #0A0A0A;
+  border-radius: 20px;
+  z-index: 200;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  background: #EFEFF4;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+
+.sbar {
+  height: 52px;
+  background: #F7F7F7;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 22px 8px;
+}
+.sbar-t { font-size: 16px; font-weight: 700; color: #1A1A1A; }
+.sbar-r { font-size: 14px; }
+
+.nav {
+  background: #F7F7F7;
+  padding: 5px 14px 11px;
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid #E0E0E0;
+  position: relative;
+}
+.nav-bk { font-size: 22px; color: #333; line-height: 1; width: 32px; }
+.nav-title {
+  position: absolute; left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px; font-weight: 600; color: #1A1A1A;
+}
+.nav-icon { margin-left: auto; font-size: 18px; color: #666; }
+
+.msg-list { padding: 16px 12px 24px; }
+.date-stamp {
+  text-align: center;
+  margin: 4px 0 16px;
+  font-size: 12px;
+  color: #999;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.card-head {
+  padding: 14px 14px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.card-title { font-size: 16px; font-weight: 600; color: #1A1A1A; }
+.card-summary { font-size: 14px; color: #333; margin-top: 6px; line-height: 1.4; }
+.card-more { font-size: 20px; color: #C8C8C8; line-height: 1; flex-shrink: 0; padding-left: 8px; }
+
+.fields { padding: 0 14px 4px; }
+.field-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 0;
+  gap: 12px;
+}
+.f-lbl {
+  font-size: 14px;
+  color: #999;
+  flex-shrink: 0;
+}
+.f-val {
+  font-size: 14px;
+  color: #1A1A1A;
+  text-align: right;
+  flex: 1;
+  line-height: 1.45;
+}
+
+.card-divider { height: 0.5px; background: #EBEBEB; margin: 0 14px; }
+
+.card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  cursor: pointer;
+}
+.action-text { font-size: 15px; color: #1A1A1A; }
+.action-arrow { font-size: 18px; color: #C8C8C8; }
+
+.safe { height: 34px; }
+
+@media (max-width: 660px) {
+  body { flex-direction: column; align-items: center; }
+  .ctrl { width: 375px; position: static; }
+}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <div class="ccard">
+    <div class="ctitle">场景切换</div>
+    <button class="sbtn on" id="sb-both" onclick="setView('both')">两种通知</button>
+    <button class="sbtn" id="sb-success" onclick="setView('success')">提现成功提醒</button>
+    <button class="sbtn" id="sb-failed" onclick="setView('failed')">提现失败提醒</button>
+  </div>
+
+  <div class="ccard" id="fail-ctrl">
+    <div class="ctitle">失败原因（支付宝）</div>
+    <button class="sbtn on" data-key="alipay_account" onclick="setFail('alipay_account')">账号不存在或姓名有误</button>
+    <button class="sbtn" data-key="alipay_quota" onclick="setFail('alipay_quota')">收款额度已达上限</button>
+    <button class="sbtn" data-key="alipay_frozen" onclick="setFail('alipay_frozen')">账号被冻结</button>
+    <button class="sbtn" data-key="alipay_other" onclick="setFail('alipay_other')">其他</button>
+    <div class="grp">失败原因（微信）</div>
+    <button class="sbtn" data-key="wechat_name" onclick="setFail('wechat_name')">姓名与微信实名不符</button>
+    <button class="sbtn" data-key="wechat_timeout" onclick="setFail('wechat_timeout')">超时未确认收款</button>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="screen" id="screen"></div>
+</div>
+
+<script>
+const ACCOUNT = '181****123';
+
+const state = {
+  view: 'both',
+  failKey: 'alipay_account',
+};
+
+/* 用户侧展示文案（与需求映射表一致） */
+const FAIL_SCENARIOS = {
+  alipay_account: {
+    channel: '支付宝',
+    amount: '1.23 元',
+    time: '2026-04-13 14:39:30',
+    reason: `${ACCOUNT}不存在或姓名有误`,
+  },
+  alipay_quota: {
+    channel: '支付宝',
+    amount: '1.23 元',
+    time: '2026-04-13 14:39:30',
+    reason: `${ACCOUNT}收款额度已达上限`,
+  },
+  alipay_frozen: {
+    channel: '支付宝',
+    amount: '1.23 元',
+    time: '2026-04-13 14:39:30',
+    reason: `${ACCOUNT}账号被冻结，无法收款`,
+  },
+  alipay_other: {
+    channel: '支付宝',
+    amount: '1.23 元',
+    time: '2026-04-13 14:39:30',
+    reason: '提现未成功，请稍后再试',
+  },
+  wechat_name: {
+    channel: '微信',
+    amount: '1.23 元',
+    time: '2026-04-13 14:39:30',
+    reason: `${ACCOUNT}与收款微信实名不符`,
+  },
+  wechat_timeout: {
+    channel: '微信',
+    amount: '1.23 元',
+    time: '2026-04-13 14:39:30',
+    reason: '未确认收款，请重新发起提现',
+  },
+};
+
+function render() {
+  document.getElementById('screen').innerHTML = buildScreen();
+  document.getElementById('fail-ctrl').style.display = state.view === 'success' ? 'none' : 'block';
+}
+
+function buildScreen() {
+  return `
+    <div class="sbar">
+      <span class="sbar-t">14:28</span>
+      <span class="sbar-r">📶 🔋</span>
+    </div>
+    <div class="nav">
+      <span class="nav-bk">‹</span>
+      <span class="nav-title">小柚子</span>
+      <span class="nav-icon">⚙</span>
+    </div>
+    <div class="msg-list">
+      <div class="date-stamp">星期四 11:00</div>
+      ${state.view !== 'failed' ? successCard() : ''}
+      ${state.view !== 'success' ? failedCard() : ''}
+      <div class="safe"></div>
+    </div>
+  `;
+}
+
+function successCard() {
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">提现成功提醒</div>
+          <div class="card-summary">你有 1 笔提现已到账</div>
+        </div>
+        <span class="card-more">···</span>
+      </div>
+      <div class="fields">
+        ${row('提现金额', '1.00 元')}
+        ${row('到账时间', '2026-04-13 14:33:34')}
+        ${row('提现渠道', '支付宝')}
+        ${row('提现账号', ACCOUNT)}
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-action">
+        <span class="action-text">查看详情</span>
+        <span class="action-arrow">›</span>
+      </div>
+    </div>
+  `;
+}
+
+function failedCard() {
+  const s = FAIL_SCENARIOS[state.failKey];
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">提现失败提醒</div>
+        <span class="card-more">···</span>
+      </div>
+      <div class="fields">
+        ${row('提现金额', s.amount)}
+        ${row('提现时间', s.time)}
+        ${row('提现渠道', s.channel)}
+        ${row('提现账号', ACCOUNT)}
+        ${row('失败原因', s.reason)}
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-action">
+        <span class="action-text">核查收款账号</span>
+        <span class="action-arrow">›</span>
+      </div>
+    </div>
+  `;
+}
+
+function row(label, value) {
+  return `
+    <div class="field-row">
+      <span class="f-lbl">${label}</span>
+      <span class="f-val">${value}</span>
+    </div>
+  `;
+}
+
+function setView(v) {
+  state.view = v;
+  ['both','success','failed'].forEach(k => {
+    document.getElementById(`sb-${k}`)?.classList.toggle('on', k === v);
+  });
+  render();
+}
+
+function setFail(key) {
+  state.failKey = key;
+  document.querySelectorAll('#fail-ctrl .sbtn').forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.key === key);
+  });
+  if (state.view === 'success') state.view = 'failed';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

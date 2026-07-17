@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>美柚返现 · 简化版弹窗</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f2f2f5;
+      --surface: #fff;
+      --t1: #1a1a1a;
+      --t2: #666;
+      --t3: #999;
+      --line: rgba(0,0,0,.07);
+    }
+
+    html, body {
+      height: 100%; background: #ddd;
+      font-family: "PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    }
+
+    /* ── 手机壳 ── */
+    .shell {
+      width: 390px; height: 100vh;
+      margin: 0 auto; background: var(--bg);
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    /* ─────────── 首页 ─────────── */
+    .home {
+      display: flex; flex-direction: column;
+      flex: 1; overflow: hidden;
+    }
+
+    /* 状态栏 */
+    .sbar {
+      height: 44px; background: var(--surface);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px 0 16px; flex-shrink: 0;
+    }
+    .sbar-time { font-size: 15px; font-weight: 700; letter-spacing: -.3px; }
+    .sbar-icons { display: flex; align-items: center; gap: 6px; color: var(--t1); }
+
+    /* App header */
+    .app-header {
+      height: 48px; background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; gap: 10px; padding: 0 14px;
+      flex-shrink: 0;
+    }
+    .app-logo { font-size: 17px; font-weight: 800; color: var(--t1); letter-spacing: -.3px; white-space: nowrap; }
+    .app-search {
+      flex: 1; height: 32px; background: #f2f2f5; border-radius: 999px;
+      display: flex; align-items: center; gap: 6px; padding: 0 12px;
+      font-size: 13px; color: var(--t3);
+    }
+    .app-cashbtn {
+      background: #222; color: #fff; font-size: 12px; font-weight: 600;
+      border: none; border-radius: 999px; padding: 5px 11px; white-space: nowrap;
+      cursor: pointer; font-family: inherit;
+    }
+
+    /* 首页滚动区 */
+    .home-scroll { flex: 1; overflow-y: auto; }
+    .home-scroll::-webkit-scrollbar { display: none; }
+
+    /* 统计行 */
+    .stats-card {
+      margin: 10px 12px 0; background: var(--surface);
+      border-radius: 12px; padding: 13px 16px;
+      display: flex; align-items: center; gap: 0;
+    }
+    .stat-block { flex: 1; }
+    .stat-label { font-size: 11px; color: var(--t3); display: flex; align-items: center; gap: 3px; margin-bottom: 4px; }
+    .stat-val { font-size: 20px; font-weight: 800; color: var(--t1); letter-spacing: -.5px; }
+    .stat-action { font-size: 13px; font-weight: 600; color: var(--t2); margin-left: 6px; }
+    .stat-sep { width: 1px; height: 36px; background: var(--line); margin: 0 16px; }
+    .stat-order-label { font-size: 11px; color: var(--t3); margin-bottom: 4px; }
+    .stat-order-badge { display: inline-block; background: #f0f0f0; color: var(--t2); font-size: 10px; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+    .stat-order-val { font-size: 13px; color: var(--t2); display: flex; align-items: center; gap: 5px; }
+    .stat-order-thumb { width: 26px; height: 26px; border-radius: 5px; background: #e8e8e8; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+
+    /* 说明 banner */
+    .explain-banner {
+      margin: 10px 12px 0; background: #f7f7f7; border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .explain-text { font-size: 12px; color: var(--t2); margin-bottom: 10px; line-height: 1.5; }
+    .platform-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .pf-icon {
+      width: 36px; height: 36px; border-radius: 10px; background: #e8e8e8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--t2); flex-shrink: 0;
+    }
+    .copy-hint { font-size: 12px; color: var(--t3); display: flex; align-items: center; gap: 4px; }
+
+    /* 粘贴区 */
+    .paste-section {
+      margin: 10px 12px 0; background: var(--surface);
+      border-radius: 12px; padding: 14px;
+    }
+    .paste-box {
+      background: #f5f5f5; border-radius: 10px;
+      padding: 12px 14px; min-height: 72px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 0;
+    }
+    .paste-placeholder { font-size: 13px; color: #bbb; line-height: 1.6; flex: 1; }
+    .paste-placeholder em { font-size: 11px; color: #ccc; font-style: normal; display: block; margin-top: 3px; }
+    .paste-btn {
+      background: #1a1a1a; color: #fff;
+      border: none; border-radius: 999px;
+      font-size: 15px; font-weight: 700;
+      width: 72px; height: 40px; flex-shrink: 0; margin-left: 10px;
+      cursor: pointer; font-family: inherit;
+      transition: opacity .15s;
+    }
+    .paste-btn:active { opacity: .75; }
+
+    /* 大家都在用 tab */
+    .tab-row {
+      margin: 10px 12px 0; background: var(--surface); border-radius: 12px;
+      display: flex; overflow: hidden;
+    }
+    .tab-item {
+      flex: 1; text-align: center; padding: 10px 0;
+      font-size: 13px; color: var(--t3); border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+    .tab-item.active { color: var(--t1); font-weight: 600; border-bottom-color: var(--t1); }
+
+    /* 内容占位 */
+    .content-placeholder {
+      margin: 10px 12px 0; background: var(--surface); border-radius: 12px;
+      padding: 14px;
+    }
+    .placeholder-title { font-size: 14px; font-weight: 600; color: var(--t1); margin-bottom: 10px; }
+    .placeholder-strip { height: 78px; background: #f2f2f5; border-radius: 8px; margin-bottom: 8px; }
+    .placeholder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .placeholder-cell { height: 120px; background: #f2f2f5; border-radius: 8px; }
+
+    /* 底部导航 */
+    .bottom-nav {
+      height: 56px; background: var(--surface);
+      border-top: 1px solid var(--line);
+      display: flex; align-items: center;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px; cursor: pointer;
+    }
+    .nav-icon { font-size: 20px; color: var(--t3); }
+    .nav-label { font-size: 10px; color: var(--t3); }
+    .nav-item.active .nav-icon,
+    .nav-item.active .nav-label { color: var(--t1); font-weight: 600; }
+
+    /* ─────────── 半弹窗 ─────────── */
+    .popup-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    .popup-overlay.open {
+      opacity: 1; pointer-events: auto;
+    }
+
+    .popup-sheet {
+      width: 100%; max-height: 88vh;
+      background: var(--bg); border-radius: 16px 16px 0 0;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.32,.72,0,1);
+      overflow: hidden;
+    }
+    .popup-overlay.open .popup-sheet {
+      transform: translateY(0);
+    }
+
+    .popup-scroll { overflow-y: auto; flex: 1; }
+    .popup-scroll::-webkit-scrollbar { display: none; }
+
+    /* 关闭按钮 */
+    .popup-close {
+      position: absolute; top: 12px; right: 12px; z-index: 10;
+      width: 28px; height: 28px; border-radius: 50%; background: #e8e8e8;
+      border: none; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--t2); transition: background .15s;
+    }
+    .popup-close:active { background: #d8d8d8; }
+
+    /* 弹窗标题 */
+    .popup-title-bar {
+      background: var(--surface); border-radius: 16px 16px 0 0;
+      padding: 14px 12px 12px; text-align: center;
+      font-size: 15px; font-weight: 600; color: var(--t1);
+      border-bottom: 1px solid var(--line); position: relative;
+    }
+
+    /* 商品信息 */
+    .prod-row {
+      background: var(--surface); padding: 12px 14px;
+      display: flex; gap: 12px; border-bottom: 1px solid var(--line);
+    }
+    .prod-img { width: 96px; height: 96px; border-radius: 8px; overflow: hidden; background: #eee; flex-shrink: 0; }
+    .prod-img img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); }
+    .prod-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .prod-name { font-size: 14px; font-weight: 500; color: var(--t1); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .prod-meta { display: flex; gap: 6px; align-items: center; }
+    .prod-platform { background: #f0f0f0; color: var(--t2); font-size: 10px; padding: 2px 5px; border-radius: 3px; font-weight: 500; }
+    .prod-sold { font-size: 11px; color: var(--t3); }
+    .prod-price-area { display: flex; flex-direction: column; gap: 1px; }
+    .prod-price-top { display: flex; align-items: center; gap: 5px; }
+    .prod-price-label { font-size: 11px; color: var(--t3); }
+    .prod-price-strike { font-size: 11px; color: #bbb; text-decoration: line-through; }
+    .prod-price-main { font-size: 22px; font-weight: 800; color: var(--t1); line-height: 1; letter-spacing: -.5px; }
+    .prod-price-main small { font-size: 14px; font-weight: 700; }
+
+    /* 通用卡片 */
+    .pc { margin: 10px 10px 0; background: var(--surface); border-radius: 12px; overflow: hidden; }
+    .pc-head { padding: 11px 14px; font-size: 14px; font-weight: 600; color: var(--t1); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .pc-head small { font-size: 12px; font-weight: 500; color: var(--t1); }
+    .pc-body { padding: 10px 10px; }
+
+    /* 优惠券 */
+    .coupon { display: flex; height: 62px; background: #f5f5f5; border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+    .coupon:last-child { margin-bottom: 0; }
+    .c-amt { width: 72px; background: #e4e4e4; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #333; flex-shrink: 0; }
+    .c-amt small { font-size: 13px; font-weight: 700; margin-right: 1px; }
+    .c-info { flex: 1; padding: 0 11px; display: flex; flex-direction: column; justify-content: center; }
+    .c-name { font-size: 14px; font-weight: 500; color: var(--t1); }
+    .c-cond { font-size: 11px; color: var(--t3); margin-top: 2px; }
+    .c-btn-wrap { width: 70px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* 淘金币 */
+    .tjb { position: relative; background: #f5f5f5; border-radius: 9px; height: 62px; display: flex; align-items: center; padding: 0 9px 0 11px; margin-top: 6px; }
+    .tjb-tag { position: absolute; top: -6px; left: 8px; background: #fff; border: 1px solid rgba(0,0,0,.12); color: var(--t2); font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+    .tjb-icon { width: 36px; height: 36px; border-radius: 9px; background: #555; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 15px; margin-right: 9px; flex-shrink: 0; }
+    .tjb-text { flex: 1; min-width: 0; }
+    .tjb-name { font-size: 13px; font-weight: 600; color: var(--t1); }
+    .tjb-sub  { font-size: 9px; color: var(--t3); margin-top: 2px; }
+    .tjb-sep  { width: 1px; height: 26px; border-right: 1px dashed rgba(0,0,0,.15); margin: 0 7px; position: relative; flex-shrink: 0; }
+    .tjb-sep::before, .tjb-sep::after { content:''; position: absolute; left: 50%; transform: translateX(-50%); width: 9px; height: 9px; border-radius: 50%; background: #f5f5f5; }
+    .tjb-sep::before { top: -4px; }
+    .tjb-sep::after  { bottom: -4px; }
+    .tjb-btn-wrap { position: relative; flex-shrink: 0; }
+    .tjb-bubble { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #222; color: #fff; font-size: 10px; padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
+    .tjb-bubble::after { content:''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 3px solid transparent; border-top-color: #222; }
+
+    /* 参与活动 */
+    .activity-row { margin: 10px 10px 0; background: var(--surface); border-radius: 12px; padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; }
+    .activity-label { font-size: 12px; color: var(--t3); white-space: nowrap; padding-top: 2px; }
+    .activity-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .activity-tag { background: #f0f0f0; color: #555; border: 1px solid #e5e5e5; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+
+    /* 返现明细 */
+    .rb-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; }
+    .rb-row + .rb-row { border-top: 1px solid var(--line); }
+    .rb-name { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--t1); }
+    .rb-icon { width: 19px; height: 19px; border-radius: 4px; background: #666; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .rb-amt { font-size: 14px; font-weight: 600; color: var(--t1); font-variant-numeric: tabular-nums; }
+
+    /* 下单再拿返现 折叠区 */
+    .my-toggle {
+      width: 100%; background: none; border: none; border-bottom: 1px solid var(--line);
+      padding: 11px 14px; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; font-family: inherit; text-align: left;
+    }
+    .my-toggle:active { background: rgba(0,0,0,.03); }
+    .my-title { font-size: 14px; font-weight: 600; color: var(--t1); }
+    .my-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .my-total { font-size: 12px; font-weight: 500; color: var(--t1); font-variant-numeric: tabular-nums; }
+    .my-chevron { font-size: 16px; color: var(--t3); line-height: 1; transition: transform .3s ease; flex-shrink: 0; }
+    .my-panel  { overflow: hidden; transition: max-height .35s ease, opacity .3s ease; }
+
+    /* 明细行（my-panel内） */
+    .detail-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; border-bottom: 1px solid var(--line);
+    }
+    .detail-name { font-size: 13px; color: var(--t2); }
+    .detail-amt  { font-size: 13px; font-weight: 600; color: var(--t2); font-variant-numeric: tabular-nums; }
+
+    /* 返现红包行（含chips，折叠区内） */
+    .hb-row { padding: 11px 14px 0; border-bottom: 1px solid var(--line); }
+    .hb-row-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .hb-chips { display: flex; flex-direction: column; gap: 0; padding-bottom: 4px; }
+
+    /* chip = 列表行样式 */
+    .hb-chip {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-top: 1px solid var(--line);
+      cursor: pointer; user-select: none; transition: background .12s;
+    }
+    .hb-chip:first-child { border-top: none; }
+    .hb-chip:active { background: rgba(0,0,0,.03); }
+    .hb-chip-left  { display: flex; align-items: center; gap: 8px; }
+    .hb-chip-amt   { font-size: 15px; font-weight: 700; color: var(--t1); font-variant-numeric: tabular-nums; }
+    .hb-chip-label { font-size: 12px; color: var(--t3); }
+    .hb-chip-radio {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid #d0d0d0; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all .15s;
+    }
+    .hb-chip.active .hb-chip-radio {
+      border-color: #1a1a1a; background: #1a1a1a;
+    }
+    .hb-chip.active .hb-chip-radio::after {
+      content: ''; display: block; width: 6px; height: 6px;
+      border-radius: 50%; background: #fff;
+    }
+    .hb-expire-tag {
+      background: #333; color: #fff; font-size: 9px; font-weight: 600;
+      padding: 1px 5px; border-radius: 3px; white-space: nowrap;
+    }
+
+    /* (旧 hb-chevron 保留兼容，不再用) */
+    .hb-chevron { width: 15px; height: 15px; color: var(--t3); transition: transform .25s ease; flex-shrink: 0; }
+
+    /* 免责 + 底部行动区 */
+    .disclaimer { text-align: center; font-size: 11px; color: var(--t3); padding: 10px 16px 6px; }
+    .action-area { background: var(--surface); padding: 10px 14px 16px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+    .action-price-lbl { font-size: 11px; color: var(--t3); margin-bottom: 2px; }
+    .action-price-val { display: flex; align-items: baseline; font-variant-numeric: tabular-nums; }
+    .action-price-val .sym { font-size: 14px; font-weight: 700; margin-right: 1px; }
+    .action-price-val .num { font-size: 26px; font-weight: 800; letter-spacing: -.5px; line-height: 1; }
+    .action-btn-wrap { position: relative; }
+    .action-bubble {
+      position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: #222; color: #fff; font-size: 11px; padding: 4px 9px; border-radius: 6px;
+      white-space: nowrap; display: flex; align-items: center; gap: 4px;
+      animation: popIn .4s cubic-bezier(.175,.885,.32,1.275) .3s both;
+    }
+    .action-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:#222; }
+    @keyframes popIn { 0%{transform:translate(-50%,8px) scale(.88);opacity:0} 100%{transform:translate(-50%,0) scale(1);opacity:1} }
+    .action-main-btn { background: #1a1a1a; color: #fff; border: none; border-radius: 999px; height: 46px; width: 186px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: .02em; transition: opacity .15s; }
+    .action-main-btn:active { opacity: .8; }
+
+    /* pill button (reuse across coupon/tjb) */
+    .btn-pill { background: #222; color: #fff; border: none; border-radius: 999px; font-size: 12px; font-weight: 600; padding: 7px 13px; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    .btn-pill:active { opacity: .75; }
+
+    /* ─────────── 全屏跳转遮罩 ─────────── */
+    #page-overlay { display:none; position:absolute; inset:0; z-index:200; background:#000; align-items:center; justify-content:center; }
+    #page-overlay.show { display:flex; }
+    #page-back { position:absolute; top:14px; left:14px; z-index:10; background:rgba(0,0,0,.55); border:none; border-radius:999px; color:#fff; font-size:12px; padding:6px 14px; cursor:pointer; display:flex; align-items:center; gap:5px; font-family:inherit; }
+    #page-hint { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.6); color:#fff; font-size:12px; padding:5px 14px; border-radius:999px; white-space:nowrap; pointer-events:none; font-family:inherit; }
+    #page-steps { position:absolute; top:14px; right:14px; display:flex; gap:5px; }
+    .sdot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3); transition:background .2s; }
+    .sdot.on { background:#fff; }
+    #page-img { max-height:100vh; max-width:100vw; object-fit:contain; display:block; cursor:pointer; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ═══════════ 返现首页 ═══════════ -->
+  <div class="home">
+
+    <!-- 状态栏 -->
+    <div class="sbar">
+      <div class="sbar-time">13:18</div>
+      <div class="sbar-icons">
+        <svg width="16" height="11" viewBox="0 0 17 12" fill="currentColor">
+          <rect x="0" y="8" width="3" height="4" rx="1" opacity=".35"/>
+          <rect x="4" y="5" width="3" height="7" rx="1" opacity=".55"/>
+          <rect x="8" y="2" width="3" height="10" rx="1" opacity=".75"/>
+          <rect x="12" y="0" width="3" height="12" rx="1"/>
+        </svg>
+        <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor">
+          <path d="M8 10a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/>
+          <path d="M3.7 8.8L2.3 7.4A7.9 7.9 0 018 5c2.2 0 4.2.9 5.7 2.4l-1.4 1.4A6 6 0 008 7 5.97 5.97 0 003.7 8.8z" opacity=".55"/>
+          <path d="M0 5.5C2 3.3 4.8 2 8 2s6 1.3 8 3.5l-1.4 1.4C12.9 5.1 10.6 4 8 4A7.9 7.9 0 001.4 6.9L0 5.5z" opacity=".3"/>
+        </svg>
+        <svg width="24" height="11" viewBox="0 0 25 12" fill="none">
+          <rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".35"/>
+          <rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/>
+          <path d="M23 4v4a2 2 0 000-4z" fill="currentColor" opacity=".4"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- App header -->
+    <div class="app-header">
+      <div class="app-logo">美柚返现</div>
+      <div class="app-search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        卫生巾
+      </div>
+      <button class="app-cashbtn">领现金</button>
+    </div>
+
+    <!-- 首页滚动 -->
+    <div class="home-scroll">
+
+      <!-- 统计行 -->
+      <div class="stats-card">
+        <div class="stat-block">
+          <div class="stat-label">
+            累计已省
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <div class="stat-val">¥ 107.22</div>
+            <span class="stat-action">提现 ›</span>
+          </div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-block">
+          <div class="stat-order-label">
+            我的订单
+            <span class="stat-order-badge">有2笔返现到账</span>
+          </div>
+          <div class="stat-order-val">
+            <div class="stat-order-thumb">📦</div>
+            ¥1.02已到账
+          </div>
+        </div>
+      </div>
+
+      <!-- 说明 + 粘贴区 -->
+      <div class="explain-banner">
+        <div class="explain-text">从美柚去淘宝/京东/抖音下单，可额外获得现金返还</div>
+        <div class="platform-row">
+          <div class="pf-icon">淘</div>
+          <div class="pf-icon">唯</div>
+          <div class="pf-icon" style="font-size:10px;">抖音</div>
+          <div class="pf-icon">拼</div>
+          <div style="flex:1;font-size:11px;color:#999;line-height:1.4;">
+            复制商品链接 🔗 快速查返现<br>
+            <span style="color:#bbb;font-size:10px;">下单约返1%~6%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paste-section">
+        <div class="paste-box">
+          <div class="paste-placeholder">
+            粘贴商品链接或口令
+            <em>例：https://item.taobao.com/item.htm?id=529338095872</em>
+          </div>
+          <button class="paste-btn" onclick="openPopup()">粘贴</button>
+        </div>
+      </div>
+
+      <!-- Tab -->
+      <div class="tab-row">
+        <div class="tab-item active">大家都在用</div>
+        <div class="tab-item">外卖返现</div>
+        <div class="tab-item">拼多多</div>
+        <div class="tab-item">打车返现</div>
+      </div>
+
+      <!-- 618 banner 占位 -->
+      <div class="content-placeholder">
+        <div class="placeholder-title">618 红包天天领 · 下单再返现金</div>
+        <div class="placeholder-strip"></div>
+      </div>
+
+      <!-- 惊喜返现红包 占位 -->
+      <div class="content-placeholder" style="margin-bottom:16px;">
+        <div class="placeholder-title">惊喜返现红包 · 购物津贴</div>
+        <div class="placeholder-grid">
+          <div class="placeholder-cell"></div>
+          <div class="placeholder-cell"></div>
+          <div class="placeholder-cell"></div>
+          <div class="placeholder-cell"></div>
+        </div>
+      </div>
+
+    </div><!-- /home-scroll -->
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🌸</div><div class="nav-label">美柚</div></div>
+      <div class="nav-item"><div class="nav-icon">📋</div><div class="nav-label">记录</div></div>
+      <div class="nav-item active"><div class="nav-icon">💰</div><div class="nav-label">返现</div></div>
+      <div class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">消息</div></div>
+      <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">我</div></div>
+    </div>
+
+  </div><!-- /home -->
+
+  <!-- ═══════════ 半弹窗 ═══════════ -->
+  <div class="popup-overlay" id="popup-overlay" onclick="handleOverlayClick(event)">
+    <div class="popup-sheet" id="popup-sheet">
+
+      <button class="popup-close" onclick="closePopup()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+
+      <div class="popup-scroll">
+
+        <div class="popup-title-bar">已为你搜到</div>
+
+        <!-- 商品信息 -->
+        <div class="prod-row">
+          <div class="prod-img">
+            <img src="https://img.alicdn.com/imgextra/i4/2212267605925/O1CN016p5WIf1tW8H5a9bT4_!!2212267605925.jpg" alt="">
+          </div>
+          <div class="prod-info">
+            <div class="prod-name">【官方正品】夏季新款防滑厚底踩屎感凉拖鞋男女情侣居家外穿网红同款</div>
+            <div class="prod-meta">
+              <span class="prod-platform">淘宝</span>
+              <span class="prod-sold">已售 7万+</span>
+            </div>
+            <div class="prod-price-area">
+              <div class="prod-price-top">
+                <span class="prod-price-label">美柚返现价</span>
+                <span class="prod-price-strike">¥90.00</span>
+              </div>
+              <div class="prod-price-main"><small>¥</small><span id="header-price">83.00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 先领优惠券 -->
+        <div class="pc">
+          <div class="pc-head">先领优惠券</div>
+          <div class="pc-body">
+            <div class="coupon">
+              <div class="c-amt"><small>¥</small>10</div>
+              <div class="c-info">
+                <div class="c-name">10元优惠券</div>
+                <div class="c-cond">满100可用</div>
+              </div>
+              <div class="c-btn-wrap"><button class="btn-pill" onclick="showPage1()">领取</button></div>
+            </div>
+            <div class="tjb">
+              <span class="tjb-tag">隐藏</span>
+              <div class="tjb-icon">币</div>
+              <div class="tjb-text">
+                <div class="tjb-name">淘金币抵扣</div>
+                <div class="tjb-sub">可抵金额以淘宝为准，不影响返现金额</div>
+              </div>
+              <div class="tjb-sep"></div>
+              <div class="tjb-btn-wrap">
+                <div class="tjb-bubble">可抵4.82元起</div>
+                <button class="btn-pill" onclick="showPage1()">立即抵扣</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 参与活动 -->
+        <div class="activity-row">
+          <span class="activity-label">参与活动</span>
+          <div class="activity-tags">
+            <span class="activity-tag">立减2元</span>
+            <span class="activity-tag">满2件打8折</span>
+            <span class="activity-tag">88VIP95折</span>
+          </div>
+        </div>
+
+        <!-- 下单再拿返现（整体折叠，默认收起） -->
+        <div class="pc" style="margin-bottom:0;">
+          <button class="my-toggle" id="my-section" data-expanded="false" onclick="toggleMy()">
+            <span class="my-title">下单再拿返现</span>
+            <div class="my-right">
+              <span class="my-total" id="my-total">返 ¥7.00</span>
+              <span class="my-chevron" id="my-chevron" style="transform:rotate(90deg)">›</span>
+            </div>
+          </button>
+
+          <div class="my-panel" id="my-panel" style="max-height:0;opacity:0;">
+            <div class="detail-row">
+              <div class="detail-name">商品返现</div>
+              <div class="detail-amt">返 ¥3.00</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-name">打卡补贴</div>
+              <div class="detail-amt">返 ¥1.54</div>
+            </div>
+            <div class="hb-row">
+              <div class="hb-row-head">
+                <div class="detail-name">返现红包</div>
+                <div class="detail-amt" id="hb-amt">返 ¥2.46</div>
+              </div>
+              <div class="hb-chips">
+                <div class="hb-chip active" data-amount="2.46" onclick="selectChip(this)">
+                  <div class="hb-chip-left">
+                    <span class="hb-chip-amt">¥2.46</span>
+                    <span class="hb-chip-label">金额最大</span>
+                  </div>
+                  <div class="hb-chip-radio"></div>
+                </div>
+                <div class="hb-chip" data-amount="1.00" onclick="selectChip(this)">
+                  <div class="hb-chip-left">
+                    <span class="hb-chip-amt">¥1.00</span>
+                    <span class="hb-chip-label">
+                      <span class="hb-expire-tag">今日到期</span>
+                    </span>
+                  </div>
+                  <div class="hb-chip-radio"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="disclaimer">实际下单金额受使用优惠影响有变化</div>
+        <div class="action-area">
+          <div>
+            <div class="action-price-lbl">美柚返现价</div>
+            <div class="action-price-val">
+              <span class="sym">¥</span>
+              <span class="num" id="final-price">83.00</span>
+            </div>
+          </div>
+          <div class="action-btn-wrap">
+            <div class="action-bubble">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#666"/><circle cx="10" cy="11" r="5.5" fill="white"/><text x="10" y="15" font-size="11" font-weight="bold" fill="#666" text-anchor="middle" font-family="sans-serif">¥</text></svg>
+              <span id="bubble-text">约返7.00元</span>
+            </div>
+            <button class="action-main-btn" onclick="showPage1()">去下单</button>
+          </div>
+        </div>
+
+      </div><!-- /popup-scroll -->
+    </div><!-- /popup-sheet -->
+  </div><!-- /popup-overlay -->
+
+  <!-- 全屏跳转遮罩 -->
+  <div id="page-overlay">
+    <button id="page-back" onclick="closePage()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      返回弹窗
+    </button>
+    <div id="page-steps"><div class="sdot on" id="dot1"></div><div class="sdot" id="dot2"></div></div>
+    <div id="page-hint">点击图片跳转下一步 →</div>
+    <img id="page-img" src="" onclick="onPageClick()" alt="">
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+  /* ── 弹窗开关 ── */
+  function openPopup() {
+    document.getElementById('popup-overlay').classList.add('open');
+  }
+  function closePopup() {
+    document.getElementById('popup-overlay').classList.remove('open');
+  }
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('popup-overlay')) closePopup();
+  }
+
+  /* ── 美柚专享整体折叠 ── */
+  function toggleMy() {
+    var sec   = document.getElementById('my-section');
+    var panel = document.getElementById('my-panel');
+    var chev  = document.getElementById('my-chevron');
+    var expanded = sec.dataset.expanded === 'true';
+    if (expanded) {
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      void panel.offsetHeight;
+      requestAnimationFrame(function(){ panel.style.maxHeight = '0'; panel.style.opacity = '0'; });
+      chev.style.transform = 'rotate(90deg)';
+      sec.dataset.expanded = 'false';
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      panel.style.opacity = '1';
+      chev.style.transform = 'rotate(-90deg)';
+      sec.dataset.expanded = 'true';
+      panel.addEventListener('transitionend', function fn(e){
+        if (e.propertyName !== 'max-height') return;
+        panel.style.maxHeight = 'none';
+        panel.removeEventListener('transitionend', fn);
+      });
+    }
+  }
+
+  /* ── 价格联动 ── */
+  var BASE = 3.00 + 1.54, TAOBAO = 90.00;
+  function selectChip(el) {
+    document.querySelectorAll('.hb-chip').forEach(function(c){ c.classList.remove('active'); });
+    el.classList.add('active');
+    var hb = parseFloat(el.dataset.amount) || 0;
+    var total = BASE + hb, price = (TAOBAO - total).toFixed(2);
+    document.getElementById('hb-amt').textContent = '返 ¥' + hb.toFixed(2);
+    document.getElementById('my-total').textContent = '返 ¥' + total.toFixed(2);
+    document.getElementById('bubble-text').textContent = '约返' + total.toFixed(2) + '元';
+    document.getElementById('final-price').textContent = price;
+    document.getElementById('header-price').textContent = price;
+  }
+
+  /* ── 页面跳转 ── */
+  var cur = 0, imgBase = 'page';
+  function showPage1() {
+    cur = 1;
+    document.getElementById('page-img').src = imgBase + '1.png';
+    document.getElementById('page-hint').textContent = '点击图片跳转下一步 →';
+    document.getElementById('dot1').className = 'sdot on';
+    document.getElementById('dot2').className = 'sdot';
+    document.getElementById('page-overlay').classList.add('show');
+  }
+  function onPageClick() {
+    if (cur === 1) {
+      cur = 2;
+      document.getElementById('page-img').src = imgBase + '2.png';
+      document.getElementById('page-hint').textContent = '已到达终点，点击「返回弹窗」退出';
+      document.getElementById('dot1').className = 'sdot';
+      document.getElementById('dot2').className = 'sdot on';
+    }
+  }
+  function closePage() { cur = 0; document.getElementById('page-overlay').classList.remove('show'); }
+</script>
+</body>
+</html>

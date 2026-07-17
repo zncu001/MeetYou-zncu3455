@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>选品规则配置 · V2（条件级商城）原型</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; font-size: 14px; padding: 24px 0; }
+  .container { max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
+
+  /* Header */
+  .header { padding: 18px 32px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, #fafbfc 0%, #fff 100%); }
+  .header-left h1 { font-size: 18px; font-weight: 600; color: #262626; }
+  .header-left h1 .version-tag { font-size: 12px; background: #722ed1; color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+  .breadcrumb { color: #999; font-size: 12px; margin-top: 4px; }
+
+  /* Body */
+  .body { padding: 24px 32px; }
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #722ed1; color: #262626; display: flex; align-items: center; gap: 8px; }
+  .section-title .help { font-size: 12px; color: #999; font-weight: normal; }
+
+  .form-row { display: flex; align-items: center; margin-bottom: 14px; }
+  .form-label { width: 110px; color: #595959; text-align: right; padding-right: 12px; flex-shrink: 0; }
+  .form-label .required { color: #ff4d4f; margin-right: 2px; }
+  .form-control { flex: 1; max-width: 520px; }
+  .input { width: 100%; padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; outline: none; transition: all 0.2s; }
+  .input:focus { border-color: #722ed1; box-shadow: 0 0 0 2px rgba(114,46,209,0.1); }
+
+  /* 顶部说明 */
+  .multi-platform-tip { background: #f9f0ff; border: 1px solid #d3adf7; border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: #531dab; line-height: 1.7; }
+  .multi-platform-tip strong { color: #531dab; }
+
+  /* 表达式预览 */
+  .expression { font-size: 13px; padding: 10px 14px; background: #fff7f7; border: 1px solid #ffd6d6; border-radius: 4px; color: #c92a2a; line-height: 1.9; margin-bottom: 12px; word-break: break-all; }
+  .expression .label { color: #888; margin-right: 6px; }
+  .expression .platform-tag-tb { background: #ff5000; color: white; padding: 1px 6px; border-radius: 2px; font-size: 11px; margin-right: 4px; }
+  .expression .platform-tag-jd { background: #e1251b; color: white; padding: 1px 6px; border-radius: 2px; font-size: 11px; margin-right: 4px; }
+  .expression .field { color: #c92a2a; font-weight: 600; }
+  .expression .op { color: #1890ff; margin: 0 4px; }
+  .expression .conn { color: #722ed1; font-weight: 600; margin: 0 6px; }
+  .expression .paren { color: #722ed1; font-weight: 600; }
+
+  /* 规则树 */
+  .rule-group { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #8c8c8c; }
+
+  .group-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f0f2f5; border-bottom: 1px solid #e8e8e8; flex-wrap: wrap; }
+  .btn-add-cond, .btn-add-group { padding: 5px 14px; border: none; border-radius: 3px; cursor: pointer; font-size: 13px; color: white; }
+  .btn-add-cond { background: #52c41a; }
+  .btn-add-cond:hover { background: #389e0d; }
+  .btn-add-group { background: #1890ff; }
+  .btn-add-group:hover { background: #096dd9; }
+  .toolbar-label { font-weight: 600; color: #595959; margin-left: 4px; }
+  .toolbar-radio { display: flex; align-items: center; gap: 14px; }
+  .toolbar-radio label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 13px; }
+  .toolbar-radio .and { color: #1890ff; font-weight: 600; }
+  .toolbar-radio .or { color: #722ed1; font-weight: 600; }
+  .group-trash { margin-left: auto; cursor: pointer; color: #bfbfbf; padding: 2px 6px; }
+  .group-trash:hover { color: #ff4d4f; }
+
+  .group-body { padding: 10px 14px; background: white; }
+  .empty-tip { color: #bfbfbf; font-size: 13px; padding: 6px 0; }
+
+  /* 单条条件 */
+  .cond-row { display: flex; align-items: stretch; margin-bottom: 8px; border: 1px solid #e8e8e8; border-radius: 4px; background: white; overflow: hidden; }
+  .cond-row:last-child { margin-bottom: 0; }
+  .cond-platform-badge { width: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; }
+  .cond-platform-badge.tb { background: #ff5000; }
+  .cond-platform-badge.jd { background: #e1251b; }
+  .cond-field-label { width: 220px; flex-shrink: 0; background: #fafafa; padding: 8px 12px; color: #595959; font-size: 13px; border-right: 1px solid #e8e8e8; border-left: 1px solid #e8e8e8; display: flex; align-items: center; line-height: 1.35; word-break: break-all; }
+  .cond-op { width: 100px; border-right: 1px solid #e8e8e8; }
+  .cond-op select { width: 100%; height: 100%; border: none; padding: 0 10px; background: white; cursor: pointer; outline: none; font-size: 13px; }
+  .cond-value { flex: 1; padding: 4px 10px; display: flex; align-items: center; min-height: 36px; }
+  .cond-value input { width: 100%; border: none; outline: none; font-size: 13px; padding: 4px 0; }
+  .cond-value .placeholder-text { color: #bfbfbf; font-size: 13px; }
+  .cond-value .tags { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+  .cond-value .tag { background: #f5f5f5; padding: 2px 8px; border-radius: 2px; font-size: 12px; color: #595959; display: inline-flex; align-items: center; gap: 4px; }
+  .cond-delete { width: 36px; display: flex; align-items: center; justify-content: center; color: #bfbfbf; cursor: pointer; border-left: 1px solid #e8e8e8; font-size: 16px; }
+  .cond-delete:hover { color: #ff4d4f; background: #fff5f5; }
+
+  .nested-group { margin-top: 6px; margin-bottom: 6px; }
+
+  /* Footer */
+  .footer { padding: 16px 32px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; }
+  .btn { padding: 7px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; border: 1px solid #d9d9d9; background: white; color: #595959; transition: all 0.2s; }
+  .btn:hover { color: #722ed1; border-color: #722ed1; }
+  .btn-primary { background: #722ed1; color: white; border-color: #722ed1; }
+  .btn-primary:hover { background: #531dab; color: white; border-color: #531dab; }
+
+  /* 限制条件选择 Modal */
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; justify-content: center; align-items: flex-start; padding-top: 50px; z-index: 1000; }
+  .modal-mask.show { display: flex; }
+  .modal { width: 720px; background: white; border-radius: 8px; max-height: 82vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+  .modal-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .close-modal { cursor: pointer; color: #999; font-size: 22px; line-height: 1; padding: 0 4px; }
+
+  /* 商城 Tab */
+  .platform-tabs { display: flex; padding: 0 20px; background: #fafafa; border-bottom: 1px solid #f0f0f0; }
+  .platform-tab { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #595959; position: relative; display: flex; align-items: center; gap: 8px; }
+  .platform-tab .tab-logo { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 11px; }
+  .platform-tab .tab-logo.tb { background: #ff5000; }
+  .platform-tab .tab-logo.jd { background: #e1251b; }
+  .platform-tab .count { color: #bfbfbf; font-size: 12px; margin-left: 2px; }
+  .platform-tab:hover { color: #262626; }
+  .platform-tab.active { color: #262626; font-weight: 600; }
+  .platform-tab.active::after {
+    content: '';
+    position: absolute;
+    left: 20px; right: 20px; bottom: 0;
+    height: 3px;
+    background: #722ed1;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  .field-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .field-chip { padding: 6px 14px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fafafa; cursor: pointer; font-size: 13px; }
+  .field-chip:hover { border-color: #722ed1; color: #722ed1; background: #f9f0ff; }
+
+  .modal-footer { padding: 10px 20px; border-top: 1px solid #f0f0f0; text-align: right; font-size: 12px; color: #999; }
+
+  /* 对比说明面板 */
+  .compare-panel { max-width: 1200px; margin: 32px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 28px 36px; }
+  .compare-panel h2 { font-size: 18px; margin-bottom: 14px; border-left: 4px solid #722ed1; padding-left: 12px; color: #262626; }
+  .compare-panel h3 { font-size: 15px; margin: 22px 0 10px; color: #262626; }
+  .compare-panel table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  .compare-panel th, .compare-panel td { border: 1px solid #f0f0f0; padding: 10px 14px; text-align: left; vertical-align: top; }
+  .compare-panel th { background: #fafafa; font-weight: 600; }
+  .compare-panel ul { padding-left: 20px; margin: 6px 0; }
+  .compare-panel li { font-size: 13px; color: #595959; line-height: 1.7; margin: 4px 0; }
+  .compare-panel .v1-tag, .compare-panel .v2-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; color: #fff; }
+  .compare-panel .v1-tag { background: #1890ff; }
+  .compare-panel .v2-tag { background: #722ed1; }
+  .compare-panel .pros { color: #389e0d; }
+  .compare-panel .cons { color: #cf1322; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-left">
+      <h1>选品规则配置<span class="version-tag">V2 · 条件级商城</span></h1>
+      <div class="breadcrumb">导购运营 / 选品池管理 / 新建规则</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="section">
+      <div class="section-title">基本信息</div>
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>规则名称</div>
+        <div class="form-control"><input class="input" value="母婴 · 奶粉 · 全网精选（V2 条件级商城）"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">备注</div>
+        <div class="form-control"><input class="input" placeholder="选填"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        规则配置
+        <span class="help">· 条件级商城（V2）：商城在"新增条件"时选择，同一条件组可混合多商城条件</span>
+      </div>
+
+      <div class="multi-platform-tip">
+        💡 <strong>V2 设计说明：</strong><br>
+        · 条件组本身<strong>不绑定商城</strong>，只负责承载条件和 AND / OR 连接关系；<br>
+        · 点击「新增条件」 → 弹出"限制条件"选择弹窗，弹窗顶部用 <strong>淘宝 ｜ 京东</strong> Tab 切换字段集；<br>
+        · 每个条件本身记录所属商城，条件行左侧用 <strong>淘 / 京</strong> 徽标标识；<br>
+        · 一个条件组可同时包含淘宝条件和京东条件。
+      </div>
+
+      <div class="expression" id="expressionPreview"></div>
+      <div id="ruleTree"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn">取消</button>
+    <button class="btn">保存为草稿</button>
+    <button class="btn btn-primary">保存并启用</button>
+  </div>
+</div>
+
+<!-- 限制条件选择 Modal -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">选择限制条件</div>
+      <span class="close-modal" onclick="closeModal()">×</span>
+    </div>
+    <div class="platform-tabs">
+      <div class="platform-tab active" data-pf="taobao" onclick="switchTab('taobao')">
+        <span class="tab-logo tb">淘</span>
+        <span>淘宝</span>
+      </div>
+      <div class="platform-tab" data-pf="jd" onclick="switchTab('jd')">
+        <span class="tab-logo jd">京</span>
+        <span>京东</span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="modalFieldList"></div>
+    </div>
+    <div class="modal-footer">点击字段即添加到当前条件组；条件行左侧徽标标识所属商城。</div>
+  </div>
+</div>
+
+
+<!-- ========== 对比说明面板 ========== -->
+<div class="compare-panel">
+  <h2>V1 vs V2 产品方案对比</h2>
+
+  <h3>1. 核心差异速览</h3>
+  <table>
+    <tr>
+      <th style="width:24%;">维度</th>
+      <th><span class="v1-tag">V1</span> 条件组级商城</th>
+      <th><span class="v2-tag">V2</span> 条件级商城（本 demo）</th>
+    </tr>
+    <tr>
+      <td>商城归属层级</td>
+      <td>条件组</td>
+      <td>条件</td>
+    </tr>
+    <tr>
+      <td>商城选择时机</td>
+      <td>新增条件组时弹商城选择 Modal</td>
+      <td>新增条件时，在"限制条件"Modal 顶部 Tab 切换</td>
+    </tr>
+    <tr>
+      <td>条件组内字段约束</td>
+      <td>仅可选择该组绑定商城的字段</td>
+      <td>同组可混合淘宝和京东字段</td>
+    </tr>
+    <tr>
+      <td>嵌套子组</td>
+      <td>自动继承上层商城</td>
+      <td>嵌套子组无商城概念</td>
+    </tr>
+    <tr>
+      <td>跨商城 AND 限制</td>
+      <td>有显式阻断（弹窗确认、AND 置灰）</td>
+      <td>无前置阻断（依赖保存校验 / 服务端拆分）</td>
+    </tr>
+    <tr>
+      <td>条件行视觉标识</td>
+      <td>条件组带商城徽标</td>
+      <td>每条条件行左侧带「淘」/「京」徽标</td>
+    </tr>
+    <tr>
+      <td>服务端拆分难度</td>
+      <td>清晰：直接按条件组拆 API 调用</td>
+      <td>复杂：需把同组内不同商城条件拆开后再合并</td>
+    </tr>
+  </table>
+
+  <h3>2. V2 优劣势</h3>
+  <table>
+    <tr>
+      <th>✅ <span class="pros">优势</span></th>
+      <th>❌ <span class="cons">劣势</span></th>
+    </tr>
+    <tr>
+      <td>
+        <ul>
+          <li>用户决策更轻：少了"新增条件组时先选商城"这一步</li>
+          <li>布局更扁平：所有条件视觉上在一个组内，无嵌套层级</li>
+          <li>更接近多平台并行筛选的直觉（"我想要符合 A B C 这一堆条件的商品，不管哪个商城"）</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>语义陷阱：同组 AND 「淘宝商品类型=聚划算 && 京东经营方=自营」永远命中为空，但 UI 不阻断</li>
+          <li>同名字段易混淆："到手价"在淘宝和京东都有，但 key 不同，需要带徽标区分</li>
+          <li>服务端执行复杂：必须把同组内的不同商城条件按平台拆开调 API 后再合并，逻辑负担上移到服务端</li>
+          <li>不便扩展更多平台：增加抖音、拼多多后字段总数膨胀，单 Modal 内 Tab 数量增加，认知负担升高</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <h3>3. V1 优劣势</h3>
+  <table>
+    <tr>
+      <th>✅ <span class="pros">优势</span></th>
+      <th>❌ <span class="cons">劣势</span></th>
+    </tr>
+    <tr>
+      <td>
+        <ul>
+          <li>语义严谨：条件组绑定商城，杜绝跨商城 AND 这种"必然空集"的配置</li>
+          <li>服务端拆分清晰：每个条件组就是一个独立的 API 调用单元</li>
+          <li>易扩展多平台：新增平台只需扩展 Schema，不影响交互结构</li>
+          <li>对运营友好：清晰看到"这条规则覆盖哪些商城"</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>多一步操作：新增条件组时要选商城</li>
+          <li>跨商城混合时层级感稍重：根组 OR (淘宝组) OR (京东组)</li>
+          <li>已绑商城的条件组无法直接换商城，需删除重建</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <h3>4. 应该选哪一版？建议判断标准</h3>
+  <table>
+    <tr>
+      <th>如果你更看重……</th>
+      <th>推荐</th>
+    </tr>
+    <tr>
+      <td>语义严谨、服务端执行清晰、可扩展性</td>
+      <td><span class="v1-tag">V1</span> 条件组级商城</td>
+    </tr>
+    <tr>
+      <td>交互轻量、运营操作快速、单一规则结构扁平</td>
+      <td><span class="v2-tag">V2</span> 条件级商城</td>
+    </tr>
+    <tr>
+      <td>未来还会接入抖音、拼多多、唯品会等更多商城</td>
+      <td><span class="v1-tag">V1</span></td>
+    </tr>
+    <tr>
+      <td>未来基本只在淘宝 + 京东两端做选品</td>
+      <td>两者皆可，V2 略快</td>
+    </tr>
+  </table>
+
+  <h3>5. 一个具体例子的对照</h3>
+  <p style="font-size:13px; color:#595959; margin: 8px 0 14px;">需求："我要找婴儿奶粉、到手价 120–2000 元、有可领券的商品，淘宝和京东都要"。</p>
+  <table>
+    <tr>
+      <th><span class="v1-tag">V1</span> 配置结构</th>
+      <th><span class="v2-tag">V2</span> 配置结构</th>
+    </tr>
+    <tr>
+      <td>
+        <pre style="font-size:12px; line-height:1.7; color:#595959; margin:0;">根组（OR）
+├─ 淘宝条件组（AND）
+│   ├─ 三级类目 = 婴儿奶粉
+│   ├─ 到手价 ≥ 120
+│   ├─ 到手价 ≤ 2000
+│   └─ 是否有优惠券 = 是
+└─ 京东条件组（AND）
+    ├─ 二级类目 = 婴幼儿奶粉
+    ├─ 到手价 ≥ 120
+    ├─ 到手价 ≤ 2000
+    └─ 是否有优惠券 = 正常可领</pre>
+      </td>
+      <td>
+        <pre style="font-size:12px; line-height:1.7; color:#595959; margin:0;">条件组（OR 套两个 AND 子组）
+├─ AND 子组
+│   ├─ [淘] 三级类目 = 婴儿奶粉
+│   ├─ [淘] 到手价 ≥ 120
+│   ├─ [淘] 到手价 ≤ 2000
+│   └─ [淘] 是否有优惠券 = 是
+└─ AND 子组
+    ├─ [京] 二级类目 = 婴幼儿奶粉
+    ├─ [京] 到手价 ≥ 120
+    ├─ [京] 到手价 ≤ 2000
+    └─ [京] 是否有优惠券 = 正常可领</pre>
+      </td>
+    </tr>
+    <tr>
+      <td>视觉层级感强，所属商城一目了然</td>
+      <td>条件平铺更紧凑，靠徽标识别商城</td>
+    </tr>
+  </table>
+</div>
+
+
+<script>
+/* ============= 字段 Schema（同 V1） ============= */
+const SCHEMA = {
+  taobao: {
+    name: '淘宝',
+    fields: [
+      { key:'material_id', label:'来源物料ID', type:'multi_select', scene:'商品' },
+      { key:'cat1_id', label:'一级发布类目ID', type:'multi_select', sample:['母婴','女装','美妆'], scene:'类目' },
+      { key:'cat2_id', label:'二级发布类目ID', type:'multi_select', sample:['儿童玩具'], scene:'类目' },
+      { key:'cat3_id', label:'三级发布类目ID', type:'multi_select', sample:['婴儿奶粉'], scene:'类目' },
+      { key:'landed_price_tb', label:'到手价', type:'number', unit:'元', scene:'价格' },
+      { key:'discount_rate', label:'折扣率', type:'number', unit:'%', scene:'价格' },
+      { key:'commission_rate', label:'佣金率', type:'number', unit:'%', scene:'价格' },
+      { key:'is_tmall', label:'是否要求天猫店铺', type:'bool', options:['是','否'], scene:'店铺' },
+      { key:'dsr_score', label:'店铺DSR评分', type:'number', scene:'店铺' },
+      { key:'shop_level', label:'店铺等级', type:'select', options:['一钻','二钻','三钻','皇冠','金冠'], scene:'店铺' },
+      { key:'shop_fans', label:'店铺粉丝数', type:'number', scene:'店铺' },
+      { key:'has_coupon_tb', label:'是否有优惠券', type:'bool', options:['是','否'], scene:'优惠' },
+      { key:'free_ship', label:'是否包邮', type:'bool', options:['是','否'], scene:'优惠' },
+      { key:'freight_insurance', label:'是否包含运费险', type:'bool', options:['是','否'], scene:'优惠' },
+      { key:'has_brand', label:'是否有品牌名', type:'bool', options:['是','否'], scene:'品牌' },
+      { key:'brand_name_tb', label:'品牌名称', type:'multi_select', sample:['爱他美','飞鹤','金领冠','君乐宝','合生元'], scene:'品牌' },
+      { key:'shop_name_tb', label:'店铺名称', type:'multi_select', sample:['旗舰','官方','直营','天猫超市'], scene:'店铺' },
+      { key:'annual_sales', label:'年销量', type:'number', scene:'销量' },
+      { key:'promo_info', label:'优惠促销信息', type:'multi_select', scene:'优惠' },
+      { key:'baiyi_subsidy', label:'是否百亿补贴', type:'bool', options:['是','否'], scene:'优惠' },
+      { key:'review_count', label:'评论数', type:'number', scene:'销量' },
+    ]
+  },
+  jd: {
+    name: '京东',
+    fields: [
+      { key:'eliteId', label:'物料ID', type:'multi_select', ops:['属于','不属于'], scene:'来源',
+        sample:['1-好券商品','22-实时热销榜','26-母婴玩具','41-自营热卖榜','110-自营','153-历史最低价商品榜','13231-厂货百亿补贴'] },
+      { key:'cid1', label:'一级类目ID', type:'multi_select', ops:['属于','不属于'], scene:'类目', sample:[] },
+      { key:'cid2', label:'二级类目ID', type:'multi_select', ops:['属于','不属于'], scene:'类目', sample:[] },
+      { key:'cid3', label:'三级类目ID', type:'multi_select', ops:['属于','不属于'], scene:'类目', sample:[] },
+      { key:'brandName', label:'品牌名称', type:'multi_select', ops:['属于','不属于'], scene:'品牌', sample:[] },
+      { key:'shopName', label:'店铺名称', type:'multi_select', ops:['属于','不属于'], scene:'店铺', sample:[] },
+      { key:'shopLabel', label:'是否京东好店', type:'select', ops:['属于','不属于'], scene:'店铺', options:['是','否'] },
+      { key:'shopLevel', label:'店铺评分', type:'number', ops:['>','<','>=','<=','='], scene:'店铺' },
+      { key:'owner', label:'经营方类型', type:'select', ops:['属于','不属于'], scene:'商品', options:['自营（g）','POP（p）'] },
+      { key:'price', label:'商品原价', type:'number', ops:['>','<','>=','<=','='], unit:'元', scene:'价格' },
+      { key:'purchasePrice', label:'到手价', type:'number', ops:['>','<','>=','<=','='], unit:'元', scene:'价格' },
+      { key:'couponStatus', label:'是否有优惠券', type:'select', ops:['属于','不属于'], scene:'优惠', options:['正常可领（0）','不可领取（-1）','已领取（1）'] },
+      { key:'goodCommentsShare', label:'好评率', type:'number', ops:['>','<','>=','<=','='], unit:'%', scene:'质量' },
+      { key:'inOrderCount30DaysSku', label:'近30天引单量下限（SKU 维度）', type:'number', ops:['>','<','>=','<=','='], scene:'趋势' },
+      { key:'inOrderCount30Days', label:'近30天引单量下限（店铺维度）', type:'number', ops:['>','<','>=','<=','='], scene:'趋势' },
+      { key:'commission', label:'佣金', type:'number', ops:['>','<','>=','<=','='], unit:'元', scene:'佣金' },
+      { key:'commissionShare', label:'佣金比例', type:'number', ops:['>','<','>=','<=','='], unit:'%', scene:'佣金' },
+      { key:'preSaleStatus', label:'是否预售商品', type:'multi_select', ops:['属于','不属于'], scene:'风控',
+        sample:['0-未开始','1-预售中','2-预售结束','3-尾款进行中','4-尾款结束'] },
+    ]
+  }
+};
+
+function opOptions(field) {
+  if (field && field.ops && field.ops.length) return field.ops;
+  if (!field) return ['='];
+  switch(field.type) {
+    case 'number': return ['>=','<=','=','区间'];
+    case 'select': return ['等于','不等于'];
+    case 'multi_select': return ['属于','不属于','包含'];
+    case 'bool': return ['为','不为'];
+    case 'text': return ['包含','不包含','等于'];
+    default: return ['='];
+  }
+}
+
+/* ============= V2 数据模型 ============= */
+// 节点：
+//   组节点 group { id, type:'group', op:'AND'|'OR', children:[] }  -- 不绑定商城
+//   条件节点 cond { id, type:'cond', platform:'taobao'|'jd', key, op, value }  -- 平台在条件级
+let uid = 1;
+const nextId = () => `n${uid++}`;
+
+function initDemo() {
+  return {
+    id: nextId(), type:'group', op:'OR', children: [
+      {
+        id: nextId(), type:'group', op:'AND', children: [
+          { id: nextId(), type:'cond', platform:'taobao', key:'cat3_id', op:'属于', value:['婴儿奶粉'] },
+          { id: nextId(), type:'cond', platform:'taobao', key:'landed_price_tb', op:'>=', value:120 },
+          { id: nextId(), type:'cond', platform:'taobao', key:'landed_price_tb', op:'<=', value:2000 },
+          { id: nextId(), type:'cond', platform:'taobao', key:'has_coupon_tb', op:'为', value:'是' },
+          { id: nextId(), type:'cond', platform:'taobao', key:'brand_name_tb', op:'属于', value:['爱他美','飞鹤','金领冠'] },
+        ]
+      },
+      {
+        id: nextId(), type:'group', op:'AND', children: [
+          { id: nextId(), type:'cond', platform:'jd', key:'eliteId', op:'属于', value:['22-实时热销榜','26-母婴玩具'] },
+          { id: nextId(), type:'cond', platform:'jd', key:'cid2', op:'属于', value:['婴幼儿奶粉'] },
+          { id: nextId(), type:'cond', platform:'jd', key:'purchasePrice', op:'>=', value:120 },
+          { id: nextId(), type:'cond', platform:'jd', key:'purchasePrice', op:'<=', value:2000 },
+          { id: nextId(), type:'cond', platform:'jd', key:'couponStatus', op:'属于', value:'正常可领（0）' },
+          { id: nextId(), type:'cond', platform:'jd', key:'goodCommentsShare', op:'>=', value:95 },
+        ]
+      }
+    ]
+  };
+}
+let ruleTree = initDemo();
+
+/* ============= 工具 ============= */
+function findField(platform, key) {
+  return SCHEMA[platform].fields.find(f => f.key === key);
+}
+function findNode(node, id) {
+  if (node.id === id) return { node, parent: null };
+  if (node.type === 'group') {
+    for (const c of node.children) {
+      if (c.id === id) return { node: c, parent: node };
+      const r = findNode(c, id);
+      if (r) return r;
+    }
+  }
+  return null;
+}
+
+/* ============= 渲染 ============= */
+function renderTree() {
+  document.getElementById('ruleTree').innerHTML = renderGroup(ruleTree, 0);
+  document.getElementById('expressionPreview').innerHTML = `<span class="label">表达式：</span>` + renderExpression(ruleTree);
+}
+
+function renderGroup(group, depth) {
+  const isRoot = group.id === ruleTree.id;
+  const childrenHtml = group.children.length === 0
+    ? `<div class="empty-tip">该组下暂无条件，点击「新增条件」开始配置</div>`
+    : group.children.map(c => {
+        if (c.type === 'cond') return renderCond(c);
+        return `<div class="nested-group">${renderGroup(c, depth+1)}</div>`;
+      }).join('');
+
+  return `
+    <div class="rule-group" data-id="${group.id}">
+      <div class="group-toolbar">
+        <button class="btn-add-cond" onclick="openFieldModal('${group.id}')">新增条件</button>
+        <button class="btn-add-group" onclick="addGroup('${group.id}')">新增条件组</button>
+        <span class="toolbar-label">符合条件</span>
+        <div class="toolbar-radio">
+          <label>
+            <input type="radio" name="op-${group.id}" ${group.op==='AND'?'checked':''} onchange="setGroupOp('${group.id}','AND')">
+            <span class="and">&& (并且)</span>
+          </label>
+          <label>
+            <input type="radio" name="op-${group.id}" ${group.op==='OR'?'checked':''} onchange="setGroupOp('${group.id}','OR')">
+            <span class="or">|| (或者)</span>
+          </label>
+        </div>
+        ${isRoot ? '' : `<span class="group-trash" title="删除该条件组" onclick="removeNode('${group.id}')">🗑</span>`}
+      </div>
+      <div class="group-body">${childrenHtml}</div>
+    </div>`;
+}
+
+function renderCond(cond) {
+  const f = findField(cond.platform, cond.key);
+  if (!f) return `<div class="cond-row"><div class="cond-field-label" style="color:#ff4d4f;">未知字段(${cond.key})</div></div>`;
+  const ops = opOptions(f);
+  const badge = cond.platform === 'taobao' ? 'tb' : 'jd';
+  const badgeText = cond.platform === 'taobao' ? '淘' : '京';
+  return `
+    <div class="cond-row" data-id="${cond.id}">
+      <div class="cond-platform-badge ${badge}">${badgeText}</div>
+      <div class="cond-field-label">${f.label}</div>
+      <div class="cond-op">
+        <select onchange="setCondOp('${cond.id}', this.value)">
+          ${ops.map(o => `<option ${o===cond.op?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </div>
+      <div class="cond-value">${renderValue(f, cond)}</div>
+      <div class="cond-delete" title="移除条件" onclick="removeNode('${cond.id}')">×</div>
+    </div>`;
+}
+
+function renderValue(f, cond) {
+  const v = cond.value;
+  if (f.type === 'number') return `<input type="number" placeholder="${f.label}${f.unit?'（'+f.unit+'）':''}" value="${v??''}">`;
+  if (f.type === 'text')   return `<input type="text" placeholder="${f.label}" value="${v||''}">`;
+  if (f.type === 'select' || f.type === 'bool') {
+    const opts = f.options || [];
+    return `<select style="border:none;outline:none;background:white;width:100%;font-size:13px;">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
+  }
+  if (f.type === 'multi_select') {
+    const tags = Array.isArray(v) ? v : [];
+    if (tags.length === 0) return `<span class="placeholder-text">${f.label}</span>`;
+    return `<div class="tags">${tags.map(t=>`<span class="tag">${t}<span style="cursor:pointer;color:#bfbfbf;">×</span></span>`).join('')}</div>`;
+  }
+  return '';
+}
+
+/* ============= 表达式预览 ============= */
+function renderExpression(node) {
+  if (node.type === 'cond') {
+    const f = findField(node.platform, node.key);
+    const label = f ? f.label : node.key;
+    let v = node.value;
+    if (Array.isArray(v)) v = v.length === 0 ? '' : (v.length <= 3 ? v.join(',') : v.slice(0,3).join(',')+'...');
+    if (v === null || v === undefined || v === '') v = '<i style="color:#bfbfbf">(未填)</i>';
+    const tag = node.platform === 'taobao' ? '<span class="platform-tag-tb">淘</span>' : '<span class="platform-tag-jd">京</span>';
+    return `${tag}<span class="field">${label}</span><span class="op">${node.op}</span>${v}`;
+  }
+  if (node.children.length === 0) return '<span style="color:#bfbfbf">(空组)</span>';
+  const conn = node.op === 'AND' ? '&&' : '||';
+  return node.children.map(c => {
+    if (c.type === 'group') return `<span class="paren">(</span> ${renderExpression(c)} <span class="paren">)</span>`;
+    return renderExpression(c);
+  }).join(`<span class="conn">${conn}</span>`);
+}
+
+/* ============= 操作 ============= */
+function setGroupOp(id, op) {
+  const r = findNode(ruleTree, id); if (!r) return;
+  r.node.op = op; renderTree();
+}
+function setCondOp(id, op) {
+  const r = findNode(ruleTree, id); if (!r) return;
+  r.node.op = op; renderTree();
+}
+function removeNode(id) {
+  if (id === ruleTree.id) return;
+  const r = findNode(ruleTree, id);
+  if (!r || !r.parent) return;
+  r.parent.children = r.parent.children.filter(c => c.id !== id);
+  renderTree();
+}
+function addGroup(parentId) {
+  const r = findNode(ruleTree, parentId); if (!r) return;
+  r.node.children.push({ id: nextId(), type:'group', op:'AND', children: [] });
+  renderTree();
+}
+
+/* ============= 限制条件 Modal（含商城 Tab） ============= */
+let modalTargetGroupId = null;
+let modalPlatform = 'taobao';
+
+function openFieldModal(groupId) {
+  modalTargetGroupId = groupId;
+  modalPlatform = 'taobao';
+  updateTabState();
+  renderModalFields();
+  document.getElementById('modalMask').classList.add('show');
+}
+function closeModal() { document.getElementById('modalMask').classList.remove('show'); }
+
+function switchTab(pf) {
+  modalPlatform = pf;
+  updateTabState();
+  renderModalFields();
+}
+function updateTabState() {
+  document.querySelectorAll('.platform-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.getAttribute('data-pf') === modalPlatform);
+  });
+}
+
+function renderModalFields() {
+  const fields = SCHEMA[modalPlatform].fields;
+  const chips = fields.map(f =>
+    `<span class="field-chip" onclick="pickField('${f.key}')">${f.label}</span>`
+  ).join('');
+  document.getElementById('modalFieldList').innerHTML =
+    `<div class="field-chips">${chips}</div>`;
+}
+
+function pickField(key) {
+  const r = findNode(ruleTree, modalTargetGroupId); if (!r) return;
+  const f = findField(modalPlatform, key);
+  const defaultOp = opOptions(f)[0];
+  let defaultValue = null;
+  if (f.type === 'select') defaultValue = (f.options || [''])[0];
+  if (f.type === 'bool')   defaultValue = (f.options || ['是'])[0];
+  if (f.type === 'multi_select') defaultValue = f.sample && f.sample.length ? f.sample.slice(0, Math.min(3, f.sample.length)) : [];
+  if (f.type === 'text')   defaultValue = '';
+  if (f.type === 'number') defaultValue = '';
+  r.node.children.push({ id: nextId(), type:'cond', platform: modalPlatform, key, op: defaultOp, value: defaultValue });
+  renderTree();
+  // 不立即关闭，方便继续在同一商城/切换商城继续添加多个条件
+}
+
+renderTree();
+</script>
+
+</body>
+</html>

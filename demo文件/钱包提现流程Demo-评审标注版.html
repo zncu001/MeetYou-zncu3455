@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>钱包提现流程 · 评审标注版</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #F5F6F8;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #2A2A2A;
+  font-size: 13px;
+  line-height: 1.55;
+}
+a { color: #1677FF; text-decoration: none; }
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+  max-width: 1480px;
+  margin: 0 auto;
+}
+
+/* 左侧 TOC */
+.toc {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 24px 16px;
+  background: #FFF;
+  border-right: 1px solid #ECECEC;
+  overflow-y: auto;
+}
+.toc h1 {
+  font-size: 14px;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.toc .sub { font-size: 11px; color: #999; margin-bottom: 16px; }
+.toc a {
+  display: block;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #555;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  border-left: 2px solid transparent;
+}
+.toc a:hover { background: #F5F6F8; color: #1677FF; }
+.toc a.group { color: #999; font-size: 10px; padding: 12px 10px 4px; font-weight: 700; letter-spacing: 1px; }
+.toc a.group:hover { background: none; color: #999; }
+
+/* 主内容 */
+.main {
+  flex: 1;
+  padding: 24px 32px 80px;
+  min-width: 0;
+}
+.page-hd {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ECECEC;
+}
+.page-hd h1 { font-size: 22px; color: #1A1A1A; margin-bottom: 6px; }
+.page-hd .meta { font-size: 12px; color: #999; }
+.page-hd .meta b { color: #1677FF; font-weight: 600; }
+
+.section {
+  margin-bottom: 28px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ECECEC;
+  overflow: hidden;
+  scroll-margin-top: 16px;
+}
+.sec-hd {
+  padding: 18px 22px;
+  border-bottom: 1px solid #F1F2F4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sec-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #1677FF;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sec-t { font-size: 16px; color: #1A1A1A; font-weight: 600; }
+.sec-tag {
+  margin-left: auto;
+  font-size: 11px;
+  color: #888;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #F2F4F8;
+}
+.sec-tag.added {
+  background: #FFF5E5;
+  color: #C2630B;
+}
+
+.sec-body {
+  display: flex;
+  gap: 24px;
+  padding: 22px;
+}
+.sec-body.col { flex-direction: column; }
+
+.phone-wrap {
+  width: 432px;
+  flex-shrink: 0;
+}
+.phone-frame {
+  width: 432px;
+  height: 880px;
+  border: 0;
+  display: block;
+  border-radius: 8px;
+  background: #C0C0C5;
+}
+.phone-cap {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+}
+
+.notes { flex: 1; min-width: 0; }
+.note-blk {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: #FAFBFC;
+  border-radius: 10px;
+  border: 1px solid #EFF1F4;
+}
+.note-blk:last-child { margin-bottom: 0; }
+.note-hd {
+  font-size: 13px;
+  color: #1A1A1A;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.note-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.badge-field { background: #E8F1FF; color: #1677FF; }
+.badge-rule  { background: #E6F7EC; color: #1A8245; }
+.badge-copy  { background: #FFF1E0; color: #B36A00; }
+.badge-error { background: #FCE5E8; color: #C8233A; }
+.badge-data  { background: #F0EBFA; color: #6E45C2; }
+.badge-track { background: #E5F4FA; color: #1A6F8B; }
+.badge-source{ background: #ECECEC; color: #666; }
+
+.note-blk ul, .note-blk ol { margin: 4px 0 0 18px; }
+.note-blk li { margin-bottom: 4px; }
+.note-blk li code, .note-blk p code {
+  background: #ECECEC;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: #333;
+}
+.kv-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+.kv-table th, .kv-table td {
+  border: 1px solid #E8EAEC;
+  padding: 6px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+.kv-table th { background: #F4F6F9; font-weight: 600; color: #555; }
+.kv-table tr:nth-child(2n) td { background: #FBFCFD; }
+
+.callout {
+  background: #FFF8E1;
+  border-left: 3px solid #FAAD14;
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  color: #5D4A14;
+  margin: 8px 0 0;
+}
+.callout b { color: #B36A00; }
+
+.full-card {
+  padding: 22px;
+}
+.full-card h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #1A1A1A;
+}
+.full-card p { color: #555; margin-bottom: 6px; }
+
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.intro-card {
+  padding: 16px;
+  border-radius: 10px;
+  background: #FAFBFC;
+  border: 1px solid #EFF1F4;
+}
+.intro-card h4 { font-size: 13px; color: #1A1A1A; margin-bottom: 8px; }
+
+.strategy-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+.strategy-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #F6F9FF, #FFFFFF);
+  border: 1px solid #E5EEFF;
+  font-size: 12px;
+  color: #2A2A2A;
+}
+.strategy-card b { color: #1677FF; }
+
+.legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #666;
+  margin-top: 10px;
+}
+.legend .note-badge { font-size: 10px; }
+
+.field-cell { color: #1A1A1A; font-weight: 500; }
+.iframe-mask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 432px;
+  height: 880px;
+  background: #fff;
+  border: 1px dashed #D0D5DD;
+  color: #999;
+  font-size: 12px;
+  border-radius: 8px;
+  text-align: center;
+  padding: 16px;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <nav class="toc">
+    <h1>钱包提现流程</h1>
+    <div class="sub">PRD ID1503529 · 评审标注版</div>
+    <a class="group">概览</a>
+    <a href="#sec-0">项目背景与策略</a>
+    <a class="group">字段定义</a>
+    <a href="#sec-1">金额字段定义说明</a>
+    <a class="group">钱包页 · 提现操作</a>
+    <a href="#sec-2a">初始态</a>
+    <a href="#sec-2b">重复操作（处理中）</a>
+    <a href="#sec-2c">输入超额</a>
+    <a href="#sec-2d">未绑定账号</a>
+    <a class="group">提现申请</a>
+    <a href="#sec-3">提现申请成功弹窗</a>
+    <a class="group">提现进度模块</a>
+    <a href="#sec-4a">提现处理中</a>
+    <a href="#sec-4b">提现成功</a>
+    <a href="#sec-4c">提现失败（含失败原因表）</a>
+    <a class="group">收支</a>
+    <a href="#sec-5">余额变动模块</a>
+    <a href="#sec-6">收支明细页</a>
+    <a class="group">演示链路补充</a>
+    <a href="#sec-7">账户绑定流程</a>
+    <a href="#sec-8">收款账号详情</a>
+    <a class="group">埋点</a>
+    <a href="#sec-9">数据埋点需求</a>
+  </nav>
+
+  <main class="main">
+    <!-- 0. 背景 -->
+    <section class="section" id="sec-0">
+      <div class="sec-hd"><span class="sec-num">0</span><span class="sec-t">项目背景与策略锚点</span><span class="sec-tag">PRD §1-2</span></div>
+      <div class="full-card">
+        <div class="intro-grid">
+          <div class="intro-card">
+            <h4>业务背景</h4>
+            <p>钱包内提现用户主要现金来源为返现。提现体验作为返现尾程峰终体验，间接影响返现用户 LTV。</p>
+            <ul>
+              <li>钱包有余额 + 有返现订单用户占比约 <b>18.43%</b></li>
+              <li>钱包资金流水中返现业务占比 <b>94.60%</b></li>
+            </ul>
+          </div>
+          <div class="intro-card">
+            <h4>用户痛点（客诉 TOP 标签）</h4>
+            <ul>
+              <li>无法提现/提现受阻 27.5%</li>
+              <li>提现失败/退回 24.8%</li>
+              <li>提现未到账/处理中 21.1%</li>
+              <li>账号绑定/身份不符 8.8%</li>
+            </ul>
+            <div class="callout"><b>30%</b> 提现客诉直接涉及资金，55% 涉及到账焦虑。</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px;">优化策略锚点（对应本次需求方案）</h3>
+        <div class="strategy-list">
+          <div class="strategy-card"><b>① 状态流程</b>：缩短"处理中"停留时间 + 超时自动排查/补偿</div>
+          <div class="strategy-card"><b>② 通知完备</b>：成功/失败结构化通知，明确失败原因</div>
+          <div class="strategy-card"><b>③ 余额逻辑</b>：到账前不扣减，新增"冻结"态</div>
+          <div class="strategy-card"><b>④ 余额明细</b>：明确余额来源</div>
+          <div class="strategy-card"><b>⑤ 过程可视</b>：提现进度模块可视化</div>
+          <div class="strategy-card"><b>⑥ 历史信任</b>：余额变动列表展示历史到账时长</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. 金额字段 -->
+    <section class="section" id="sec-1">
+      <div class="sec-hd"><span class="sec-num">1</span><span class="sec-t">金额字段定义说明</span><span class="sec-tag">PRD §4.4 表1</span></div>
+      <div class="full-card">
+        <table class="kv-table">
+          <thead><tr><th width="120">字段</th><th width="50%">定义</th><th>说明 / 取值</th></tr></thead>
+          <tbody>
+            <tr><td class="field-cell">账户总额</td><td>用户当前在美柚平台钱包账户中，所有资金状态的总和</td><td>账户总额 = <b>流动金额</b> + <b>冻结金额</b></td></tr>
+            <tr><td class="field-cell">流动金额</td><td>账户总额中，无任何限制、可正常操作提现的金额部分</td><td>对应「可提现余额」展示数值，是「提现」按钮的校验上限</td></tr>
+            <tr><td class="field-cell">冻结金额</td><td>账户总额中，因提现处理中等原因，不可操作提现的金额</td><td>对应「重复操作」提示中的 <code>{冻结金额}元提现中</code></td></tr>
+          </tbody>
+        </table>
+        <div class="callout">⚠ <b>核心策略变更</b>：到账成功前不做余额扣减（资金从「流动」改为「冻结」），用户感知账户总额不变。</div>
+      </div>
+    </section>
+
+    <!-- 2a. 钱包页 - 初始态 -->
+    <section class="section" id="sec-2a">
+      <div class="sec-hd"><span class="sec-num">2</span><span class="sec-t">钱包页 · 提现操作模块 — 初始态</span><span class="sec-tag">PRD §4.4 提现操作模块</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="idle" data-channel="alipay" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：用户初次进入钱包页，无在途提现</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">可提现余额</span></div>
+            <ul>
+              <li>固定文案：<code>可提现余额（元）：¥{账户总额}</code></li>
+              <li>取值：取「<b>账户总额</b>」字段数值（即流动+冻结之和）</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">提现金额输入框</span></div>
+            <ul>
+              <li>默认不填入数值，由用户手动输入或点击「全部提现」回填</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">「提现」按钮状态机</span></div>
+            <table class="kv-table">
+              <thead><tr><th>场景</th><th>条件</th><th>按钮表现</th></tr></thead>
+              <tbody>
+                <tr><td>正常发起</td><td>输入金额 ≤ 流动金额 且 无在途</td><td>蓝色激活 → 点击进入「提现申请成功弹窗」</td></tr>
+                <tr><td>不可点击</td><td>输入框无数值</td><td>置灰不可点击</td></tr>
+                <tr><td>重复操作</td><td>已有提现处理中 + 点击</td><td>吐司「有一笔提现处理中」+ 下方提示</td></tr>
+                <tr><td>余额不足</td><td>输入金额 &gt; 流动金额</td><td>下方红字「输入金额超过可用余额」+ 按钮置灰</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">「全部提现」按钮</span></div>
+            <ul>
+              <li>展示条件：<b>无</b>在途提现时展示；有在途则隐藏</li>
+              <li>点击规则：点击后将「流动金额」回填至输入框</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2b. 重复操作 -->
+    <section class="section" id="sec-2b">
+      <div class="sec-hd"><span class="sec-num">2</span><span class="sec-t">钱包页 · 提现操作模块 — 重复操作（在途处理中）</span><span class="sec-tag">PRD §4.4 场景三</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="processing" data-channel="alipay" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：当前已有一笔提现处理中</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">输入态</span></div>
+            <ul>
+              <li>输入框置灰不可输入</li>
+              <li>提现按钮替换为灰色禁用按钮 <code>一笔提现处理中</code></li>
+              <li>「全部提现」按钮隐藏</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-copy">提示文案</span></div>
+            <ul>
+              <li>输入框下方固定文案：<code>{冻结金额}元提现中，请勿重复操作。</code></li>
+              <li>若用户尝试再次点击提现按钮：弹出 Toast <code>有一笔提现处理中</code></li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">提现进度模块联动</span></div>
+            <ul>
+              <li>提交申请成功后，关闭「提现申请成功弹窗」时同步在提现操作模块下方挂载「提现进度模块」</li>
+              <li>该状态下「可提现余额」=「流动金额」（冻结金额不展示在该数字上但仍属于账户总额）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2c. 输入超额 -->
+    <section class="section" id="sec-2c">
+      <div class="sec-hd"><span class="sec-num">2</span><span class="sec-t">钱包页 · 提现操作模块 — 输入超额</span><span class="sec-tag">PRD §4.4 场景四 ·  6月1日update</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="idle" data-channel="alipay" data-amount="999" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：用户输入金额 &gt; 流动金额</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-error">校验规则</span></div>
+            <ul>
+              <li>触发条件：用户输入金额数值 &gt; 「流动金额」</li>
+              <li>表现：
+                <ol>
+                  <li>输入框下方红字提示：<code>输入金额超过可用余额</code></li>
+                  <li>「提现」按钮置灰不可点击</li>
+                </ol>
+              </li>
+              <li>当用户修正金额至 ≤ 流动金额，自动恢复正常态</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2d. 未绑定 -->
+    <section class="section" id="sec-2d">
+      <div class="sec-hd"><span class="sec-num">2</span><span class="sec-t">钱包页 · 提现操作模块 — 未绑定收款账号</span><span class="sec-tag added">演示补充 · PRD 未细化</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="idle" data-channel="alipay" data-bound="false" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：用户尚未绑定支付宝/微信收款账号</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">演示说明</span></div>
+            <ul>
+              <li>原型补充演示链路：当无收款账号时，「收款账号」模块展示「请绑定收款账号」</li>
+              <li>提现按钮置灰；点击收款账号入口 → 进入「绑定收款账号」流程（见 §7）</li>
+              <li>PRD 未明确该态文案，建议评审会同步该模块默认空态文案</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 提现申请成功弹窗 -->
+    <section class="section" id="sec-3">
+      <div class="sec-hd"><span class="sec-num">3</span><span class="sec-t">提现申请成功弹窗</span><span class="sec-tag">PRD §4.4 提现申请成功弹窗</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="idle" data-channel="alipay" data-overlay="apply" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：用户输入金额并点击提现，成功发起申请</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">展示规则</span></div>
+            <ul><li>触发：用户点击「提现」按钮且成功发起提现申请</li></ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">弹窗顶部</span></div>
+            <ul>
+              <li>标题固定文案：<code>提现申请成功</code></li>
+              <li>关闭键（×）：点击关闭弹窗，返回钱包页</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">基础信息板块</span></div>
+            <table class="kv-table">
+              <thead><tr><th>字段</th><th>取值</th><th>格式</th></tr></thead>
+              <tbody>
+                <tr><td>创建时间</td><td>提现申请成功的时间戳</td><td><code>{yyyy-mm-dd HH:mm:ss}</code></td></tr>
+                <tr><td>提现金额</td><td>用户输入的提现金额</td><td><code>{金额}元</code></td></tr>
+                <tr><td>提现渠道</td><td>提现账户所属应用</td><td>支付宝 / 微信</td></tr>
+                <tr><td>提现账户</td><td>提现账户信息</td><td>需脱敏（如 <code>138****7307</code>）</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">提现进度板块（3 节点）</span></div>
+            <table class="kv-table">
+              <thead><tr><th>节点</th><th>固定文案</th><th>补充信息</th></tr></thead>
+              <tbody>
+                <tr><td>① 发起提现申请</td><td>发起提现申请</td><td>取 提现申请成功的创建时间</td></tr>
+                <tr><td>② 三方渠道处理</td><td><code>{提现渠道}处理中</code></td><td>取 调用三方接口的时间（精确到秒）</td></tr>
+                <tr><td>③ 到账结果</td><td>到账成功</td><td>当前阶段进度=三方处理中，副文案展示 <code>{提现渠道}处理中，请耐心等待</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-copy">底部按钮</span></div>
+            <ul>
+              <li>固定文案：<code>知道了</code></li>
+              <li>点击规则：关闭当前弹窗（与右上角 × 等价）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4a. 进度模块 - 处理中 -->
+    <section class="section" id="sec-4a">
+      <div class="sec-hd"><span class="sec-num">4</span><span class="sec-t">提现进度模块 — 场景一：提现处理中</span><span class="sec-tag">PRD §4.4 提现进度模块</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="processing" data-channel="alipay" data-axis="open" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：发起提现申请，尚未获得明确到账结果</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">模块位置与展示规则</span></div>
+            <ul>
+              <li>位置：固定展示在「提现操作模块」下方</li>
+              <li>手动关闭：点击右上角 × → 该模块隐藏</li>
+              <li>自动关闭：距该笔提现创建时间 ≥ <code>{x}</code> 天 → 不展示（x 取决于用户提现后页面复访时机，待评审定）</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">基础信息板块（同弹窗）</span></div>
+            <ul>
+              <li>4 个字段：提现金额 / 提现渠道 / 收款账户 / 创建时间</li>
+              <li>支持「详情 ▲▼」折叠详情信息板块</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">详情信息板块（3 节点）</span></div>
+            <table class="kv-table">
+              <thead><tr><th>节点</th><th>定义</th><th>固定文案</th><th>副文案</th></tr></thead>
+              <tbody>
+                <tr><td>①</td><td>用户点击「提现」按钮且申请成功，生成提现申请记录</td><td>发起提现申请</td><td>取 提现申请成功弹窗的创建时间（秒）</td></tr>
+                <tr><td>②</td><td>从返现调用三方接口，将提现申请发送至三方，待三方返回结果</td><td><code>{提现渠道}处理中</code></td><td>取 调用三方接口的时间（秒）；若无则不展示</td></tr>
+                <tr><td>③</td><td>三方渠道明确返回到账结果（成功/失败）的节点</td><td>到账成功</td><td>当前进度=三方处理中 → 展示 <code>{提现渠道}处理中，请耐心等待</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4b. 进度模块 - 成功 -->
+    <section class="section" id="sec-4b">
+      <div class="sec-hd"><span class="sec-num">4</span><span class="sec-t">提现进度模块 — 场景二：提现成功</span><span class="sec-tag">PRD §4.4 场景二</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="success" data-channel="alipay" data-axis="open" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：提现金额成功到账至用户收款账户</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">详情信息板块（3 节点 — 全部完成）</span></div>
+            <table class="kv-table">
+              <thead><tr><th>节点</th><th>固定文案</th><th>副文案</th></tr></thead>
+              <tbody>
+                <tr><td>①</td><td>发起提现申请</td><td>提现申请成功创建时间（秒）</td></tr>
+                <tr><td>②</td><td><code>{提现渠道}处理中</code></td><td>调用三方接口时间（秒）</td></tr>
+                <tr><td>③</td><td>到账成功</td><td>取 <b>三方返回到账结果的时间戳</b>（秒）</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">视觉差异</span></div>
+            <ul>
+              <li>3 个节点全部使用实心黑点 ✓</li>
+              <li>标题显示「提现成功」</li>
+              <li>「全部提现」按钮恢复展示</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4c. 进度模块 - 失败 -->
+    <section class="section" id="sec-4c">
+      <div class="sec-hd"><span class="sec-num">4</span><span class="sec-t">提现进度模块 — 场景三：提现失败</span><span class="sec-tag">PRD §4.4 场景三</span></div>
+      <div class="sec-body col">
+        <div style="display:flex;gap:24px;width:100%;">
+          <div class="phone-wrap">
+            <iframe class="phone-frame" data-scene="failed" data-channel="alipay" data-fail="account" src="钱包提现流程Demo.html"></iframe>
+            <div class="phone-cap">场景：因三方失败原因，提现未能到账</div>
+          </div>
+          <div class="notes">
+            <div class="note-blk">
+              <div class="note-hd"><span class="note-badge badge-rule">模块结构差异</span></div>
+              <ul>
+                <li><b>不展示</b>「详情 ▲▼」折叠与时间轴</li>
+                <li>基础信息字段下新增「失败原因」行</li>
+                <li>「失败原因」行末追加蓝色链接 <code>管理收款账户</code>，点击跳「收款账号」页（PRD §消息通知中「核查收款账号」复用同一入口）</li>
+                <li>卡片右上角支持 × 关闭，行为同处理中场景</li>
+              </ul>
+            </div>
+            <div class="note-blk">
+              <div class="note-hd"><span class="note-badge badge-data">失败原因取值</span></div>
+              <ul>
+                <li>根据三方渠道返回的失败原因，做映射后展示用户侧文案</li>
+                <li>详细映射表见下方</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="note-blk" style="margin:18px 22px 22px;">
+          <div class="note-hd"><span class="note-badge badge-copy">失败原因映射表（用户侧展示文案）</span></div>
+          <table class="kv-table">
+            <thead><tr><th width="70">渠道</th><th width="40%">失败原因（三方返回）</th><th>用户侧展示文案</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="4" class="field-cell">支付宝</td><td>收款账号不存在或姓名有误，建议核实账号和姓名是否准确</td><td>收款账户不存在或姓名有误，请核实账户姓名是否准确</td></tr>
+              <tr><td>收款方账户收款额度已达上限，请收款方联系客服咨询详情</td><td>收款账户额度已达上限，请咨询支付宝客服</td></tr>
+              <tr><td>账户异常被冻结，无法收款，请咨询支付宝客服 95188</td><td>收款账户被冻结，无法收款，请咨询支付宝客服</td></tr>
+              <tr><td>其他</td><td><code>{支付宝返回错误码}</code>，请咨询支付宝客服</td></tr>
+              <tr><td rowspan="2" class="field-cell">微信</td><td>用户姓名与收款微信实名不一致</td><td>用户姓名与收款微信实名不符</td></tr>
+              <tr><td>超时未确认收款</td><td>未在微信确认收款，请重新发起提现</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 余额变动 -->
+    <section class="section" id="sec-5">
+      <div class="sec-hd"><span class="sec-num">5</span><span class="sec-t">余额变动模块（钱包页）</span><span class="sec-tag">PRD §4.4 余额变动模块</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-scene="success" data-channel="alipay" data-axis="closed" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">场景：钱包页下方固定区，展示历史变动</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">位置与展示条件</span></div>
+            <ul>
+              <li>位置：固定展示在「提现进度模块」下方</li>
+              <li>规则：用户无历史余额变动 → 不展示该模块</li>
+              <li>余额变动定义：账户余额发生实际金额变化时记一次（<b>失败未动账的提现不进入该列表</b>）</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">模块头部</span></div>
+            <ul>
+              <li>左侧标题固定文案：<code>余额变动</code></li>
+              <li>右侧入口固定文案：<code>全部 ›</code>，点击跳转「收支明细页」（见 §6）</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">列表展示规则</span></div>
+            <ul>
+              <li>展示条数：一行一条，最多 <b>3</b> 行</li>
+              <li>排序：按变动时间倒序，取最新 3 条</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-field">单条信息区</span></div>
+            <table class="kv-table">
+              <thead><tr><th width="100">字段</th><th>规则</th></tr></thead>
+              <tbody>
+                <tr><td>记录标题</td><td>
+                  收入（到账）：返现订单 → <code>返现订单（{订单标题}）</code>；活动 → <code>{活动名称}</code><br>
+                  支出（提现）：成功提现至支付宝/微信 → <code>提现至支付宝</code> / <code>提现至微信</code>
+                </td></tr>
+                <tr><td>变动时间戳</td><td>取 收支明细变动时间，<code>{yyyy-mm-dd hh:mm:ss}</code></td></tr>
+                <tr><td>变动金额</td><td>
+                  收入：<code>+¥{到账金额}</code>（粉色）<br>
+                  支出：<code>-¥{提现成功金额}</code>（深色）
+                </td></tr>
+                <tr><td>补充信息</td><td>
+                  支出：到账时长 = 提现成功时间 − 提现申请时间（统一换算为秒）<br>
+                  收入：若该笔返现有补贴 → 展示「<code>含补贴X元</code> / <code>红包X元</code>」；无则留空
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. 收支明细页 -->
+    <section class="section" id="sec-6">
+      <div class="sec-hd"><span class="sec-num">6</span><span class="sec-t">收支明细页</span><span class="sec-tag added">演示补充 · PRD 仅引用入口</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-page="detail" data-tab="cash" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">入口：钱包页右上角「···」 → 「收支明细」<br>或：余额变动模块右上角「全部 ›」</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">页面结构</span></div>
+            <ul>
+              <li>顶部 Tab：<code>现金 / 金豆 / 柚币</code>（本期仅"现金" Tab 上线，其余 Tab 提示「暂未开通」）</li>
+              <li>分组头：「本月」（后续可扩展按月份分组）</li>
+              <li>列表项规则参考 §5「单条信息区」表格</li>
+            </ul>
+          </div>
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">点击行为</span></div>
+            <ul>
+              <li><b>点击提现条目</b> → 弹出底部半弹窗，展示该笔提现详情（结构 = §3 提现申请成功弹窗 / §4 进度模块）：
+                <ul>
+                  <li>处理中 → 显示基础信息 + 3 节点进度（节点 2 进行中）</li>
+                  <li>成功 → 显示基础信息 + 3 节点全完成</li>
+                  <li>失败 → 显示基础信息 + 失败原因 + 「管理收款账户」</li>
+                </ul>
+              </li>
+              <li><b>点击返现订单条目</b> → 跳转对应订单详情页</li>
+              <li><b>点击活动/红包条目</b> → 暂跳转活动详情页（评审待定）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. 账户绑定 -->
+    <section class="section" id="sec-7">
+      <div class="sec-hd"><span class="sec-num">7</span><span class="sec-t">账户绑定流程</span><span class="sec-tag added">演示补充 · PRD 未细化</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-page="bind" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">入口：钱包页收款账号入口（未绑定时）</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">页面结构</span></div>
+            <ul>
+              <li>渠道选择：支付宝 / 微信（互斥单选）</li>
+              <li>账号输入：根据所选渠道，要求输入对应绑定手机号</li>
+              <li>提示文案：<code>请确保{渠道}账号已完成实名认证，且姓名与美柚实名一致。</code></li>
+              <li>「下一步」按钮：输入达到 11 位后激活 → 弹出二次确认弹窗 → 确认后回钱包页并 Toast「绑定成功」</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. 收款账号详情 -->
+    <section class="section" id="sec-8">
+      <div class="sec-hd"><span class="sec-num">8</span><span class="sec-t">收款账号详情页</span><span class="sec-tag added">演示补充 · PRD 仅引用入口</span></div>
+      <div class="sec-body">
+        <div class="phone-wrap">
+          <iframe class="phone-frame" data-page="account" src="钱包提现流程Demo.html"></iframe>
+          <div class="phone-cap">入口：钱包页收款账号入口 / 失败原因「管理收款账户」 / 消息通知「核查收款账号」</div>
+        </div>
+        <div class="notes">
+          <div class="note-blk">
+            <div class="note-hd"><span class="note-badge badge-rule">页面元素</span></div>
+            <ul>
+              <li>当前绑定账号信息（脱敏展示）</li>
+              <li>「更换收款账号」入口 → 进入绑定流程（§7）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. 埋点 -->
+    <section class="section" id="sec-9">
+      <div class="sec-hd"><span class="sec-num">9</span><span class="sec-t">数据埋点需求</span><span class="sec-tag">PRD §4.5</span></div>
+      <div class="full-card">
+        <table class="kv-table">
+          <thead><tr><th>页面</th><th>模块</th><th>曝光</th><th>点击</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3">钱包页</td><td>提现操作模块</td><td>✔（按模块上报）</td><td>① 「提现」按钮　② 「全部提现」按钮</td></tr>
+            <tr><td>提现进度模块</td><td>按提现状态分别上报曝光</td><td>① 「详情」点击　② 关闭键点击</td></tr>
+            <tr><td>余额变动模块</td><td>✘（不上报曝光）</td><td>「全部」入口点击</td></tr>
+          </tbody>
+        </table>
+        <div class="callout">⚠ <b>数据分析师负责</b>：详细埋点字段、参数定义在 TAPD 单独维护。本表仅同步范围。</div>
+      </div>
+    </section>
+
+    <div style="text-align:center;color:#999;font-size:11px;margin-top:24px;">
+      — 本页面仅供需求评审同步使用 · 原型操作请打开 <code>钱包提现流程Demo.html</code> 体验完整链路 —
+    </div>
+  </main>
+</div>
+
+<script>
+// 给每个 iframe 注入初始状态：onload 后调用 demo 内置的全局函数
+document.querySelectorAll('iframe.phone-frame').forEach(function(iframe) {
+  iframe.addEventListener('load', function() {
+    try {
+      var win = iframe.contentWindow;
+      var doc = iframe.contentDocument;
+      if (!win || !doc) return;
+
+      // 隐藏 demo 左侧控制面板，让 iframe 只剩手机壳
+      var ctrl = doc.querySelector('.ctrl');
+      if (ctrl) ctrl.style.display = 'none';
+      doc.body.style.padding = '16px';
+      doc.body.style.justifyContent = 'center';
+      doc.body.style.background = 'transparent';
+
+      // 等 demo 内的 S 对象就绪后再设置
+      var apply = function() {
+        if (!win.S || !win.setScene) { return setTimeout(apply, 50); }
+
+        var page = iframe.dataset.page;
+        var scene = iframe.dataset.scene;
+        var channel = iframe.dataset.channel;
+        var bound = iframe.dataset.bound;
+        var amount = iframe.dataset.amount;
+        var axis = iframe.dataset.axis;
+        var fail = iframe.dataset.fail;
+        var tab = iframe.dataset.tab;
+        var overlay = iframe.dataset.overlay;
+
+        if (channel) {
+          win.S.channel = channel;
+          if (win.setChannel) win.setChannel(channel);
+        }
+        if (bound === 'false') {
+          win.S.bound = false;
+        }
+        if (scene) {
+          win.setScene(scene);
+        }
+        if (axis === 'open') { win.S.axisOpen = true; }
+        if (axis === 'closed') { win.S.axisOpen = false; }
+        if (fail && win.setFail) { win.S.failReason = fail; win.setFail(fail); }
+        if (amount) {
+          win.S.amount = amount;
+          if (win.updateWithdrawUI) win.updateWithdrawUI();
+        }
+        if (tab && win.setDetailTab) {
+          win.setDetailTab(tab);
+        }
+        if (page) {
+          win.showPage(page);
+        }
+        if (overlay === 'apply') {
+          win.D.withdrawAmt = 10;
+          win.S.pendingScene = 'processing';
+          if (win.setWithdrawTimes) win.setWithdrawTimes();
+          if (win.showApplySuccessSheet) win.showApplySuccessSheet();
+        }
+        if (win.renderAll) win.renderAll();
+      };
+      apply();
+    } catch (e) {
+      // 跨域/file 限制下不操作
+      console.warn('iframe init blocked:', e);
+    }
+  });
+});
+</script>
+</body>
+</html>

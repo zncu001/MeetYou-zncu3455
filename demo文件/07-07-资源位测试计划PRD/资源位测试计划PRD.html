@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>资源位测试计划 · 需求方案</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f6f8; --surface: #fff; --text: #1a1a2e;
+      --text2: #5c5c7a; --border: #e8eaef; --brand: #4f46e5;
+      --brand-light: #eef2ff; --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 14px; }
+    header { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; padding: 36px 24px; text-align: center; }
+    header h1 { font-size: 22px; margin-bottom: 6px; }
+    header p { font-size: 13px; opacity: .88; }
+    nav { position: sticky; top: 0; z-index: 99; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; box-shadow: var(--shadow); }
+    nav a { font-size: 12px; color: var(--brand); text-decoration: none; padding: 5px 12px; border-radius: 16px; background: var(--brand-light); }
+    main { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+    section { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
+    .head { padding: 18px 24px 10px; border-bottom: 1px solid var(--border); }
+    .head h2 { font-size: 17px; margin-bottom: 4px; }
+    .head .tag { font-size: 11px; color: var(--text2); background: #f3f4f6; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+    .head p { font-size: 13px; color: var(--text2); margin-top: 6px; }
+    .body { padding: 20px 24px 28px; }
+    .body h3 { font-size: 15px; margin: 20px 0 10px; color: var(--brand); }
+    .body h3:first-child { margin-top: 0; }
+    .body p, .body li { color: #333; }
+    .body ul { padding-left: 20px; margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; vertical-align: top; }
+    th { background: #f8f9fb; font-weight: 600; width: 22%; }
+    .diagram { padding: 16px 12px 24px; overflow-x: auto; display: flex; justify-content: center; }
+    .note { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; font-size: 13px; color: #78350f; margin: 12px 0; border-radius: 0 6px 6px 0; }
+    footer { text-align: center; font-size: 12px; color: var(--text2); padding: 16px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>3. 需求方案 · 资源位测试计划</h1>
+  <p>灵感后台 · 解耦测试计划与线上定向信息</p>
+</header>
+
+<nav>
+  <a href="#s31">3.1 名词定义</a>
+  <a href="#s32">3.2 E-R 图</a>
+  <a href="#s33">3.3 产品结构图</a>
+  <a href="#s34">3.4 产品流程图</a>
+</nav>
+
+<main>
+
+<!-- 3.1 -->
+<section id="s31">
+  <div class="head">
+    <h2>3.1 名词定义 <span class="tag">非必填</span></h2>
+    <p>本需求新增名词的统一口径说明</p>
+  </div>
+  <div class="body">
+    <table>
+      <tr><th>名词</th><th>定义</th></tr>
+      <tr>
+        <td><strong>测试计划</strong></td>
+        <td>挂载在某一资源位下的独立验证任务。包含测试 UID 白名单、测试时间段、测试素材等配置。与线上定向信息解耦，用于运营在上线前验证资源位展示效果。</td>
+      </tr>
+      <tr>
+        <td><strong>测试 UID 白名单</strong></td>
+        <td>测试计划中指定的用户 ID 列表。仅白名单内的用户在计划有效时段内可看到测试素材，用于精准圈定测试人群。</td>
+      </tr>
+      <tr>
+        <td><strong>测试时间段</strong></td>
+        <td>测试计划的生效时间窗口。支持预设（10 分钟、24 小时）或自定义起止时间。超出时段后计划自动失效，不再参与匹配。</td>
+      </tr>
+      <tr>
+        <td><strong>测试素材</strong></td>
+        <td>测试计划绑定的展示内容（图片、文案、跳转等）。命中测试计划的用户看到测试素材，而非资源位当前线上素材。</td>
+      </tr>
+      <tr>
+        <td><strong>线上定向信息</strong></td>
+        <td>资源位正式投放的定向规则集合，包括人群包、排除包、定制人群、实验分组、上下线状态、平台版本等。仅对<strong>未命中任何测试计划</strong>的用户生效。</td>
+      </tr>
+      <tr>
+        <td><strong>P0 匹配（测试计划层）</strong></td>
+        <td>服务端资源位匹配的第一优先级。用户 UID 在某条「进行中」测试计划的白名单内，且当前时间在计划时段内，则命中并返回测试素材，<strong>跳过后续全部线上规则</strong>。</td>
+      </tr>
+      <tr>
+        <td><strong>P1 匹配（线上定向层）</strong></td>
+        <td>服务端资源位匹配的第二优先级。仅当用户未命中任何有效测试计划时触发，按现有线上定向规则判断是否展示及展示内容。</td>
+      </tr>
+      <tr>
+        <td><strong>精准隔离</strong></td>
+        <td>测试计划命中后，无视人群包、实验、上下线、版本等全部线上定向规则，确保测试 UID 在有效时段内一定能看到测试素材，测试结果可预期、可复现。</td>
+      </tr>
+      <tr>
+        <td><strong>计划状态</strong></td>
+        <td>测试计划的生命周期状态：待生效（未到开始时间）、进行中（参与 P0 匹配）、已结束（到达结束时间自动退出）、已手动终止（运营主动停止）、已删除（未开始前删除）。</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- 3.2 -->
+<section id="s32">
+  <div class="head">
+    <h2>3.2 E-R 图 <span class="tag">非必填</span></h2>
+    <p>新增实体、属性及实体间关系</p>
+  </div>
+  <div class="diagram">
+    <pre class="mermaid">
+erDiagram
+    资源位 ||--o{ 测试计划 : "拥有"
+    资源位 ||--|| 线上定向信息 : "配置"
+    测试计划 ||--|{ 测试UID : "包含"
+    测试计划 ||--|| 测试素材 : "绑定"
+    测试计划 ||--|| 测试时间段 : "设定"
+    用户 ||--o{ 测试UID : "对应"
+    用户 ||--o{ 资源位请求 : "发起"
+    资源位请求 }o--|| 资源位 : "针对"
+    资源位请求 ||--o| 测试计划 : "P0命中"
+    资源位请求 ||--o| 线上定向信息 : "P1命中"
+
+    资源位 {
+        int 资源位ID PK
+        string 资源位名称
+        string 默认素材
+        int 上下线状态
+    }
+
+    测试计划 {
+        int 计划ID PK
+        int 资源位ID FK
+        string 计划名称
+        string 备注
+        enum 计划状态
+        datetime 创建时间
+        string 创建人
+    }
+
+    测试UID {
+        int UID PK
+        int 计划ID FK
+    }
+
+    测试时间段 {
+        int 计划ID FK
+        datetime 开始时间
+        datetime 结束时间
+        enum 预设类型
+    }
+
+    测试素材 {
+        int 计划ID FK
+        string 图片URL
+        string 文案
+        string 跳转链接
+    }
+
+    线上定向信息 {
+        int 资源位ID FK
+        string 人群包
+        string 排除包
+        string 实验分组
+        string 平台版本
+    }
+
+    用户 {
+        int UID PK
+    }
+
+    资源位请求 {
+        int UID FK
+        int 资源位ID FK
+        datetime 请求时间
+        enum 命中层级
+    }
+    </pre>
+  </div>
+  <div class="body">
+    <h3>关系说明</h3>
+    <table>
+      <tr><th>关系</th><th>基数</th><th>说明</th></tr>
+      <tr><td>资源位 — 测试计划</td><td>1 : N</td><td>一个资源位可挂载多条测试计划，支持多人并行测试</td></tr>
+      <tr><td>资源位 — 线上定向信息</td><td>1 : 1</td><td>每个资源位对应一套线上正式投放规则</td></tr>
+      <tr><td>测试计划 — 测试 UID</td><td>1 : N</td><td>一条计划可指定多个测试 UID</td></tr>
+      <tr><td>测试计划 — 测试素材</td><td>1 : 1</td><td>每条计划绑定一套独立测试素材</td></tr>
+      <tr><td>用户 — 资源位请求 — 测试计划</td><td>M : N</td><td>用户请求时，可能命中 0 或 1 条测试计划（P0）</td></tr>
+      <tr><td>用户 — 资源位请求 — 线上定向</td><td>M : 1</td><td>未命中测试计划时，走线上定向匹配（P1）</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 3.3 -->
+<section id="s33">
+  <div class="head">
+    <h2>3.3 产品结构图 <span class="tag">10%</span></h2>
+    <p>系统模块与功能结构（脑图）</p>
+  </div>
+  <div class="diagram">
+    <pre class="mermaid">
+mindmap
+  root((灵感后台))
+    资源位管理
+      资源位列表
+      资源位编辑
+        基础信息配置
+        线上定向信息配置
+        测试计划管理
+          测试计划列表
+          新增测试计划
+          编辑测试计划
+          终止测试计划
+          删除测试计划
+      资源位上下线
+    测试计划能力
+      测试 UID 白名单
+      测试时间段
+        预设10分钟
+        预设24小时
+        自定义时段
+      测试素材配置
+      计划状态管理
+        待生效
+        进行中
+        已结束
+        已手动终止
+    服务端匹配
+      P0 测试计划匹配
+      P1 线上定向匹配
+      计划自动过期
+    用户端展示
+      测试用户看到测试素材
+      普通用户看到线上素材
+    </pre>
+  </div>
+  <div class="body">
+    <h3>模块说明</h3>
+    <table>
+      <tr><th>模块</th><th>功能</th><th>说明</th></tr>
+      <tr>
+        <td>资源位编辑 · 测试计划管理</td>
+        <td>列表 / 新增 / 编辑 / 终止 / 删除</td>
+        <td>运营在资源位编辑页内管理测试计划，与线上定向信息并列展示、独立配置</td>
+      </tr>
+      <tr>
+        <td>测试计划能力</td>
+        <td>UID 白名单 / 时段 / 素材 / 状态</td>
+        <td>本需求核心新增能力，支撑可预期、可隔离的测试验证</td>
+      </tr>
+      <tr>
+        <td>服务端匹配</td>
+        <td>P0 优先 / P1 兜底 / 自动过期</td>
+        <td>请求链路改造：先匹配测试计划，未命中再走线上规则</td>
+      </tr>
+      <tr>
+        <td>用户端展示</td>
+        <td>差异化返回素材</td>
+        <td>测试用户与普通用户看到不同内容，互不影响</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- 3.4 -->
+<section id="s34">
+  <div class="head">
+    <h2>3.4 产品流程图 <span class="tag">10%</span></h2>
+    <p>多角色泳道图：运营、后台、服务端、用户</p>
+  </div>
+  <div class="body">
+    <h3>流程一：运营配置测试计划</h3>
+  </div>
+  <div class="diagram">
+    <pre class="mermaid">
+%%{init: {'themeVariables': {'fontSize': '13px'}}}%%
+flowchart TB
+    subgraph L1["运营"]
+        A1["进入资源位编辑页"]
+        A2["配置线上定向信息"]
+        A3["点击「新增测试计划」"]
+        A4["填写 UID / 时段 / 素材"]
+        A5["保存"]
+        A6["查看计划状态"]
+    end
+    subgraph L2["运营后台"]
+        B1["展示资源位编辑表单"]
+        B2["校验测试计划字段"]
+        B3["保存资源位 + 测试计划"]
+        B4["展示计划列表及状态"]
+    end
+    subgraph L3["服务端"]
+        C1["接收配置同步"]
+        C2["存储测试计划数据"]
+    end
+    A1 --> B1 --> A2 --> A3 --> A4 --> A5
+    A5 --> B2 --> B3 --> C1 --> C2
+    C2 --> B4 --> A6
+    </pre>
+  </div>
+
+  <div class="body">
+    <h3>流程二：用户请求资源位（核心匹配）</h3>
+  </div>
+  <div class="diagram">
+    <pre class="mermaid">
+%%{init: {'themeVariables': {'fontSize': '12px'}}}%%
+flowchart TB
+    subgraph U["用户端"]
+        U1["用户打开 App<br/>触发资源位请求"]
+        U2["展示资源位内容"]
+        U3["不展示资源位"]
+    end
+    subgraph S["服务端"]
+        S1["接收资源位请求"]
+        S2["获取用户 UID"]
+        S3["加载进行中测试计划"]
+        S4{"UID 在白名单<br/>且时段有效?"}
+        S5["返回测试素材"]
+        S6["走线上定向匹配"]
+        S7{"命中线上规则?"}
+        S8["返回线上素材"]
+    end
+    U1 --> S1 --> S2 --> S3 --> S4
+    S4 -->|"是 · P0 命中"| S5 --> U2
+    S4 -->|"否"| S6 --> S7
+    S7 -->|"是 · P1 命中"| S8 --> U2
+    S7 -->|"否"| U3
+    </pre>
+  </div>
+
+  <div class="body">
+    <h3>流程三：测试计划生命周期</h3>
+  </div>
+  <div class="diagram">
+    <pre class="mermaid">
+%%{init: {'themeVariables': {'fontSize': '13px'}}}%%
+flowchart LR
+    subgraph OP["运营"]
+        O1["创建测试计划"]
+        O2["可选：手动终止"]
+    end
+    subgraph SYS["系统"]
+        T1["待生效"]
+        T2["进行中"]
+        T3["已结束"]
+        T4["已手动终止"]
+    end
+    O1 --> T1
+    T1 -->|"到达开始时间"| T2
+    T2 -->|"到达结束时间"| T3
+    T2 --> O2 --> T4
+    </pre>
+  </div>
+
+  <div class="body">
+    <h3>业务规则摘要</h3>
+    <table>
+      <tr><th>环节</th><th>规则</th></tr>
+      <tr><td>配置</td><td>测试 UID 不再写入「定向信息 → 测试账号」，统一通过测试计划管理</td></tr>
+      <tr><td>匹配优先级</td><td>P0 测试计划 > P1 线上定向；P0 命中后短路全部线上规则</td></tr>
+      <tr><td>并行测试</td><td>同一资源位可挂多条计划，通过 UID 白名单隔离，互不干扰</td></tr>
+      <tr><td>线上安全</td><td>非测试 UID 永远不走测试素材，仅走 P1 线上规则</td></tr>
+      <tr><td>时效</td><td>计划到期自动「已结束」，测试 UID 回归线上规则，无需运营手动干预</td></tr>
+    </table>
+    <div class="note">流程图仅画到业务层面：运营配置 → 后台保存 → 服务端匹配 → 用户看到结果。不涉及接口协议、缓存、数据库等技术细节。</div>
+  </div>
+</section>
+
+</main>
+
+<footer>资源位测试计划 · 需求方案 · 2026-07-07</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#eef2ff', primaryTextColor: '#1a1a2e',
+      primaryBorderColor: '#4f46e5', lineColor: '#6366f1',
+      fontFamily: '-apple-system, PingFang SC, sans-serif'
+    },
+    flowchart: { curve: 'linear', htmlLabels: true, useMaxWidth: true },
+    er: { useMaxWidth: true },
+    mindmap: { useMaxWidth: true }
+  });
+</script>
+</body>
+</html>

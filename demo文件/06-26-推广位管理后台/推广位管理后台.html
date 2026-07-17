@@ -1,0 +1,2718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>灵感管理后台 · 推广位管理</title>
+<style>
+  :root {
+    --side-bg: #2f3a4a;
+    --side-bg-2: #2a3340;
+    --side-text: #c8cdd6;
+    --side-text-dim: #9ba3b0;
+    --pink: #ff6c91;
+    --pink-dark: #ff5a82;
+    --pink-grad: linear-gradient(180deg, #ff8aa9 0%, #ff6c91 100%);
+    --green-grad: linear-gradient(180deg, #5bd49a 0%, #37c787 100%);
+    --text: #303133;
+    --text-2: #606266;
+    --text-3: #909399;
+    --text-4: #c0c4cc;
+    --line: #e4e7ed;
+    --line-2: #ebeef5;
+    --bg: #f0f2f5;
+    --radius: 4px;
+    --warn: #e6a23c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .app { display: flex; height: 100vh; }
+
+  /* 侧边栏 */
+  .sidebar {
+    width: 210px;
+    background: linear-gradient(180deg, var(--side-bg), var(--side-bg-2));
+    color: var(--side-text);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .brand {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    background: linear-gradient(135deg, #ff8aa9, #ff6c91);
+    flex-shrink: 0;
+  }
+  .brand .logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0 20px;
+  }
+  .nav::-webkit-scrollbar { width: 4px; }
+  .nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
+  .nav-item {
+    height: 40px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    position: relative;
+    color: var(--side-text);
+    user-select: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.04); color: #fff; }
+  .nav-item.open { color: #fff; }
+  .nav-item .ico {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    flex-shrink: 0;
+    opacity: .85;
+  }
+  .nav-item .ico svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .nav-item .caret { margin-left: auto; color: var(--side-text-dim); font-size: 10px; }
+  .nav-sub { background: rgba(0,0,0,.15); }
+  .nav-sub .nav-item {
+    padding-left: 44px;
+    height: 38px;
+    font-size: 13px;
+  }
+  .nav-sub .nav-sub .nav-item { padding-left: 58px; height: 36px; font-size: 12px; }
+  .nav-item.active {
+    background: var(--pink);
+    color: #fff;
+    font-weight: 500;
+  }
+  .nav-item.active::before { display: none; }
+
+  /* 主区域 */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  .topbar {
+    height: 50px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .burger { font-size: 18px; color: var(--text-2); cursor: pointer; line-height: 1; }
+  .crumb { font-size: 13px; color: var(--text-3); }
+  .crumb b { color: var(--text); font-weight: 500; }
+  .avatar {
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffc1cf, #ff8aa9);
+    border: 2px solid #ffd5e0;
+    flex-shrink: 0;
+  }
+
+  /* 页签 */
+  .page-tabs {
+    display: flex;
+    align-items: flex-end;
+    padding: 0 16px;
+    background: #f5f7fa;
+    border-bottom: 1px solid var(--line);
+    min-height: 38px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .page-tab {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+    background: transparent;
+    user-select: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .page-tab.active {
+    color: #fff;
+    background: var(--pink);
+    border-color: var(--pink);
+    border-radius: 4px 4px 0 0;
+    font-weight: 500;
+  }
+  .page-tab .x { color: rgba(255,255,255,.7); font-size: 12px; margin-left: 2px; }
+  .page-tab:not(.active) .x { color: var(--text-4); }
+  .page-tab:not(.active) .x:hover { color: #f56c6c; }
+
+  .body {
+    flex: 1;
+    padding: 14px 16px 20px;
+    overflow: auto;
+    background: var(--bg);
+  }
+
+  /* 筛选区 */
+  .filter-card {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    padding: 14px 16px 10px;
+    margin-bottom: 12px;
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-item label {
+    color: var(--text-2);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .input, .select {
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0 11px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+    color: var(--text);
+  }
+  .input::placeholder { color: var(--text-4); }
+  .input:focus, .select:focus { border-color: var(--pink); }
+  .input { width: 160px; }
+  .input.w180 { width: 180px; }
+  .input.w140 { width: 140px; }
+  .select {
+    width: 160px;
+    appearance: none;
+    background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%23999' fill='none' stroke-width='1.4'/></svg>") no-repeat right 10px center;
+    padding-right: 28px;
+    cursor: pointer;
+    color: var(--text-2);
+  }
+  .select.placeholder { color: var(--text-4); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 32px;
+    padding: 0 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--pink-grad);
+    border: none;
+    color: #fff;
+  }
+  .btn-green {
+    background: var(--green-grad);
+    border: none;
+    color: #fff;
+  }
+  .btn-link {
+    background: transparent;
+    border: none;
+    padding: 0 8px;
+    height: auto;
+    color: var(--text-2);
+    margin-left: auto;
+  }
+  .btn-link:hover { color: var(--pink); }
+
+  /* 表格 */
+  .table-card {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .tbl-wrap { overflow-x: auto; }
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 1480px;
+  }
+  .tbl th {
+    background: #fafbfc;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: center;
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--line-2);
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  .tbl td {
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--line-2);
+    text-align: center;
+    color: var(--text-2);
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .tbl tr:hover td { background: #fafcff; }
+  .tbl .pid-val {
+    color: var(--pink);
+    font-size: 12px;
+    word-break: break-all;
+    text-align: left;
+    padding-left: 10px;
+  }
+  .tbl .ops {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .tbl .ops a {
+    color: var(--pink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .tbl .ops a:hover { text-decoration: underline; }
+  .tbl .biz-module {
+    text-align: left;
+    padding-left: 8px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 视图切换 */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* 表单页 */
+  .form-card {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    padding: 24px 0 32px;
+  }
+  .form-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 0;
+    min-height: 42px;
+  }
+  .form-label {
+    width: 168px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 7px;
+    padding-right: 12px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .form-label .req { color: #f56c6c; margin-right: 2px; }
+  .form-ctrl {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 520px;
+  }
+  .form-ctrl .input,
+  .form-ctrl .select { width: 360px; max-width: 100%; }
+  .form-ctrl-inline {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .textarea {
+    width: 360px;
+    max-width: 100%;
+    height: 72px;
+    padding: 8px 11px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    resize: vertical;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    color: var(--text);
+  }
+  .textarea:focus { border-color: var(--pink); }
+  .textarea::placeholder { color: var(--text-4); }
+  .char-count {
+    text-align: right;
+    color: var(--text-4);
+    font-size: 12px;
+    width: 360px;
+    max-width: 100%;
+  }
+  .radios {
+    display: flex;
+    gap: 20px;
+    padding-top: 6px;
+  }
+  .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .radio input { accent-color: var(--pink); }
+  .qmark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--pink);
+    color: #fff;
+    font-size: 10px;
+    cursor: help;
+    flex-shrink: 0;
+  }
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px 0 8px;
+  }
+  .btn-save {
+    background: var(--green-grad);
+    border: none;
+    color: #fff;
+    height: 34px;
+    padding: 0 28px;
+    border-radius: 17px;
+  }
+  .btn-cancel {
+    background: linear-gradient(180deg, #ffb1c4, #ff8aa9);
+    border: none;
+    color: #fff;
+    height: 34px;
+    padding: 0 28px;
+    border-radius: 17px;
+  }
+  .hidden { display: none !important; }
+  .promo-val-ctrl { gap: 8px; }
+  .promo-val-row {
+    display: flex;
+    align-items: stretch;
+    width: 360px;
+    max-width: 100%;
+  }
+  .promo-val-row .input {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+  .promo-val-row.has-gen .input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .promo-val-row.has-gen .input:focus {
+    position: relative;
+    z-index: 1;
+  }
+  .btn-gen {
+    background: var(--pink-grad);
+    border: none;
+    color: #fff;
+    height: 32px;
+    padding: 0 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .promo-val-row.has-gen .btn-gen {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px;
+  }
+  .btn-gen:disabled { opacity: .65; cursor: not-allowed; }
+  .promo-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 360px;
+    max-width: 100%;
+    padding: 8px 12px;
+    background: #fdf6ec;
+    border: 1px solid #faecd8;
+    border-radius: var(--radius);
+    color: #b88230;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .promo-hint-icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: #e6a23c;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* 业务模块管理 v2 */
+  .module-workspace {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 12px;
+    min-height: 420px;
+    margin-bottom: 12px;
+  }
+  .module-panel {
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+    overflow: hidden;
+  }
+  .module-panel-hd {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line-2);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .module-panel-hd .sub { font-size: 12px; font-weight: 400; color: var(--text-3); margin-left: auto; }
+  .module-panel-hd.flat { border-bottom: 1px solid var(--line-2); }
+  .module-list-breadcrumb {
+    padding: 8px 14px 10px;
+    border-bottom: 1px solid var(--line-2);
+    font-size: 13px;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .module-list-breadcrumb a {
+    color: var(--pink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .module-list-breadcrumb a:hover { text-decoration: underline; }
+  .module-list-breadcrumb .sep { color: var(--text-4); margin: 0 2px; }
+  .module-list-breadcrumb .current { color: var(--text); font-weight: 500; }
+  .link-btn { font-size: 12px; color: var(--pink); cursor: pointer; font-weight: 400; }
+  .link-btn:hover { text-decoration: underline; }
+  .tree-search-input {
+    margin: 10px 12px 6px;
+    width: calc(100% - 24px);
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0 10px;
+    font-size: 13px;
+    outline: none;
+  }
+  .tree-search-input:focus { border-color: var(--pink); }
+  .module-tree-body { flex: 1; overflow: auto; padding: 4px 0 12px; }
+  .tree-node-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px 7px 0;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+    position: relative;
+  }
+  .tree-node-item:hover { background: #fafcff; }
+  .tree-node-item.on { background: #ffe7ee; color: var(--pink); }
+  .tree-node-item .toggle {
+    width: 16px; flex-shrink: 0; text-align: center;
+    font-size: 10px; color: var(--text-4); cursor: pointer;
+  }
+  .tree-node-item .toggle.empty { visibility: hidden; }
+  .tree-node-item .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .module-detail-empty {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 13px; padding: 40px 20px; text-align: center;
+  }
+  .module-detail-empty .ico { font-size: 36px; margin-bottom: 12px; opacity: .35; }
+  .module-detail-empty .sub { font-size: 12px; margin-top: 6px; color: var(--text-4); }
+  .module-detail-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .module-detail-hd {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line-2);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .path-crumb { font-size: 13px; color: var(--text-2); line-height: 1.6; word-break: break-all; }
+  .path-crumb b { color: var(--text); }
+  .detail-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .detail-kv-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 16px;
+    padding: 14px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .kv-item .k { font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
+  .kv-item .v { font-size: 13px; color: var(--text); }
+  .sub-module-section { flex: 1; overflow: auto; padding: 0 0 12px; }
+  .sub-module-hd {
+    padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--text);
+    background: #fafbfc; border-bottom: 1px solid var(--line-2);
+  }
+  .child-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .child-tbl th, .child-tbl td {
+    padding: 10px 12px; border-bottom: 1px solid var(--line-2);
+    text-align: left; color: var(--text-2);
+  }
+  .child-tbl th { background: #fff; color: var(--text-3); font-weight: 500; font-size: 12px; }
+  .child-tbl tr:hover td { background: #fafcff; }
+  .child-tbl .ops a { color: var(--pink); margin-right: 10px; cursor: pointer; text-decoration: none; }
+  .module-tbl {
+    min-width: 100%;
+    table-layout: fixed;
+  }
+  .module-tbl th,
+  .module-tbl td {
+    padding: 12px 14px;
+    vertical-align: middle;
+  }
+  .module-tbl th.col-left,
+  .module-tbl td.col-left { text-align: left; }
+  .module-tbl th.col-center,
+  .module-tbl td.col-center { text-align: center; }
+  .module-tbl .col-id { width: 64px; }
+  .module-tbl .col-biz { width: 112px; }
+  .module-tbl .col-name { width: auto; }
+  .module-tbl .col-level { width: 72px; }
+  .module-tbl .col-status { width: 88px; }
+  .module-tbl .col-remark { width: 140px; }
+  .module-tbl .col-ctime { width: 156px; }
+  .module-tbl .col-creator { width: 72px; }
+  .module-tbl .col-utime { width: 156px; }
+  .module-tbl .col-updater { width: 72px; }
+  .module-tbl .col-ops { width: 240px; }
+  .module-tbl .name-cell {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .module-tbl .biz-cell {
+    text-align: left;
+    color: var(--text-2);
+  }
+  .module-tbl .time-cell {
+    text-align: left;
+    color: var(--text-3);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .module-tbl .ops {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  .module-tbl .remark-cell {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-3);
+    font-size: 12px;
+  }
+  .lv-badge {
+    display: inline-block; min-width: 22px; padding: 0 5px; height: 18px;
+    line-height: 18px; text-align: center; border-radius: 2px;
+    font-size: 10px; font-weight: 600; flex-shrink: 0;
+  }
+  .lv-1 { background: #ffe7ee; color: #e91e63; }
+  .lv-2 { background: #e8f4ff; color: #409eff; }
+  .lv-3 { background: #eef9f0; color: #37c787; }
+  .lv-4 { background: #fdf6ec; color: #e6a23c; }
+  .lv-5 { background: #f4f4f5; color: #909399; }
+  .badge-expired {
+    display: inline-block; padding: 1px 6px; background: #fdf6ec;
+    color: var(--warn); border: 1px solid #faecd8; border-radius: 2px; font-size: 11px;
+  }
+  .badge-on {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #eef9f0;
+    color: #37c787;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+  .badge-off {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f4f4f5;
+    color: #909399;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+  .screenshot-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 2px;
+    background: #f5f7fa;
+    border: 1px solid var(--line);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-4);
+    cursor: pointer;
+  }
+  .screenshot-thumb.has-img {
+    background: linear-gradient(135deg, #ffe7ee, #e8f4ff);
+    color: var(--pink);
+    font-size: 11px;
+  }
+  .pager {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+  .pager .pbtn {
+    min-width: 28px;
+    height: 28px;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .pager .pbtn.on {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: #fff;
+  }
+  .form-help {
+    color: var(--text-3);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 4px;
+    width: 600px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,.15);
+  }
+  .modal-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-2);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+  }
+  .modal-close { cursor: pointer; color: var(--text-3); font-size: 20px; line-height: 1; }
+  .modal-body { padding: 6px 18px 18px; }
+  .mf-screenshot-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .mf-screenshot-preview {
+    width: 120px;
+    height: 80px;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    background: #fafbfc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--text-4);
+  }
+  .mf-screenshot-preview.has-img {
+    background: linear-gradient(135deg, #ffe7ee, #e8f4ff);
+    color: var(--pink);
+    border-style: solid;
+  }
+  .btn-sm { height: 28px; padding: 0 12px; font-size: 12px; }
+  .form-row .input[readonly] { background: #f5f7fa; color: var(--text-3); }
+  .form-path-bar {
+    background: #fafbfc;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .form-path-bar b { color: var(--text); }
+  .form-section-title {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    padding: 4px 0 12px; margin-top: 4px;
+    border-bottom: 1px solid var(--line-2);
+    margin-bottom: 4px;
+  }
+  .level-steps-form {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  }
+  .level-step-form {
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 2px;
+    font-size: 12px; color: var(--text-3); background: #fafbfc;
+  }
+  .level-step-form.on { border-color: var(--pink); background: #ffe7ee; color: var(--pink); font-weight: 600; }
+  .toast {
+    position: fixed; top: 56px; left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: #303133; color: #fff; padding: 10px 18px;
+    border-radius: 4px; font-size: 13px; opacity: 0;
+    pointer-events: none; transition: all .25s; z-index: 200;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .modal.modal-wide { width: 860px; }
+  .modal-foot {
+    padding: 12px 18px;
+    border-top: 1px solid var(--line-2);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .picker-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    flex-wrap: wrap;
+  }
+  .picker-toolbar .input { width: 220px; }
+  .picker-tip { font-size: 12px; color: var(--text-4); }
+  .picker-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .picker-tbl th {
+    background: #fafbfc;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line-2);
+    white-space: nowrap;
+  }
+  .picker-tbl td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--text-2);
+    vertical-align: middle;
+  }
+  .picker-tbl tr { cursor: pointer; }
+  .picker-tbl tr:hover td { background: #fafcff; }
+  .picker-tbl tr.on td { background: #fff0f5; }
+  .picker-tbl .path-cell {
+    color: var(--text);
+    font-weight: 500;
+    max-width: 280px;
+    word-break: break-word;
+  }
+  .picker-tbl .remark-cell {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-3);
+    font-size: 12px;
+  }
+  .picker-empty {
+    padding: 40px 12px;
+    text-align: center;
+    color: var(--text-4);
+    font-size: 13px;
+  }
+  .module-pick-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .module-pick-field .input { width: 360px; }
+  .btn-text-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-3);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn-text-link:hover { color: var(--pink); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">🌸</span>
+      <span>灵感管理后台</span>
+    </div>
+    <nav class="nav">
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/></svg></span>
+        商城管理<span class="caret">›</span>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 4v17"/><path d="M4 4h13l-2 4 2 4H4"/></svg></span>
+        推广管理<span class="caret">›</span>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span>
+        返现首页管理<span class="caret">›</span>
+      </div>
+      <div class="nav-item open">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7L12 16.8 5.7 21l2.3-7-6-4.6h7.6Z"/></svg></span>
+        功能营销管理<span class="caret">›</span>
+      </div>
+      <div class="nav-sub">
+        <div class="nav-item">信息流管理</div>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg></span>
+        搜索中间页管理<span class="caret">›</span>
+      </div>
+      <div class="nav-sub">
+        <div class="nav-item">热搜词管理</div>
+        <div class="nav-item">信息流管理</div>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></span>
+        逛逛首页管理<span class="caret">›</span>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></span>
+        打卡领补贴管理<span class="caret">›</span>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 4v17"/><path d="M4 4h13l-2 4 2 4H4"/></svg></span>
+        营销-营销页管理<span class="caret">›</span>
+      </div>
+      <div class="nav-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+        下单商品池<span class="caret">›</span>
+      </div>
+      <div class="nav-item open">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span>
+        推广位管理<span class="caret">›</span>
+      </div>
+      <div class="nav-sub" id="nav-promo-sub">
+        <div class="nav-item active" data-nav="list" id="nav-list">推广位列表</div>
+        <div class="nav-item" data-nav="module" id="nav-module">业务模块管理</div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <span class="burger">≡</span>
+      <div class="crumb" id="crumb"><b>首页</b> / 推广位管理</div>
+      <div class="avatar"></div>
+    </div>
+
+    <div class="page-tabs" id="page-tabs">
+      <div class="page-tab" data-view="add" id="tab-add">新增推广位 <span class="x">×</span></div>
+      <div class="page-tab active" data-view="list" id="tab-list">推广位管理 <span class="x">×</span></div>
+      <div class="page-tab" data-view="module" id="tab-module">业务模块管理 <span class="x">×</span></div>
+      <div class="page-tab" data-view="module-add" id="tab-module-add"><span id="tab-module-add-text">新增业务模块</span> <span class="x">×</span></div>
+      <div class="page-tab" data-view="other">功能营销管理 <span class="x">×</span></div>
+    </div>
+
+    <div class="body">
+      <!-- 列表页 -->
+      <div class="view active" id="view-list">
+        <div class="filter-card">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>业务</label>
+            <select class="select placeholder">
+              <option value="" selected>请选择APP</option>
+              <option>美柚</option>
+              <option>美柚-返现</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>商城平台</label>
+            <select class="select placeholder">
+              <option value="" selected>请选择所属商城</option>
+              <option>淘宝</option>
+              <option>京东</option>
+              <option>拼多多</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>推广位名称</label>
+            <input class="input w180" placeholder="请输入推广位名称" />
+          </div>
+          <div class="filter-item">
+            <label>推广位值</label>
+            <input class="input w180" placeholder="请输入推广位值" />
+          </div>
+          <div class="filter-item">
+            <label>业务模块</label>
+            <select class="select placeholder" style="width:200px;">
+              <option value="" selected>请选择或输入业务模块</option>
+              <option>返现首页-领现金卡片-天天秒杀-天天秒杀</option>
+              <option>日常v0活动</option>
+            </select>
+          </div>
+          <button class="btn btn-primary">🔍 搜索</button>
+          <button class="btn btn-green" id="btn-add-promo">＋ 新增推广位</button>
+          <button class="btn btn-link">导出</button>
+        </div>
+        </div>
+
+      <div class="table-card">
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>推广位值</th>
+                <th>业务</th>
+                <th>商城平台</th>
+                <th>推广位名称</th>
+                <th>业务模块</th>
+                <th>所属应用库</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+                <th>最后编辑人</th>
+                <th>最后编辑时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>12</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>逛逛天天秒杀活动</td>
+                <td class="biz-module">返现首页-领现金卡片-天天秒杀-天天秒杀</td>
+                <td>逛逛天天秒杀活动</td>
+                <td>张三</td>
+                <td>2024-04-12 18:15:07</td>
+                <td>李四</td>
+                <td>2024-05-07 12:00:17</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>逛逛日常 v0活动</td>
+                <td class="biz-module">日常v0活动</td>
+                <td>逛逛日常v0活动</td>
+                <td>张三</td>
+                <td>2024-04-12 18:07:42</td>
+                <td>张三</td>
+                <td>2024-04-12 18:07:42</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>活动123</td>
+                <td class="biz-module">活动123</td>
+                <td>活动123</td>
+                <td>李四</td>
+                <td>2024-04-12 17:58:28</td>
+                <td>李四</td>
+                <td>2024-04-12 17:58:28</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>活动页</td>
+                <td class="biz-module">活动页</td>
+                <td>活动页</td>
+                <td>李四</td>
+                <td>2024-04-12 17:23:18</td>
+                <td>李四</td>
+                <td>2024-04-12 17:23:18</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>弹窗链接</td>
+                <td class="biz-module">弹窗链接</td>
+                <td>弹窗链接</td>
+                <td>李四</td>
+                <td>2024-04-11 17:56:17</td>
+                <td>李四</td>
+                <td>2024-04-11 17:56:17</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>商品池</td>
+                <td class="biz-module">商品池</td>
+                <td>商品池</td>
+                <td>李四</td>
+                <td>2024-04-11 10:39:16</td>
+                <td>李四</td>
+                <td>2024-04-11 10:39:16</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>资源位商品池</td>
+                <td class="biz-module">资源位商品池</td>
+                <td>资源位商品池</td>
+                <td>李四</td>
+                <td>2024-04-11 10:35:48</td>
+                <td>李四</td>
+                <td>2024-04-11 10:35:48</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>app首页</td>
+                <td class="biz-module">app首页</td>
+                <td>app首页</td>
+                <td>李四</td>
+                <td>2024-04-10 11:32:28</td>
+                <td>李四</td>
+                <td>2024-04-10 11:32:28</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>上下粉丝团</td>
+                <td class="biz-module">上下粉丝团</td>
+                <td>上下粉丝团</td>
+                <td>李四</td>
+                <td>2024-04-10 11:21:44</td>
+                <td>李四</td>
+                <td>2024-04-10 11:21:44</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>弹窗</td>
+                <td class="biz-module">弹窗</td>
+                <td>弹窗</td>
+                <td>李四</td>
+                <td>2024-04-09 17:09:30</td>
+                <td>李四</td>
+                <td>2024-04-09 17:09:30</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>微信生态热门商品</td>
+                <td class="biz-module">微信生态热门商品</td>
+                <td>微信生态热门商品</td>
+                <td>李四</td>
+                <td>2024-04-09 14:40:49</td>
+                <td>李四</td>
+                <td>2024-04-09 14:40:49</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td class="pid-val">mm_151590176_58150058_116143050315</td>
+                <td>美柚</td>
+                <td>淘宝</td>
+                <td>创建推广位测试</td>
+                <td class="biz-module">创建推广位测试</td>
+                <td>创建推广位测试</td>
+                <td>张三</td>
+                <td>2024-04-08 21:21:24</td>
+                <td>李四</td>
+                <td>2024-04-08 21:29:30</td>
+                <td class="ops"><a>编辑</a><a>历史</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- 新增推广位 -->
+      <div class="view" id="view-add">
+        <div class="form-card">
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>业务</div>
+            <div class="form-ctrl">
+              <select class="select placeholder">
+                <option value="" selected>请选择APP</option>
+                <option>美柚</option>
+                <option>美柚-返现</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>商城平台</div>
+            <div class="form-ctrl">
+              <select class="select placeholder" id="mall-select">
+                <option value="" selected>请选择所属商城</option>
+                <option value="淘宝">淘宝</option>
+                <option value="京东">京东</option>
+                <option value="拼多多">拼多多</option>
+                <option value="美团官方CPS">美团官方CPS</option>
+                <option value="饿了么">饿了么</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>推广位名称</div>
+            <div class="form-ctrl">
+              <input class="input" placeholder="请输入推广位名称" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>推广位值</div>
+            <div class="form-ctrl promo-val-ctrl">
+              <div class="promo-val-row" id="promo-val-row">
+                <input class="input" placeholder="请先选择商城平台" id="promo-val-input" />
+                <button type="button" class="btn-gen hidden" id="btn-gen-promo">生成推广位</button>
+              </div>
+              <div class="promo-hint hidden" id="promo-manual-hint">
+                <span class="promo-hint-icon">!</span>
+                <span>请先去联盟后台创建推广位值，再粘贴到上方输入框</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">业务模块</div>
+            <div class="form-ctrl">
+              <div class="module-pick-field">
+                <input type="hidden" id="promo-module-id" />
+                <input class="input" id="promo-module-display" readonly placeholder="请选择业务模块" />
+                <button type="button" class="btn" id="btn-pick-promo-module">选择业务模块</button>
+                <button type="button" class="btn-text-link hidden" id="btn-clear-promo-module">清除</button>
+              </div>
+              <span class="form-help">以每条配置路径的最小颗粒度（最末级模块）作为推广位关联，仅可选已启用且未过期的末级模块</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">所属应用库</div>
+            <div class="form-ctrl">
+              <select class="select placeholder">
+                <option value="" selected>请选择所属应用库</option>
+                <option>逛逛天天秒杀活动</option>
+                <option>逛逛日常v0活动</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">备注</div>
+            <div class="form-ctrl">
+              <textarea class="textarea" placeholder="备注" maxlength="100" id="remark-input"></textarea>
+              <div class="char-count"><span id="remark-count">0</span>/100</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">强制更新</div>
+            <div class="form-ctrl form-ctrl-inline">
+              <div class="radios">
+                <label class="radio"><input type="radio" name="force" value="1" />是</label>
+                <label class="radio"><input type="radio" name="force" value="0" checked />否</label>
+              </div>
+              <span class="qmark">?</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-save">✓ 保存</button>
+            <button class="btn btn-cancel" id="btn-cancel-add">✕ 取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 业务模块管理 -->
+      <div class="view" id="view-module">
+        <div class="filter-card">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>所属业务</label>
+              <select class="select w140" id="module-biz-filter">
+                <option value="">全部</option>
+                <option selected>美柚-返现</option>
+                <option>美团-返现</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>模块记录名称</label>
+              <input class="input w180" id="module-list-search" placeholder="搜索记录名称" />
+            </div>
+            <div class="filter-item">
+              <label>层级</label>
+              <select class="select" style="width:120px;" id="level-filter"></select>
+            </div>
+            <div class="filter-item">
+              <label>状态</label>
+              <select class="select" style="width:110px;" id="module-status-filter">
+                <option value="">全部</option>
+                <option value="1">启用</option>
+                <option value="0">禁用</option>
+                <option value="expired">超期无单</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="btn-module-search">🔍 搜索</button>
+            <button class="btn" id="btn-module-reset">重置</button>
+            <button class="btn btn-green" id="btn-add-module">＋ 新增一级模块</button>
+          </div>
+        </div>
+
+        <!-- 暂时隐藏：模块导航树 + 详情面板 -->
+        <div class="module-workspace hidden" id="module-workspace">
+          <div class="module-panel">
+            <div class="module-panel-hd">
+              模块导航树
+              <span class="link-btn" id="btn-tree-expand">全部展开</span>
+              <span class="link-btn" id="btn-tree-collapse">全部收起</span>
+            </div>
+            <input class="tree-search-input" id="module-tree-search" placeholder="搜索模块名称" />
+            <div class="module-tree-body" id="module-tree-nav"></div>
+          </div>
+          <div class="module-panel">
+            <div id="module-detail-empty" class="module-detail-empty">
+              <div class="ico">🗂️</div>
+              <div>请在左侧选择模块节点</div>
+              <div class="sub">查看详情、管理下级模块，或从右侧列表快速定位</div>
+            </div>
+            <div id="module-detail-panel" class="module-detail-panel hidden">
+              <div class="module-detail-hd">
+                <div class="path-crumb" id="module-detail-path"></div>
+                <div class="detail-actions">
+                  <button type="button" class="btn btn-sm" id="btn-detail-edit">编辑</button>
+                  <button type="button" class="btn btn-sm btn-green hidden" id="btn-detail-add-child">添加子模块</button>
+                  <button type="button" class="btn btn-sm hidden" id="btn-detail-toggle-status">禁用</button>
+                </div>
+              </div>
+              <div class="detail-kv-grid" id="module-detail-kv"></div>
+              <div class="sub-module-section">
+                <div class="sub-module-hd">下级模块 <span id="child-count" style="font-weight:400;color:var(--text-3);"></span></div>
+                <table class="child-tbl">
+                  <thead>
+                    <tr>
+                      <th>模块名称</th>
+                      <th>层级</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="module-children-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="module-panel-hd flat">
+            全部模块列表
+            <span class="sub" id="module-list-sub">默认展示一级模块，点击「查看子模块」逐层下钻</span>
+          </div>
+          <div class="module-list-breadcrumb hidden" id="module-list-breadcrumb"></div>
+          <div class="tbl-wrap">
+            <table class="tbl module-tbl">
+              <colgroup>
+                <col class="col-id" />
+                <col class="col-biz" />
+                <col class="col-name" />
+                <col class="col-level" />
+                <col class="col-status" />
+                <col class="col-remark" />
+                <col class="col-ctime" />
+                <col class="col-creator" />
+                <col class="col-utime" />
+                <col class="col-updater" />
+                <col class="col-ops" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="col-center">ID</th>
+                  <th class="col-left">所属业务</th>
+                  <th class="col-left" id="module-name-col-hd">记录名称（一级模块）</th>
+                  <th class="col-center">层级</th>
+                  <th class="col-center">状态</th>
+                  <th class="col-left">备注</th>
+                  <th class="col-left">创建时间</th>
+                  <th class="col-left">创建人</th>
+                  <th class="col-left">更新时间</th>
+                  <th class="col-left">更新人</th>
+                  <th class="col-left">操作</th>
+                </tr>
+              </thead>
+              <tbody id="module-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span id="module-pager-text">共 0 条</span><span class="pbtn">‹</span><span class="pbtn on">1</span><span class="pbtn">›</span></div>
+        </div>
+      </div>
+
+      <!-- 新增/编辑业务模块 -->
+      <div class="view" id="view-module-form">
+        <div class="form-path-bar" id="mf-path-bar">配置路径：—</div>
+        <div class="form-card">
+          <div class="form-section-title">基础信息</div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>ID</div>
+            <div class="form-ctrl">
+              <input class="input" id="mf-id" readonly placeholder="保存后自动生成" />
+              <span class="form-help">唯一标识，系统自动生成，不可修改</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>所属业务</div>
+            <div class="form-ctrl">
+              <select class="select" id="mf-biz">
+                <option value="">请选择所属业务</option>
+                <option selected>美柚-返现</option>
+                <option>美团-返现</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" id="mf-parent-row">
+            <div class="form-label">上级模块</div>
+            <div class="form-ctrl">
+              <input class="input" id="mf-parent" readonly placeholder="一级模块无上级" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>当前层级</div>
+            <div class="form-ctrl">
+              <input class="input" id="mf-level" readonly />
+              <div class="level-steps-form" id="mf-level-steps"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>模块名称</div>
+            <div class="form-ctrl">
+              <input class="input" id="mf-name" placeholder="请输入当前层级模块名称" />
+              <span class="form-help">保存后将自动拼接为完整模块路径，供推广位配置使用</span>
+            </div>
+          </div>
+
+          <div class="form-section-title">展示与状态</div>
+          <div class="form-row">
+            <div class="form-label">业务场景截图</div>
+            <div class="form-ctrl">
+              <div class="mf-screenshot-box">
+                <div class="mf-screenshot-preview" id="mf-screenshot-preview">暂无截图</div>
+                <div>
+                  <button type="button" class="btn btn-sm" id="mf-upload">上传截图</button>
+                  <button type="button" class="btn btn-sm hidden" id="mf-clear-screenshot">清除</button>
+                  <div class="form-help" style="margin-top:6px;">选填，便于运营识别模块所在场景</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>状态</div>
+            <div class="form-ctrl form-ctrl-inline">
+              <div class="radios">
+                <label class="radio"><input type="radio" name="mf-status" value="1" checked />启用</label>
+                <label class="radio"><input type="radio" name="mf-status" value="0" />禁用</label>
+              </div>
+              <span class="form-help" style="flex:1;">禁用后，该路径下推广位不可应用于其他场景</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>备注</div>
+            <div class="form-ctrl">
+              <textarea class="textarea" id="mf-remark" placeholder="请输入备注，说明模块用途或配置注意点"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-save" id="module-form-save">✓ 保存</button>
+            <button class="btn btn-cancel" id="module-form-cancel">✕ 取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-mask" id="promo-module-modal">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      选择业务模块
+      <span class="modal-close" id="promo-module-modal-close">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="picker-toolbar">
+        <input class="input" id="promo-module-search" placeholder="搜索模块路径或名称" />
+        <span class="picker-tip">每条配置路径仅展示最末级颗粒度（如配到 L5 则只展示 L5，配到 L3 则只展示 L3），且需已启用、未过期</span>
+      </div>
+      <div class="tbl-wrap" style="max-height:420px;overflow:auto;">
+        <table class="picker-tbl">
+          <thead>
+            <tr>
+              <th style="min-width:240px;">模块路径</th>
+              <th>所属业务</th>
+              <th>层级</th>
+              <th>状态</th>
+              <th>备注</th>
+            </tr>
+          </thead>
+          <tbody id="promo-module-picker-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" id="promo-module-cancel">取消</button>
+      <button type="button" class="btn btn-primary" id="promo-module-confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var crumb = document.getElementById('crumb');
+  var tabAdd = document.getElementById('tab-add');
+  var tabList = document.getElementById('tab-list');
+  var tabModule = document.getElementById('tab-module');
+  var tabModuleAdd = document.getElementById('tab-module-add');
+  var tabModuleAddText = document.getElementById('tab-module-add-text');
+  var viewList = document.getElementById('view-list');
+  var viewAdd = document.getElementById('view-add');
+  var viewModule = document.getElementById('view-module');
+  var viewModuleForm = document.getElementById('view-module-form');
+  var navList = document.getElementById('nav-list');
+  var navModule = document.getElementById('nav-module');
+  var remarkInput = document.getElementById('remark-input');
+  var remarkCount = document.getElementById('remark-count');
+  var MANUAL_MALLS = ['淘宝', '京东'];
+  var mallSelect = document.getElementById('mall-select');
+  var promoValInput = document.getElementById('promo-val-input');
+  var promoValRow = document.getElementById('promo-val-row');
+  var promoManualHint = document.getElementById('promo-manual-hint');
+  var btnGenPromo = document.getElementById('btn-gen-promo');
+  var promoModuleIdInput = document.getElementById('promo-module-id');
+  var promoModuleDisplay = document.getElementById('promo-module-display');
+  var promoModulePickerSelectedId = null;
+
+  var moduleIdSeq = 132;
+  var moduleFormEditId = null;
+  var moduleFormParentId = null;
+  var moduleFormHasScreenshot = false;
+  var moduleCollapsed = {};
+  var selectedModuleId = null;
+  var moduleListParentId = null;
+  var SHOW_MODULE_WORKSPACE = false;
+
+  var LEVEL_NAMES = {
+    1: 'L1 页面',
+    2: 'L2 板块',
+    3: 'L3 模块',
+    4: 'L4 组件',
+    5: 'L5 元素'
+  };
+  var LEVEL_SHORT = { 1: '页面', 2: '板块', 3: '模块', 4: '组件', 5: '元素' };
+  var LEVEL_RECORD_LABEL = { 1: '一级模块', 2: '二级板块', 3: '三级模块', 4: '四级组件', 5: '五级元素' };
+  var ADD_MODULE_LABEL = { 1: '一级模块', 2: '二级板块', 3: '三级模块', 4: '四级组件', 5: '五级模块' };
+
+  function getRecordNameColTitle(level) {
+    return '记录名称（' + (LEVEL_RECORD_LABEL[level] || (level + '级')) + '）';
+  }
+
+  function getAddModuleBtnText(level) {
+    return '＋ 新增' + (ADD_MODULE_LABEL[level] || (level + '级模块'));
+  }
+
+  function getModuleListLevel() {
+    if (!moduleListParentId) return 1;
+    var parentFound = findModuleNode(MODULE_TREE, moduleListParentId);
+    return parentFound ? parentFound.node.level + 1 : 1;
+  }
+
+  function renderModuleListFilters(listLevel) {
+    var levelSelect = document.getElementById('level-filter');
+    levelSelect.innerHTML = '<option value="' + listLevel + '">' + LEVEL_NAMES[listLevel] + '</option>';
+    levelSelect.value = String(listLevel);
+
+    var addBtn = document.getElementById('btn-add-module');
+    if (listLevel > 5) {
+      addBtn.classList.add('hidden');
+    } else {
+      addBtn.classList.remove('hidden');
+      addBtn.textContent = getAddModuleBtnText(listLevel);
+    }
+  }
+
+  var MODULE_TREE = [
+    {
+      id: 'n1', moduleId: 1, name: '二级页', biz: '美柚-返现', level: 1, status: 1, expired: false,
+      remark: 'L1 页面节点', hasScreenshot: true,
+      creator: '张三', ctime: '2024-03-01 10:00:00', updater: '李四', utime: '2024-04-10 15:30:00',
+      children: [
+        {
+          id: 'n1-1', moduleId: 2, name: '去下单板块', biz: '美柚-返现', level: 2, status: 1, expired: false,
+          remark: 'L2 板块节点', hasScreenshot: true,
+          creator: '张三', ctime: '2024-03-05 11:20:00', updater: '张三', utime: '2024-03-05 11:20:00',
+          children: [
+            {
+              id: 'n1-1-1', moduleId: 3, name: '资源位模块', biz: '美柚-返现', level: 3, status: 1, expired: false,
+              remark: 'L3 模块节点', hasScreenshot: false,
+              creator: '李四', ctime: '2024-03-08 09:15:00', updater: '李四', utime: '2024-04-12 18:15:07',
+              children: [
+                {
+                  id: 'n1-1-1-1', moduleId: 4, name: '大额券30-15组件', biz: '美柚-返现', level: 4, status: 1, expired: false,
+                  remark: 'L4 组件节点', hasScreenshot: false,
+                  creator: '李四', ctime: '2024-03-10 14:00:00', updater: '李四', utime: '2024-03-10 14:00:00',
+                  children: [
+                    {
+                      id: 'n1-1-1-1-1', moduleId: 5, name: '领取按钮', biz: '美柚-返现', level: 5, status: 1, expired: false,
+                      remark: 'L5 元素节点', hasScreenshot: false,
+                      creator: '张三', ctime: '2024-03-12 16:30:00', updater: '张三', utime: '2024-03-12 16:30:00',
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'n2', moduleId: 6, name: '返现首页', biz: '美柚-返现', level: 1, status: 1, expired: false,
+      remark: '返现首页一级模块', hasScreenshot: true,
+      creator: '张三', ctime: '2024-02-20 14:00:00', updater: '李四', utime: '2024-04-12 18:07:42',
+      children: [
+        {
+          id: 'n2-1', moduleId: 7, name: '领现金卡片', biz: '美柚-返现', level: 2, status: 1, expired: false,
+          remark: '领现金卡片板块', hasScreenshot: true,
+          creator: '张三', ctime: '2024-02-25 16:30:00', updater: '张三', utime: '2024-04-12 18:07:42',
+          children: [
+            {
+              id: 'n2-1-1', moduleId: 8, name: '天天秒杀', biz: '美柚-返现', level: 3, status: 1, expired: false,
+              remark: '天天秒杀活动模块', hasScreenshot: false,
+              creator: '李四', ctime: '2024-03-01 09:00:00', updater: '李四', utime: '2024-04-12 18:15:07',
+              children: []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'n3', moduleId: 9, name: '搜索框', biz: '美柚-返现', level: 1, status: 0, expired: true,
+      remark: '超期无单自动回收', hasScreenshot: false,
+      creator: '李四', ctime: '2024-01-15 10:00:00', updater: '李四', utime: '2024-04-09 17:09:30',
+      children: []
+    },
+    {
+      id: 'n4', moduleId: 10, name: '逛逛页面', biz: '美柚-返现', level: 1, status: 1, expired: false,
+      remark: '逛逛主页面', hasScreenshot: true,
+      creator: '张三', ctime: '2024-05-10 09:00:00', updater: '李四', utime: '2024-06-20 11:30:00',
+      children: [
+        {
+          id: 'n4-1', moduleId: 11, name: '逛逛页面的第一个tab', biz: '美柚-返现', level: 2, status: 1, expired: false,
+          remark: '逛逛 tab 切换区', hasScreenshot: true,
+          creator: '张三', ctime: '2024-05-11 10:00:00', updater: '张三', utime: '2024-05-11 10:00:00',
+          children: [
+            {
+              id: 'n4-1-1', moduleId: 12, name: '母婴专区', biz: '美柚-返现', level: 3, status: 1, expired: false,
+              remark: '母婴品类专区模块', hasScreenshot: false,
+              creator: '李四', ctime: '2024-05-12 14:20:00', updater: '李四', utime: '2024-06-18 16:45:00',
+              children: [
+                {
+                  id: 'n4-1-1-1', moduleId: 13, name: '优惠券资源位', biz: '美柚-返现', level: 4, status: 1, expired: false,
+                  remark: '母婴专区券资源位', hasScreenshot: true,
+                  creator: '李四', ctime: '2024-05-15 11:00:00', updater: '张三', utime: '2024-06-22 09:10:00',
+                  children: [
+                    {
+                      id: 'n4-1-1-1-1', moduleId: 14, name: '去领取按钮', biz: '美柚-返现', level: 5, status: 1, expired: false,
+                      remark: '券领取 CTA 按钮', hasScreenshot: false,
+                      creator: '张三', ctime: '2024-05-16 16:30:00', updater: '张三', utime: '2024-06-26 17:41:59',
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              id: 'n4-1-2', moduleId: 15, name: '美妆专区', biz: '美柚-返现', level: 3, status: 1, expired: false,
+              remark: '美妆品类专区，配置到 L3', hasScreenshot: false,
+              creator: '张三', ctime: '2024-05-20 09:30:00', updater: '张三', utime: '2024-06-10 14:00:00',
+              children: []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'n5', moduleId: 16, name: '活动页', biz: '美柚-返现', level: 1, status: 1, expired: false,
+      remark: '通用活动落地页', hasScreenshot: true,
+      creator: '李四', ctime: '2024-04-01 10:00:00', updater: '李四', utime: '2024-05-08 18:20:00',
+      children: [
+        {
+          id: 'n5-1', moduleId: 17, name: '弹窗资源位', biz: '美柚-返现', level: 2, status: 1, expired: false,
+          remark: '活动页弹窗，配置到 L2 即末级', hasScreenshot: true,
+          creator: '李四', ctime: '2024-04-02 11:30:00', updater: '张三', utime: '2024-05-08 18:20:00',
+          children: []
+        },
+        {
+          id: 'n5-2', moduleId: 18, name: '腰封banner', biz: '美柚-返现', level: 2, status: 0, expired: false,
+          remark: '已禁用，不可用于推广位关联', hasScreenshot: false,
+          creator: '张三', ctime: '2024-04-03 15:00:00', updater: '李四', utime: '2024-04-25 10:00:00',
+          children: []
+        }
+      ]
+    },
+    {
+      id: 'n6', moduleId: 19, name: '商品详情页', biz: '美柚-返现', level: 1, status: 1, expired: false,
+      remark: '商详页主路径', hasScreenshot: true,
+      creator: '张三', ctime: '2024-06-01 08:00:00', updater: '张三', utime: '2024-06-15 12:00:00',
+      children: [
+        {
+          id: 'n6-1', moduleId: 20, name: '底部操作栏', biz: '美柚-返现', level: 2, status: 1, expired: false,
+          remark: '商详底部固定栏', hasScreenshot: false,
+          creator: '张三', ctime: '2024-06-02 09:00:00', updater: '张三', utime: '2024-06-15 12:00:00',
+          children: [
+            {
+              id: 'n6-1-1', moduleId: 21, name: '立即购买按钮', biz: '美柚-返现', level: 3, status: 1, expired: false,
+              remark: '商详下单主按钮', hasScreenshot: false,
+              creator: '张三', ctime: '2024-06-03 10:30:00', updater: '李四', utime: '2024-06-20 17:00:00',
+              children: []
+            },
+            {
+              id: 'n6-1-2', moduleId: 22, name: '加入购物车', biz: '美柚-返现', level: 3, status: 1, expired: false,
+              remark: '商详加购按钮', hasScreenshot: false,
+              creator: '张三', ctime: '2024-06-03 10:35:00', updater: '张三', utime: '2024-06-20 17:00:00',
+              children: []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'n7', moduleId: 23, name: '个人中心', biz: '美柚-返现', level: 1, status: 1, expired: false,
+      remark: '仅配置到 L1 的末级模块', hasScreenshot: true,
+      creator: '李四', ctime: '2024-03-20 14:00:00', updater: '李四', utime: '2024-03-20 14:00:00',
+      children: []
+    },
+    {
+      id: 'n8', moduleId: 24, name: '外卖频道', biz: '美团-返现', level: 1, status: 1, expired: false,
+      remark: '美团外卖返现频道', hasScreenshot: true,
+      creator: '张三', ctime: '2024-05-01 09:00:00', updater: '张三', utime: '2024-06-01 11:00:00',
+      children: [
+        {
+          id: 'n8-1', moduleId: 25, name: '红包模块', biz: '美团-返现', level: 2, status: 1, expired: false,
+          remark: '外卖红包展示区', hasScreenshot: false,
+          creator: '张三', ctime: '2024-05-02 10:00:00', updater: '张三', utime: '2024-06-01 11:00:00',
+          children: [
+            {
+              id: 'n8-1-1', moduleId: 26, name: '新人红包卡片', biz: '美团-返现', level: 3, status: 1, expired: false,
+              remark: '新人专享红包', hasScreenshot: false,
+              creator: '张三', ctime: '2024-05-03 11:00:00', updater: '张三', utime: '2024-05-20 15:30:00',
+              children: [
+                {
+                  id: 'n8-1-1-1', moduleId: 27, name: '领取入口', biz: '美团-返现', level: 4, status: 1, expired: false,
+                  remark: '红包领取入口，配置到 L4', hasScreenshot: false,
+                  creator: '张三', ctime: '2024-05-04 14:00:00', updater: '李四', utime: '2024-06-05 09:20:00',
+                  children: []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'n9', moduleId: 28, name: '订单列表页', biz: '美团-返现', level: 1, status: 1, expired: false,
+      remark: '订单列表主页面', hasScreenshot: false,
+      creator: '李四', ctime: '2024-06-10 08:30:00', updater: '李四', utime: '2024-06-10 08:30:00',
+      children: [
+        {
+          id: 'n9-1', moduleId: 29, name: '再下一单引导', biz: '美团-返现', level: 2, status: 1, expired: false,
+          remark: '订单页复购引导位', hasScreenshot: true,
+          creator: '李四', ctime: '2024-06-11 09:00:00', updater: '张三', utime: '2024-06-24 16:00:00',
+          children: [
+            {
+              id: 'n9-1-1', moduleId: 30, name: '推荐商品流', biz: '美团-返现', level: 3, status: 1, expired: false,
+              remark: '订单页商品推荐', hasScreenshot: false,
+              creator: '张三', ctime: '2024-06-12 10:00:00', updater: '张三', utime: '2024-06-24 16:00:00',
+              children: [
+                {
+                  id: 'n9-1-1-1', moduleId: 31, name: '商品卡片', biz: '美团-返现', level: 4, status: 1, expired: false,
+                  remark: '推荐流单商品卡片', hasScreenshot: false,
+                  creator: '张三', ctime: '2024-06-13 11:00:00', updater: '张三', utime: '2024-06-24 16:00:00',
+                  children: [
+                    {
+                      id: 'n9-1-1-1-1', moduleId: 32, name: '去下单链接', biz: '美团-返现', level: 5, status: 1, expired: false,
+                      remark: '商品卡片下单链接', hasScreenshot: false,
+                      creator: '张三', ctime: '2024-06-14 14:00:00', updater: '张三', utime: '2024-06-26 10:15:00',
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ];
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(function () { t.classList.remove('show'); }, 2400);
+  }
+
+  function flattenModules(nodes, parents, result) {
+    result = result || [];
+    parents = parents || [];
+    nodes.forEach(function (n) {
+      result.push({ node: n, parents: parents });
+      if (n.children && n.children.length) flattenModules(n.children, parents.concat(n), result);
+    });
+    return result;
+  }
+
+  function isModuleLeaf(n) {
+    return !n.children || !n.children.length;
+  }
+
+  function isModuleSelectable(n) {
+    return !n.expired && n.status === 1;
+  }
+
+  function isPromoModulePickable(item) {
+    return isModuleSelectable(item.node) && isModuleLeaf(item.node);
+  }
+
+  function collectModuleLeafNodes(nodes, parents, result) {
+    result = result || [];
+    parents = parents || [];
+    nodes.forEach(function (n) {
+      if (n.children && n.children.length) {
+        collectModuleLeafNodes(n.children, parents.concat(n), result);
+      } else {
+        result.push({ node: n, parents: parents });
+      }
+    });
+    return result;
+  }
+
+  function getSelectableModules() {
+    return collectModuleLeafNodes(MODULE_TREE).filter(isPromoModulePickable);
+  }
+
+  function updatePromoModuleFieldDisplay() {
+    var id = promoModuleIdInput.value;
+    var clearBtn = document.getElementById('btn-clear-promo-module');
+    if (!id) {
+      promoModuleDisplay.value = '';
+      promoModuleDisplay.placeholder = '请选择业务模块';
+      clearBtn.classList.add('hidden');
+      return;
+    }
+    var found = findModuleNode(MODULE_TREE, id);
+    if (!found || !isPromoModulePickable(found)) {
+      promoModuleIdInput.value = '';
+      promoModuleDisplay.value = '';
+      clearBtn.classList.add('hidden');
+      return;
+    }
+    promoModuleDisplay.value = getModulePath(found.node, found.parents);
+    clearBtn.classList.remove('hidden');
+  }
+
+  function clearPromoModuleSelection() {
+    promoModuleIdInput.value = '';
+    promoModulePickerSelectedId = null;
+    updatePromoModuleFieldDisplay();
+  }
+
+  function renderPromoModulePickerList() {
+    var tbody = document.getElementById('promo-module-picker-tbody');
+    var keyword = (document.getElementById('promo-module-search').value || '').trim().toLowerCase();
+    var html = '';
+
+    getSelectableModules().forEach(function (item) {
+      var n = item.node;
+      var parents = item.parents;
+      var path = getModulePath(n, parents);
+      if (keyword && path.toLowerCase().indexOf(keyword) === -1 && nodeLabel(n).toLowerCase().indexOf(keyword) === -1) {
+        return;
+      }
+      var on = promoModulePickerSelectedId === n.id ? ' class="on"' : '';
+      html += '<tr data-pick-module="' + n.id + '"' + on + '>' +
+        '<td class="path-cell">' + path + '</td>' +
+        '<td>' + n.biz + '</td>' +
+        '<td><span class="lv-badge lv-' + n.level + '">L' + n.level + '</span></td>' +
+        '<td>' + statusBadge(n) + '</td>' +
+        '<td class="remark-cell" title="' + (n.remark || '') + '">' + (n.remark || '—') + '</td>' +
+      '</tr>';
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="5" class="picker-empty">暂无符合条件的业务模块</td></tr>';
+  }
+
+  function openPromoModulePicker() {
+    promoModulePickerSelectedId = promoModuleIdInput.value || null;
+    document.getElementById('promo-module-search').value = '';
+    renderPromoModulePickerList();
+    document.getElementById('promo-module-modal').classList.add('show');
+  }
+
+  function closePromoModulePicker() {
+    document.getElementById('promo-module-modal').classList.remove('show');
+    promoModulePickerSelectedId = null;
+  }
+
+  function confirmPromoModulePicker() {
+    if (!promoModulePickerSelectedId) {
+      showToast('请先选择一个业务模块');
+      return;
+    }
+    var found = findModuleNode(MODULE_TREE, promoModulePickerSelectedId);
+    if (!found || !isPromoModulePickable(found)) {
+      showToast('该业务模块不可用，请重新选择');
+      return;
+    }
+    promoModuleIdInput.value = promoModulePickerSelectedId;
+    updatePromoModuleFieldDisplay();
+    closePromoModulePicker();
+  }
+
+  function nodeLabel(n) {
+    var base = n.name.replace('（超期无单）', '');
+    return n.expired ? base + '（超期无单）' : base;
+  }
+
+  function getModulePath(node, parents) {
+    return parents.concat(node).map(function (x) { return nodeLabel(x); }).join(' / ');
+  }
+
+  function nodeMatchesSearch(n, keyword, parents) {
+    if (!keyword) return true;
+    var k = keyword.toLowerCase();
+    if (nodeLabel(n).toLowerCase().indexOf(k) !== -1) return true;
+    if (getModulePath(n, parents || []).toLowerCase().indexOf(k) !== -1) return true;
+    return (n.children || []).some(function (c) { return nodeMatchesSearch(c, keyword, (parents || []).concat(n)); });
+  }
+
+  function statusBadge(n) {
+    if (n.expired) return '<span class="badge-off">超期无单</span>';
+    return n.status === 1 ? '<span class="badge-on">启用</span>' : '<span class="badge-off">禁用</span>';
+  }
+
+  function canDeleteNode(n) {
+    if (n.children && n.children.length) return { ok: false, reason: '请先删除或迁移其下级模块' };
+    return { ok: true };
+  }
+
+  function setActiveNav(nav) {
+    navList.classList.toggle('active', nav === 'list');
+    navModule.classList.toggle('active', nav === 'module');
+  }
+
+  function clearTabs() {
+    tabAdd.classList.remove('active');
+    tabList.classList.remove('active');
+    tabModule.classList.remove('active');
+    tabModuleAdd.classList.remove('active');
+  }
+
+  function hideAllViews() {
+    viewList.classList.remove('active');
+    viewAdd.classList.remove('active');
+    viewModule.classList.remove('active');
+    viewModuleForm.classList.remove('active');
+  }
+
+  function updatePromoValUI() {
+    var mall = mallSelect.value;
+    var manual = MANUAL_MALLS.indexOf(mall) !== -1;
+    var showGen = !manual && !!mall;
+    promoManualHint.classList.toggle('hidden', !manual || !mall);
+    btnGenPromo.classList.toggle('hidden', !showGen);
+    promoValRow.classList.toggle('has-gen', showGen);
+    promoValInput.readOnly = !manual && !!mall;
+    if (manual) {
+      promoValInput.placeholder = '请输入联盟后台创建的推广位值';
+    } else if (mall) {
+      promoValInput.placeholder = '点击右侧按钮自动生成';
+    } else {
+      promoValInput.placeholder = '请先选择商城平台';
+      promoValInput.readOnly = false;
+    }
+    if (!mall) promoValInput.value = '';
+  }
+
+  function showList() {
+    hideAllViews();
+    viewList.classList.add('active');
+    clearTabs();
+    tabList.classList.add('active');
+    setActiveNav('list');
+    crumb.innerHTML = '<b>首页</b> / 推广位管理';
+  }
+
+  function showAdd() {
+    hideAllViews();
+    viewAdd.classList.add('active');
+    clearTabs();
+    tabAdd.classList.add('active');
+    setActiveNav('list');
+    crumb.innerHTML = '<b>首页</b> / 新增推广位';
+    mallSelect.value = '';
+    promoValInput.value = '';
+    clearPromoModuleSelection();
+    updatePromoValUI();
+  }
+
+  function showModule() {
+    hideAllViews();
+    viewModule.classList.add('active');
+    clearTabs();
+    tabModule.classList.add('active');
+    setActiveNav('module');
+    crumb.innerHTML = '<b>首页</b> / 推广位管理 / 业务模块管理';
+    if (!selectedModuleId && MODULE_TREE.length) selectedModuleId = MODULE_TREE[0].id;
+    renderModuleAll();
+  }
+
+  function setModuleListParent(id) {
+    moduleListParentId = id || null;
+    renderModuleList();
+  }
+
+  function renderModuleListBreadcrumb() {
+    var bar = document.getElementById('module-list-breadcrumb');
+    var sub = document.getElementById('module-list-sub');
+    if (!moduleListParentId) {
+      bar.classList.add('hidden');
+      bar.innerHTML = '';
+      sub.textContent = '默认展示一级模块，点击「查看子模块」逐层下钻';
+      return;
+    }
+    var found = findModuleNode(MODULE_TREE, moduleListParentId);
+    if (!found) {
+      moduleListParentId = null;
+      bar.classList.add('hidden');
+      sub.textContent = '默认展示一级模块，点击「查看子模块」逐层下钻';
+      return;
+    }
+    var chain = found.parents.concat(found.node);
+    var html = '<a data-list-nav="">全部模块</a>';
+    chain.forEach(function (n, idx) {
+      html += '<span class="sep">/</span>';
+      if (idx === chain.length - 1) {
+        html += '<span class="current">' + nodeLabel(n) + ' 的子模块</span>';
+      } else {
+        html += '<a data-list-nav="' + n.id + '">' + nodeLabel(n) + '</a>';
+      }
+    });
+    bar.innerHTML = html;
+    bar.classList.remove('hidden');
+    sub.textContent = '当前展示「' + nodeLabel(found.node) + '」的下级模块';
+  }
+
+  function renderModuleAll() {
+    if (SHOW_MODULE_WORKSPACE) {
+      renderModuleTreeNav();
+      renderModuleDetail();
+    }
+    renderModuleList();
+  }
+
+  function findModuleNode(nodes, id, parents) {
+    parents = parents || [];
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.id === id) return { node: n, parents: parents };
+      if (n.children && n.children.length) {
+        var r = findModuleNode(n.children, id, parents.concat(n));
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+
+  function moduleMatchesFilter(n, parents) {
+    var bizFilter = document.getElementById('module-biz-filter').value;
+    var statusFilter = document.getElementById('module-status-filter').value;
+    var levelFilter = document.getElementById('level-filter').value;
+    var keyword = (document.getElementById('module-list-search').value || '').trim().toLowerCase();
+    if (bizFilter && n.biz !== bizFilter) return false;
+    if (statusFilter === 'expired' && !n.expired) return false;
+    if (statusFilter === '1' && (n.status !== 1 || n.expired)) return false;
+    if (statusFilter === '0' && (n.status !== 0 || n.expired)) return false;
+    if (levelFilter && n.level !== +levelFilter) return false;
+    if (keyword && !nodeMatchesSearch(n, keyword, parents)) return false;
+    return true;
+  }
+
+  function renderModuleTreeNav() {
+    var panel = document.getElementById('module-tree-nav');
+    var keyword = (document.getElementById('module-tree-search').value || '').trim().toLowerCase();
+    var html = '';
+
+    function walk(nodes, parents, depth) {
+      nodes.forEach(function (n) {
+        if (!moduleMatchesFilter(n, parents)) return;
+        var hasChildren = n.children && n.children.length;
+        var collapsed = keyword ? false : moduleCollapsed[n.id];
+        var on = n.id === selectedModuleId ? ' on' : '';
+        html += '<div class="tree-node-item' + on + '" data-tree-select="' + n.id + '" style="padding-left:' + (12 + depth * 14) + 'px">' +
+          '<span class="toggle ' + (hasChildren ? '' : 'empty') + '" data-tree-toggle="' + n.id + '">' +
+            (hasChildren ? (collapsed ? '▶' : '▼') : '') + '</span>' +
+          '<span class="lv-badge lv-' + n.level + '">L' + n.level + '</span>' +
+          '<span class="name" title="' + getModulePath(n, parents) + '">' + nodeLabel(n) + '</span>' +
+        '</div>';
+        if (hasChildren && !collapsed) walk(n.children, parents.concat(n), depth + 1);
+      });
+    }
+    walk(MODULE_TREE, [], 0);
+    panel.innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--text-4);font-size:13px;">暂无匹配模块</div>';
+  }
+
+  function renderModuleDetail() {
+    var empty = document.getElementById('module-detail-empty');
+    var panel = document.getElementById('module-detail-panel');
+    if (!selectedModuleId) {
+      empty.classList.remove('hidden');
+      panel.classList.add('hidden');
+      return;
+    }
+    var found = findModuleNode(MODULE_TREE, selectedModuleId);
+    if (!found) {
+      selectedModuleId = null;
+      empty.classList.remove('hidden');
+      panel.classList.add('hidden');
+      return;
+    }
+    var n = found.node;
+    var path = getModulePath(n, found.parents);
+    empty.classList.add('hidden');
+    panel.classList.remove('hidden');
+    document.getElementById('module-detail-path').innerHTML = '<b>当前路径：</b>' + path;
+    document.getElementById('module-detail-kv').innerHTML =
+      '<div class="kv-item"><div class="k">ID</div><div class="v">' + n.moduleId + '</div></div>' +
+      '<div class="kv-item"><div class="k">所属业务</div><div class="v">' + n.biz + '</div></div>' +
+      '<div class="kv-item"><div class="k">层级</div><div class="v">' + LEVEL_NAMES[n.level] + '</div></div>' +
+      '<div class="kv-item"><div class="k">状态</div><div class="v">' + statusBadge(n) + '</div></div>' +
+      '<div class="kv-item"><div class="k">备注</div><div class="v">' + (n.remark || '—') + '</div></div>' +
+      '<div class="kv-item"><div class="k">更新</div><div class="v">' + n.updater + ' · ' + n.utime + '</div></div>';
+
+    var btnAdd = document.getElementById('btn-detail-add-child');
+    var btnToggle = document.getElementById('btn-detail-toggle-status');
+    btnAdd.classList.toggle('hidden', n.level >= 5 || n.expired);
+    btnToggle.classList.toggle('hidden', !!n.expired);
+    btnToggle.textContent = n.status === 1 ? '禁用' : '启用';
+
+    var children = n.children || [];
+    document.getElementById('child-count').textContent = children.length ? '（' + children.length + '）' : '（无下级，可作为推广位挂载点）';
+    var childHtml = '';
+    children.forEach(function (c) {
+      childHtml += '<tr><td>' + nodeLabel(c) + '</td>' +
+        '<td><span class="lv-badge lv-' + c.level + '">L' + c.level + '</span></td>' +
+        '<td>' + statusBadge(c) + '</td>' +
+        '<td class="ops"><a data-tree-jump="' + c.id + '">定位</a><a data-edit-module="' + c.id + '">编辑</a></td></tr>';
+    });
+    document.getElementById('module-children-tbody').innerHTML = childHtml ||
+      '<tr><td colspan="4" style="color:var(--text-4);text-align:center;">' +
+      (n.level < 5 && !n.expired ? '暂无下级，可点击「添加子模块」继续配置' : '—') + '</td></tr>';
+  }
+
+  function renderModuleList() {
+    var tbody = document.getElementById('module-tbody');
+    var html = '';
+    var visible = 0;
+    var listNodes = [];
+    var listParents = [];
+
+    if (moduleListParentId) {
+      var parentFound = findModuleNode(MODULE_TREE, moduleListParentId);
+      if (!parentFound) {
+        moduleListParentId = null;
+      } else {
+        (parentFound.node.children || []).forEach(function (n) {
+          listNodes.push(n);
+          listParents.push(parentFound.parents.concat(parentFound.node));
+        });
+      }
+    }
+    if (!moduleListParentId) {
+      MODULE_TREE.forEach(function (n) {
+        listNodes.push(n);
+        listParents.push([]);
+      });
+    }
+
+    renderModuleListBreadcrumb();
+
+    var listLevel = getModuleListLevel();
+    renderModuleListFilters(listLevel);
+    var nameColHd = document.getElementById('module-name-col-hd');
+    if (nameColHd) nameColHd.textContent = getRecordNameColTitle(listLevel);
+
+    listNodes.forEach(function (n, idx) {
+      var parents = listParents[idx];
+      if (!moduleMatchesFilter(n, parents)) return;
+      visible += 1;
+      var name = nodeLabel(n);
+      var hasChildren = n.children && n.children.length;
+      var delCheck = canDeleteNode(n);
+      html += '<tr data-module-id="' + n.id + '">' +
+        '<td class="col-center">' + n.moduleId + '</td>' +
+        '<td class="col-left biz-cell">' + n.biz + '</td>' +
+        '<td class="col-left name-cell">' + name + '</td>' +
+        '<td class="col-center"><span class="lv-badge lv-' + n.level + '">L' + n.level + '</span></td>' +
+        '<td class="col-center">' + statusBadge(n) + '</td>' +
+        '<td class="col-left remark-cell" title="' + (n.remark || '') + '">' + (n.remark || '—') + '</td>' +
+        '<td class="col-left time-cell">' + (n.ctime || '—') + '</td>' +
+        '<td class="col-left">' + (n.creator || '—') + '</td>' +
+        '<td class="col-left time-cell">' + n.utime + '</td>' +
+        '<td class="col-left">' + n.updater + '</td>' +
+        '<td class="col-left ops">' +
+          (hasChildren && n.level < 5 ? '<a data-view-children="' + n.id + '">查看子模块</a>' : '') +
+          (n.level < 5 && !n.expired ? '<a data-add-child="' + n.id + '">添加子级</a>' : '') +
+          '<a data-edit-module="' + n.id + '">编辑</a>' +
+          (!n.expired ? '<a data-toggle-status="' + n.id + '">' + (n.status === 1 ? '禁用' : '启用') + '</a>' : '') +
+          (delCheck.ok ? '<a data-delete-module="' + n.id + '" style="color:#f56c6c;">删除</a>' : '') +
+        '</td></tr>';
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="11" style="color:var(--text-4);padding:40px;">暂无数据</td></tr>';
+    document.getElementById('module-pager-text').textContent = '共 ' + visible + ' 条';
+  }
+
+  function setModuleLevelField(level) {
+    document.getElementById('mf-level').value = LEVEL_NAMES[level] || '';
+    var steps = '';
+    for (var i = 1; i <= 5; i++) {
+      steps += '<span class="level-step-form' + (i === level ? ' on' : '') + '">L' + i + ' ' + LEVEL_SHORT[i] + '</span>';
+    }
+    document.getElementById('mf-level-steps').innerHTML = steps;
+  }
+
+  function updateFormPathBar(prefixNames, namePreview) {
+    var parts = (prefixNames || []).slice();
+    if (namePreview) parts.push(namePreview);
+    document.getElementById('mf-path-bar').innerHTML =
+      '<b>配置路径预览：</b>' + (parts.length ? parts.join(' / ') : '—');
+  }
+
+  function updateMfScreenshotPreview(hasImg) {
+    moduleFormHasScreenshot = !!hasImg;
+    var box = document.getElementById('mf-screenshot-preview');
+    var clearBtn = document.getElementById('mf-clear-screenshot');
+    if (hasImg) {
+      box.textContent = '已上传';
+      box.classList.add('has-img');
+      clearBtn.classList.remove('hidden');
+    } else {
+      box.textContent = '暂无截图';
+      box.classList.remove('has-img');
+      clearBtn.classList.add('hidden');
+    }
+  }
+
+  function formatParentPath(parts) {
+    return parts && parts.length ? parts.join(' / ') : '—';
+  }
+
+  function getFormPathPrefix(mode, editId, parentId) {
+    if (mode === 'edit') {
+      var f = findModuleNode(MODULE_TREE, editId);
+      return f ? f.parents.map(function (p) { return nodeLabel(p); }) : [];
+    }
+    if (mode === 'add-child') {
+      var p = findModuleNode(MODULE_TREE, parentId);
+      return p ? p.parents.concat(p.node).map(function (x) { return nodeLabel(x); }) : [];
+    }
+    return [];
+  }
+
+  function openModuleForm(mode, editId, parentId) {
+    moduleFormEditId = editId || null;
+    moduleFormParentId = parentId || null;
+    var idInput = document.getElementById('mf-id');
+    var nameInput = document.getElementById('mf-name');
+    var remarkInputEl = document.getElementById('mf-remark');
+    var bizSelect = document.getElementById('mf-biz');
+    var parentInput = document.getElementById('mf-parent');
+    var pageTitle = '新增一级模块';
+    var pathPrefix = getFormPathPrefix(mode, editId, parentId);
+
+    if (mode === 'edit') {
+      var editFound = findModuleNode(MODULE_TREE, editId);
+      if (!editFound) return;
+      pageTitle = '编辑业务模块';
+      idInput.value = editFound.node.moduleId;
+      bizSelect.value = editFound.node.biz;
+      parentInput.value = formatParentPath(editFound.parents.map(function (p) { return nodeLabel(p); }));
+      setModuleLevelField(editFound.node.level);
+      nameInput.value = editFound.node.name.replace('（超期无单）', '');
+      remarkInputEl.value = editFound.node.remark || '';
+      document.querySelector('input[name="mf-status"][value="' + editFound.node.status + '"]').checked = true;
+      updateMfScreenshotPreview(!!editFound.node.hasScreenshot);
+      pathPrefix = editFound.parents.map(function (p) { return nodeLabel(p); });
+    } else if (mode === 'add-child') {
+      var parentFound = findModuleNode(MODULE_TREE, parentId);
+      pageTitle = '添加子模块';
+      idInput.value = '';
+      idInput.placeholder = '保存后自动生成';
+      parentInput.value = parentFound
+        ? formatParentPath(parentFound.parents.concat(parentFound.node).map(function (x) { return nodeLabel(x); }))
+        : '—';
+      bizSelect.value = parentFound ? parentFound.node.biz : '美柚-返现';
+      setModuleLevelField(parentFound ? parentFound.node.level + 1 : 2);
+      nameInput.value = '';
+      remarkInputEl.value = '';
+      document.querySelector('input[name="mf-status"][value="1"]').checked = true;
+      updateMfScreenshotPreview(false);
+      pathPrefix = parentFound ? parentFound.parents.concat(parentFound.node).map(function (x) { return nodeLabel(x); }) : [];
+    } else {
+      idInput.value = '';
+      idInput.placeholder = '保存后自动生成';
+      parentInput.value = '—';
+      bizSelect.value = '美柚-返现';
+      setModuleLevelField(1);
+      nameInput.value = '';
+      remarkInputEl.value = '';
+      document.querySelector('input[name="mf-status"][value="1"]').checked = true;
+      updateMfScreenshotPreview(false);
+      pathPrefix = [];
+    }
+
+    updateFormPathBar(pathPrefix, nameInput.value.trim() || (mode === 'add' || mode === 'add-child' ? '新模块' : ''));
+    nameInput.oninput = function () {
+      updateFormPathBar(pathPrefix, nameInput.value.trim() || '新模块');
+    };
+
+    tabModuleAddText.textContent = pageTitle;
+    hideAllViews();
+    viewModuleForm.classList.add('active');
+    clearTabs();
+    tabModuleAdd.classList.add('active');
+    setActiveNav('module');
+    crumb.innerHTML = '<b>首页</b> / 推广位管理 / 业务模块管理 / ' + pageTitle;
+  }
+
+  function nowStr() {
+    var d = new Date();
+    var p = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' +
+      p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  function saveModuleForm() {
+    var name = document.getElementById('mf-name').value.trim();
+    var remark = document.getElementById('mf-remark').value.trim();
+    var biz = document.getElementById('mf-biz').value;
+    var status = +document.querySelector('input[name="mf-status"]:checked').value;
+    if (!biz) { showToast('请选择所属业务'); return; }
+    if (!name) { showToast('请输入模块名称'); return; }
+    if (!remark) { showToast('请输入备注信息'); return; }
+    var now = nowStr();
+
+    if (moduleFormEditId) {
+      var found = findModuleNode(MODULE_TREE, moduleFormEditId);
+      if (!found) return;
+      found.node.name = name;
+      found.node.biz = biz;
+      found.node.remark = remark;
+      found.node.status = status;
+      found.node.hasScreenshot = moduleFormHasScreenshot;
+      found.node.utime = now;
+      found.node.updater = '张三';
+    } else if (moduleFormParentId) {
+      var parentFound = findModuleNode(MODULE_TREE, moduleFormParentId);
+      if (!parentFound || parentFound.node.level >= 5) {
+        showToast('最多支持五级，无法继续添加子模块');
+        return;
+      }
+      if (!parentFound.node.children) parentFound.node.children = [];
+      var nextLevel = parentFound.node.level + 1;
+      parentFound.node.children.push({
+        id: 'new-' + Date.now(),
+        moduleId: ++moduleIdSeq,
+        name: name, biz: biz, level: nextLevel,
+        status: status, remark: remark, hasScreenshot: moduleFormHasScreenshot,
+        expired: false,
+        creator: '张三', ctime: now, updater: '张三', utime: now, children: []
+      });
+      moduleCollapsed[parentFound.node.id] = false;
+    } else {
+      MODULE_TREE.push({
+        id: 'l1-' + Date.now(),
+        moduleId: ++moduleIdSeq,
+        name: name, biz: biz, level: 1,
+        status: status, remark: remark, hasScreenshot: moduleFormHasScreenshot,
+        expired: false,
+        creator: '张三', ctime: now, updater: '张三', utime: now, children: []
+      });
+    }
+    moduleFormEditId = null;
+    moduleFormParentId = null;
+    showToast('保存成功');
+    showModule();
+  }
+
+  function deleteModuleNode(nodes, id) {
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === id) {
+        nodes.splice(i, 1);
+        return true;
+      }
+      if (nodes[i].children && nodes[i].children.length) {
+        if (deleteModuleNode(nodes[i].children, id)) return true;
+      }
+    }
+    return false;
+  }
+
+  function selectModule(id) {
+    selectedModuleId = id;
+    moduleCollapsed[id] = false;
+    if (SHOW_MODULE_WORKSPACE) {
+      renderModuleTreeNav();
+      renderModuleDetail();
+    }
+  }
+
+  function handleModuleAction(e) {
+    var listNav = e.target.closest('[data-list-nav]');
+    if (listNav) {
+      var navId = listNav.getAttribute('data-list-nav');
+      setModuleListParent(navId || null);
+      if (navId) selectModule(navId);
+      return true;
+    }
+    var viewChildren = e.target.closest('[data-view-children]');
+    if (viewChildren) {
+      var childId = viewChildren.getAttribute('data-view-children');
+      setModuleListParent(childId);
+      selectModule(childId);
+      return true;
+    }
+    var jump = e.target.closest('[data-tree-jump]');
+    if (jump) {
+      selectModule(jump.getAttribute('data-tree-jump'));
+      return true;
+    }
+    var addChild = e.target.closest('[data-add-child]');
+    if (addChild) {
+      openModuleForm('add-child', null, addChild.getAttribute('data-add-child'));
+      return true;
+    }
+    var edit = e.target.closest('[data-edit-module]');
+    if (edit) {
+      openModuleForm('edit', edit.getAttribute('data-edit-module'));
+      return true;
+    }
+    var del = e.target.closest('[data-delete-module]');
+    if (del) {
+      var did = del.getAttribute('data-delete-module');
+      var df = findModuleNode(MODULE_TREE, did);
+      if (!df) return true;
+      var check = canDeleteNode(df.node);
+      if (!check.ok) { showToast(check.reason); return true; }
+      if (confirm('确认删除「' + nodeLabel(df.node) + '」？')) {
+        var listParentAfterDelete = moduleListParentId;
+        if (moduleListParentId === did) {
+          listParentAfterDelete = df.parents.length ? df.parents[df.parents.length - 1].id : null;
+        }
+        deleteModuleNode(MODULE_TREE, did);
+        if (selectedModuleId === did) selectedModuleId = null;
+        moduleListParentId = listParentAfterDelete;
+        showToast('已删除');
+        renderModuleAll();
+      }
+      return true;
+    }
+    var statusBtn = e.target.closest('[data-toggle-status]');
+    if (statusBtn) {
+      var sf = findModuleNode(MODULE_TREE, statusBtn.getAttribute('data-toggle-status'));
+      if (!sf) return true;
+      sf.node.status = sf.node.status === 1 ? 0 : 1;
+      sf.node.utime = nowStr();
+      sf.node.updater = '李四';
+      showToast(sf.node.status === 1 ? '已启用' : '已禁用');
+      renderModuleAll();
+      return true;
+    }
+    return false;
+  }
+
+  document.getElementById('btn-add-promo').addEventListener('click', showAdd);
+  document.getElementById('btn-cancel-add').addEventListener('click', showList);
+  navList.addEventListener('click', showList);
+  navModule.addEventListener('click', showModule);
+  tabAdd.addEventListener('click', function (e) {
+    if (e.target.classList.contains('x')) return;
+    showAdd();
+  });
+  tabList.addEventListener('click', function (e) {
+    if (e.target.classList.contains('x')) return;
+    showList();
+  });
+  tabModule.addEventListener('click', function (e) {
+    if (e.target.classList.contains('x')) return;
+    showModule();
+  });
+  tabModuleAdd.addEventListener('click', function (e) {
+    if (e.target.classList.contains('x')) return;
+    if (moduleFormEditId) {
+      openModuleForm('edit', moduleFormEditId);
+    } else if (moduleFormParentId) {
+      openModuleForm('add-child', null, moduleFormParentId);
+    } else {
+      openModuleForm('add');
+    }
+  });
+
+  document.getElementById('btn-add-module').addEventListener('click', function () {
+    if (moduleListParentId) {
+      openModuleForm('add-child', null, moduleListParentId);
+    } else {
+      openModuleForm('add');
+    }
+  });
+  document.getElementById('btn-module-search').addEventListener('click', renderModuleAll);
+  document.getElementById('btn-module-reset').addEventListener('click', function () {
+    document.getElementById('module-biz-filter').value = '';
+    document.getElementById('module-list-search').value = '';
+    document.getElementById('module-tree-search').value = '';
+    document.getElementById('module-status-filter').value = '';
+    moduleListParentId = null;
+    renderModuleAll();
+  });
+  document.getElementById('level-filter').addEventListener('change', renderModuleAll);
+  document.getElementById('module-list-search').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') renderModuleAll();
+  });
+  document.getElementById('module-tree-search').addEventListener('input', renderModuleTreeNav);
+
+  document.getElementById('btn-tree-expand').addEventListener('click', function () {
+    flattenModules(MODULE_TREE).forEach(function (x) { moduleCollapsed[x.node.id] = false; });
+    renderModuleTreeNav();
+  });
+  document.getElementById('btn-tree-collapse').addEventListener('click', function () {
+    flattenModules(MODULE_TREE).forEach(function (x) {
+      if (x.node.children && x.node.children.length) moduleCollapsed[x.node.id] = true;
+    });
+    renderModuleTreeNav();
+  });
+
+  document.getElementById('module-tree-nav').addEventListener('click', function (e) {
+    var toggle = e.target.closest('[data-tree-toggle]');
+    if (toggle) {
+      e.stopPropagation();
+      var tid = toggle.getAttribute('data-tree-toggle');
+      moduleCollapsed[tid] = !moduleCollapsed[tid];
+      renderModuleTreeNav();
+      return;
+    }
+    var sel = e.target.closest('[data-tree-select]');
+    if (sel) selectModule(sel.getAttribute('data-tree-select'));
+  });
+
+  document.getElementById('btn-detail-edit').addEventListener('click', function () {
+    if (selectedModuleId) openModuleForm('edit', selectedModuleId);
+  });
+  document.getElementById('btn-detail-add-child').addEventListener('click', function () {
+    if (selectedModuleId) openModuleForm('add-child', null, selectedModuleId);
+  });
+  document.getElementById('btn-detail-toggle-status').addEventListener('click', function () {
+    if (!selectedModuleId) return;
+    var sf = findModuleNode(MODULE_TREE, selectedModuleId);
+    if (!sf || sf.node.expired) return;
+    sf.node.status = sf.node.status === 1 ? 0 : 1;
+    sf.node.utime = nowStr();
+    sf.node.updater = '李四';
+    showToast(sf.node.status === 1 ? '已启用' : '已禁用');
+    renderModuleAll();
+  });
+
+  document.getElementById('module-form-cancel').addEventListener('click', function () {
+    moduleFormEditId = null;
+    moduleFormParentId = null;
+    showModule();
+  });
+  document.getElementById('module-form-save').addEventListener('click', saveModuleForm);
+  document.getElementById('mf-upload').addEventListener('click', function () {
+    updateMfScreenshotPreview(true);
+  });
+  document.getElementById('mf-clear-screenshot').addEventListener('click', function () {
+    updateMfScreenshotPreview(false);
+  });
+
+  document.getElementById('module-tbody').addEventListener('click', function (e) {
+    handleModuleAction(e);
+  });
+  document.getElementById('module-list-breadcrumb').addEventListener('click', function (e) {
+    handleModuleAction(e);
+  });
+  document.getElementById('module-children-tbody').addEventListener('click', function (e) {
+    handleModuleAction(e);
+  });
+
+  if (remarkInput && remarkCount) {
+    remarkInput.addEventListener('input', function () {
+      remarkCount.textContent = remarkInput.value.length;
+    });
+  }
+
+  mallSelect.addEventListener('change', function () {
+    promoValInput.value = '';
+    updatePromoValUI();
+  });
+
+  btnGenPromo.addEventListener('click', function () {
+    var mall = mallSelect.value;
+    if (!mall || MANUAL_MALLS.indexOf(mall) !== -1) return;
+    btnGenPromo.disabled = true;
+    btnGenPromo.textContent = '生成中…';
+    setTimeout(function () {
+      promoValInput.value = 'mm_151590176_58150058_' + Date.now().toString().slice(-12);
+      btnGenPromo.disabled = false;
+      btnGenPromo.textContent = '生成推广位';
+    }, 600);
+  });
+
+  document.getElementById('btn-pick-promo-module').addEventListener('click', openPromoModulePicker);
+  document.getElementById('btn-clear-promo-module').addEventListener('click', clearPromoModuleSelection);
+  document.getElementById('promo-module-modal-close').addEventListener('click', closePromoModulePicker);
+  document.getElementById('promo-module-cancel').addEventListener('click', closePromoModulePicker);
+  document.getElementById('promo-module-confirm').addEventListener('click', confirmPromoModulePicker);
+  document.getElementById('promo-module-modal').addEventListener('click', function (e) {
+    if (e.target === e.currentTarget) closePromoModulePicker();
+  });
+  document.getElementById('promo-module-search').addEventListener('input', renderPromoModulePickerList);
+  document.getElementById('promo-module-picker-tbody').addEventListener('click', function (e) {
+    var row = e.target.closest('[data-pick-module]');
+    if (!row) return;
+    promoModulePickerSelectedId = row.getAttribute('data-pick-module');
+    renderPromoModulePickerList();
+  });
+  document.getElementById('promo-module-picker-tbody').addEventListener('dblclick', function (e) {
+    var row = e.target.closest('[data-pick-module]');
+    if (!row) return;
+    promoModulePickerSelectedId = row.getAttribute('data-pick-module');
+    confirmPromoModulePicker();
+  });
+
+  updatePromoValUI();
+  if (MODULE_TREE.length) selectedModuleId = MODULE_TREE[0].id;
+  renderModuleAll();
+})();
+</script>
+
+</body>
+</html>

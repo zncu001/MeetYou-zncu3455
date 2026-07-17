@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>微信提现「自动到账」— 分场景流程图 v3（可编辑版）</title>
+  <style>
+    :root { --pink:#e8467c; --ink:#172033; --bg:#eef1f5; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:1080px; background:var(--bg); color:var(--ink); font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+    .app { max-width:1600px; margin:0 auto; padding:24px; }
+    .top { display:flex; justify-content:space-between; gap:24px; padding:20px 24px; background:#fff; border-radius:16px 16px 0 0; }
+    h1 { margin:0 0 4px; font-size:21px; } .desc { margin:0; color:#64748b; }
+    .save-status { align-self:center; color:#64748b; font-size:12px; white-space:nowrap; }
+    .toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 24px; background:#fff; border-top:1px solid #edf1f5; border-bottom:1px solid #e5eaf0; }
+    button, select, input, textarea { font:inherit; }
+    button { border:1px solid #d7dee8; background:#fff; border-radius:7px; padding:7px 11px; color:#334155; cursor:pointer; }
+    button:hover { background:#f8fafc; }
+    button.primary { background:#2563eb; border-color:#2563eb; color:#fff; }
+    button.primary:hover { background:#1d4ed8; }
+    button.danger { color:#b91c1c; border-color:#fecaca; }
+    .divider { width:1px; height:26px; background:#e2e8f0; margin:0 3px; }
+    .tabs { display:flex; gap:2px; margin-left:auto; }
+    .tab { border-radius:7px; } .tab.selected { background:#334155; color:#fff; border-color:#334155; }
+    .editor { display:grid; grid-template-columns:minmax(820px,1fr) 322px; min-height:760px; background:#fff; border-radius:0 0 16px 16px; overflow:hidden; }
+    .canvas-zone { position:relative; overflow:auto; background:#f8fafc; padding:18px; }
+    #diagram { width:1080px; display:block; background:#fff; border:1px solid #dbe2ea; border-radius:12px; }
+    .side { border-left:1px solid #e5eaf0; background:#fff; padding:18px; overflow:auto; }
+    .side h2 { font-size:15px; margin:0 0 14px; }
+    .empty { color:#94a3b8; padding:10px 0; }
+    .field { margin:0 0 12px; }
+    .field label { display:block; color:#64748b; font-size:12px; margin:0 0 5px; }
+    .field input,.field select,.field textarea { width:100%; border:1px solid #d7dee8; border-radius:7px; padding:8px; color:#172033; background:#fff; }
+    .field textarea { min-height:62px; resize:vertical; }
+    .pair { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .panel-note { background:#f8fafc; border:1px solid #e7edf4; color:#64748b; font-size:12px; padding:10px; border-radius:8px; margin-top:4px; }
+    .node { cursor:grab; } .node:active { cursor:grabbing; }
+    .node.selected .shape { stroke:#2563eb; stroke-width:3; }
+    .edge { cursor:pointer; } .edge.selected { stroke:#2563eb!important; stroke-width:3!important; }
+    .lane-label { fill:#fff; font-size:15px; font-weight:700; }
+    .lane-caption { fill:#334155; font-size:13px; font-weight:700; }
+    .label { fill:#172033; font-size:13px; font-weight:650; }
+    .detail { fill:#64748b; font-size:11px; }
+    .edge-label { fill:#64748b; font-size:11px; paint-order:stroke; stroke:#fff; stroke-width:4px; }
+    .branch-yes { fill:#05835f; font-weight:700; }
+    .branch-no { fill:#dc2626; font-weight:700; }
+    .help { margin-top:16px; color:#64748b; font-size:12px; line-height:1.7; }
+    .rules { margin-top:16px; padding:16px 20px; background:#fff; border-radius:12px; }
+    .rules h2 { font-size:15px; margin:0 0 12px; }
+    .rule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:10px; }
+    .rule { font-size:12.5px; line-height:1.65; color:#475569; background:#f8fafc; border:1px solid #e8edf3; border-radius:10px; padding:10px 14px; }
+    .rule b { color:#1e293b; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>微信提现「自动到账」— 分场景流程图 v3（可编辑版）</h1>
+      <p class="desc">基于静态 v3 的可编辑副本。支持节点/连线增删改查、拖拽、撤销重做、保存与导出。静态版文件不受影响。</p>
+    </div>
+    <div id="saveStatus" class="save-status">未选择本地文件</div>
+  </header>
+  <nav class="toolbar">
+    <button id="addProcess">＋ 处理节点</button>
+    <button id="addDecision">＋ 判断节点</button>
+    <button id="addStart">＋ 开始/结束</button>
+    <button id="connect">↗ 新增连线</button>
+    <button id="delete" class="danger">删除选中</button>
+    <span class="divider"></span>
+    <button id="undo">↶ 撤销</button>
+    <button id="redo">↷ 重做</button>
+    <span class="divider"></span>
+    <button id="openFile">打开流程图文件</button>
+    <button id="saveFile" class="primary">保存到当前文件</button>
+    <button id="downloadHtml">下载 HTML</button>
+    <button id="exportPng">导出 PNG</button>
+    <div class="tabs">
+      <button class="tab selected" data-scene="withdraw">场景① 提现校验授权</button>
+      <button class="tab" data-scene="bind">场景② 关联微信授权</button>
+    </div>
+  </nav>
+  <main class="editor">
+    <section class="canvas-zone">
+      <svg id="diagram" viewBox="0 0 1080 1520" aria-label="可编辑分场景流程图"></svg>
+      <p class="help">
+        <b>增</b>：工具栏新增节点 / 新增连线（先点起点再点终点）·
+        <b>删</b>：选中后点「删除」或 Delete ·
+        <b>改</b>：右侧属性面板 / 拖拽位置 ·
+        <b>查</b>：点击节点或连线查看详情。
+      </p>
+    </section>
+    <aside class="side">
+      <h2>属性编辑</h2>
+      <div id="inspector" class="empty">请选择一个节点或连线</div>
+    </aside>
+  </main>
+  <div class="rules">
+    <h2>与官方流程图对齐说明</h2>
+    <div class="rule-grid">
+      <div class="rule"><b>场景① · 已授权</b>：校验通过后由美柚发起打款，微信执行转账入零钱；用户只收到入账消息，无需确认。</div>
+      <div class="rule"><b>场景① · 未授权</b>：美柚发起收款中授权 → 微信「确认收款并授权」页勾选免确认并确认收款 → 完成页返回商家。</div>
+      <div class="rule"><b>场景② · 关联时授权</b>：从「提现账户管理 · 未绑定」进入微信授权页，点「同意」→ 完成页 → 美柚展示「已绑定」。</div>
+      <div class="rule"><b>解约入口</b>：用户可在微信侧「查看授权信息」中关闭服务；关闭后下次提现回到场景①未授权分支。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const INITIAL_DATA = {
+  lanes: [
+    { id: "app", label: "美柚 App（用户端）", color: "#e8467c", fill: "#fdf3f7", w: 320 },
+    { id: "meiyou", label: "美柚服务端", color: "#475569", fill: "#f6f8fa", w: 320 },
+    { id: "wechat", label: "微信", color: "#07a555", fill: "#f0faf4", w: 360 }
+  ],
+  scenes: {
+    withdraw: {
+      title: "场景① 用户点击「提现到微信」",
+      subtitle: "校验是否已有自动到账授权。已授权 → 美柚发起打款；未授权 → 收款中授权。",
+      height: 1520,
+      nodes: [
+        { id: "w-start", type: "terminal", lane: "app", x: 130, y: 112, w: 140, h: 40, badge: "", title: "开始", detail: "" },
+        { id: "w-1", type: "process", lane: "app", x: 88, y: 180, w: 224, h: 64, badge: "1", title: "点击「提现到微信」", detail: "输入金额 · 发起提现" },
+        { id: "w-2", type: "process", lane: "meiyou", x: 408, y: 180, w: 224, h: 64, badge: "2", title: "校验授权状态", detail: "是否已开通免确认收款" },
+        { id: "w-d1", type: "decision", lane: "meiyou", x: 420, y: 305, w: 200, h: 90, badge: "", title: "是否已有\n自动到账授权？", detail: "" },
+        { id: "w-3a", type: "process", lane: "meiyou", x: 408, y: 430, w: 224, h: 64, badge: "3a", title: "发起打款（免确认）", detail: "美柚侧发起 · 无需用户确认" },
+        { id: "w-4a", type: "process", lane: "wechat", x: 748, y: 520, w: 224, h: 64, badge: "4a", title: "执行转账 · 资金入零钱", detail: "入账消息 · 无需确认" },
+        { id: "w-5a", type: "process", lane: "app", x: 88, y: 610, w: 224, h: 64, badge: "5a", title: "App 内到账通知", detail: "余额更新 · 提现完成" },
+        { id: "w-end-a", type: "terminal", lane: "app", x: 110, y: 715, w: 180, h: 40, badge: "", title: "结束 · 提现完成", detail: "" },
+        { id: "w-3b", type: "process", lane: "meiyou", x: 408, y: 825, w: 224, h: 64, badge: "3b", title: "发起收款中授权", detail: "美柚侧发起 · 本次需先确认收款" },
+        { id: "w-4b", type: "process", lane: "wechat", x: 748, y: 820, w: 224, h: 80, badge: "4b", title: "确认收款并授权页", detail: "金额 · 转账类型 · 备注\n勾选「免确认收款该商家…」" },
+        { id: "w-d2", type: "decision", lane: "wechat", x: 750, y: 985, w: 220, h: 90, badge: "", title: "是否勾选免确认\n并确认收款？", detail: "" },
+        { id: "w-fail", type: "terminal", lane: "wechat", x: 980, y: 1215, w: 90, h: 52, badge: "", title: "结束·未授权", detail: "可稍后重试", variant: "fail" },
+        { id: "w-5b", type: "process", lane: "wechat", x: 748, y: 1145, w: 224, h: 72, badge: "5b", title: "收款成功 · 授权开通", detail: "「你已允许免确认收款」\n完成页 · 返回商家" },
+        { id: "w-6b", type: "process", lane: "meiyou", x: 408, y: 1255, w: 224, h: 64, badge: "6b", title: "记录开通状态", detail: "后续可直接免确认打款" },
+        { id: "w-7b", type: "process", lane: "app", x: 88, y: 1295, w: 224, h: 64, badge: "7b", title: "提现成功 · 已开通自动到账", detail: "下次提现无需再确认" },
+        { id: "w-end-b", type: "terminal", lane: "app", x: 110, y: 1400, w: 180, h: 40, badge: "", title: "结束 · 开通并到账", detail: "" }
+      ],
+      edges: [
+        ["w-start", "w-1", "", "solid"],
+        ["w-1", "w-2", "提现请求", "solid"],
+        ["w-2", "w-d1", "", "solid"],
+        ["w-d1", "w-3a", "是 · 已授权 · 直接打款", "money"],
+        ["w-3a", "w-4a", "调用微信打款", "solid"],
+        ["w-4a", "w-5a", "到账结果通知", "dashed"],
+        ["w-5a", "w-end-a", "", "solid"],
+        ["w-d1", "w-3b", "否 · 未授权", "error"],
+        ["w-3b", "w-4b", "拉起确认收款并授权页", "solid"],
+        ["w-4b", "w-d2", "", "solid"],
+        ["w-d2", "w-5b", "是 · 勾选并确认收款", "money"],
+        ["w-d2", "w-fail", "否", "error"],
+        ["w-5b", "w-6b", "返回商家 · 同步状态", "solid"],
+        ["w-6b", "w-7b", "", "solid"],
+        ["w-7b", "w-end-b", "", "solid"]
+      ]
+    },
+    bind: {
+      title: "场景② 用户关联微信账户",
+      subtitle: "从「提现账户管理」绑定微信：授权页同意 → 授权完成 → 美柚展示已绑定。",
+      height: 1160,
+      nodes: [
+        { id: "b-start", type: "terminal", lane: "app", x: 130, y: 112, w: 140, h: 40, badge: "", title: "开始", detail: "" },
+        { id: "b-1", type: "process", lane: "app", x: 88, y: 180, w: 224, h: 64, badge: "1", title: "提现账户管理", detail: "「提现至微信」· 未绑定" },
+        { id: "b-2", type: "process", lane: "app", x: 88, y: 295, w: 224, h: 64, badge: "2", title: "点击「提现至微信」绑定", detail: "发起关联 + 授权自动收款" },
+        { id: "b-3", type: "process", lane: "wechat", x: 748, y: 310, w: 224, h: 80, badge: "3", title: "微信 · 授权页", detail: "在商户通过微信支付收款\n活动奖励 · 收款方式：零钱" },
+        { id: "b-d1", type: "decision", lane: "wechat", x: 750, y: 475, w: 220, h: 90, badge: "", title: "用户是否点击\n「同意」？", detail: "" },
+        { id: "b-fail", type: "terminal", lane: "wechat", x: 980, y: 685, w: 90, h: 52, badge: "", title: "结束·未绑定", detail: "可稍后重试", variant: "fail" },
+        { id: "b-4", type: "process", lane: "wechat", x: 748, y: 630, w: 224, h: 72, badge: "4", title: "授权开通成功 · 完成页", detail: "免确认收款长期生效\n用户点击「完成」" },
+        { id: "b-5", type: "process", lane: "meiyou", x: 408, y: 760, w: 224, h: 64, badge: "5", title: "保存绑定 + 开通状态", detail: "自动到账已开通" },
+        { id: "b-6", type: "process", lane: "meiyou", x: 408, y: 870, w: 224, h: 64, badge: "6", title: "同步账户管理页状态", detail: "展示为「已绑定」" },
+        { id: "b-7", type: "process", lane: "app", x: 88, y: 900, w: 224, h: 64, badge: "7", title: "提现至微信 · 已绑定", detail: "展示微信昵称 / 掩码账号" },
+        { id: "b-opt", type: "process", lane: "wechat", x: 748, y: 965, w: 224, h: 56, badge: "", title: "（可选）查看授权信息", detail: "生效中 · 可关闭服务解约", variant: "optional" },
+        { id: "b-end", type: "terminal", lane: "app", x: 110, y: 1035, w: 180, h: 40, badge: "", title: "结束 · 绑定并开通", detail: "" }
+      ],
+      edges: [
+        ["b-start", "b-1", "", "solid"],
+        ["b-1", "b-2", "", "solid"],
+        ["b-2", "b-3", "拉起微信 · 授权页", "solid"],
+        ["b-3", "b-d1", "", "solid"],
+        ["b-d1", "b-4", "是 · 同意", "money"],
+        ["b-d1", "b-fail", "否", "error"],
+        ["b-4", "b-5", "点「完成」· 回跳商家", "solid"],
+        ["b-5", "b-6", "", "solid"],
+        ["b-6", "b-7", "", "solid"],
+        ["b-7", "b-end", "", "solid"],
+        ["b-7", "b-opt", "（可选）查看授权 / 关闭服务", "dashed"]
+      ]
+    }
+  }
+};
+
+const svg = document.getElementById("diagram");
+const inspector = document.getElementById("inspector");
+const statusEl = document.getElementById("saveStatus");
+let state = structuredClone(INITIAL_DATA);
+let sceneId = "withdraw";
+let selected = null;
+let edgeMode = null;
+let history = [];
+let future = [];
+let fileHandle = null;
+const W = 1080;
+const LEFT = 40;
+const HEADER_H = 64;
+
+const el = (tag, attrs = {}, text = "") => {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+  if (text) n.textContent = text;
+  return n;
+};
+const scene = () => state.scenes[sceneId];
+const edges = () => scene().edges.map((e, i) => ({ id: `edge-${i}`, from: e[0], to: e[1], label: e[2], style: e[3] }));
+const nodeById = id => scene().nodes.find(n => n.id === id);
+const laneOf = id => state.lanes.find(l => l.id === id);
+const laneX = id => { let x = LEFT; for (const l of state.lanes) { if (l.id === id) return x; x += l.w; } return x; };
+const fitScene = () => scene().height || 1200;
+
+function snapshot() {
+  history.push(JSON.stringify(state));
+  if (history.length > 50) history.shift();
+  future = [];
+}
+function restore(raw) { state = JSON.parse(raw); selected = null; render(); }
+function undo() { if (!history.length) return; future.push(JSON.stringify(state)); restore(history.pop()); }
+function redo() { if (!future.length) return; history.push(JSON.stringify(state)); restore(future.pop()); }
+
+function anchor(a, b) {
+  const ax = a.x + a.w / 2, ay = a.y + a.h / 2, bx = b.x + b.w / 2, by = b.y + b.h / 2;
+  if (Math.abs(bx - ax) > Math.abs(by - ay)) return bx > ax ? { x: a.x + a.w, y: ay } : { x: a.x, y: ay };
+  return by > ay ? { x: ax, y: a.y + a.h } : { x: ax, y: a.y };
+}
+function edgePath(a, b) {
+  const p = anchor(a, b), q = anchor(b, a);
+  if (Math.abs(q.x - p.x) > 80) { const m = (p.x + q.x) / 2; return `M${p.x} ${p.y} H${m} V${q.y} H${q.x}`; }
+  const m = (p.y + q.y) / 2;
+  return `M${p.x} ${p.y} V${m} H${q.x} V${q.y}`;
+}
+
+function render() {
+  const s = scene();
+  const height = fitScene();
+  svg.setAttribute("viewBox", `0 0 ${W} ${height}`);
+  svg.setAttribute("height", height);
+  svg.innerHTML = `<defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#64748b"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#dc2626"/></marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#059669"/></marker>
+  </defs>`;
+
+  let x = LEFT;
+  state.lanes.forEach((lane, i) => {
+    svg.append(el("rect", { x, y: HEADER_H, width: lane.w, height: height - HEADER_H - 16, fill: lane.fill }));
+    svg.append(el("rect", { x, y: 16, width: lane.w, height: 48, rx: 10, fill: lane.color }));
+    svg.append(el("text", { x: x + lane.w / 2, y: 45, "text-anchor": "middle", class: "lane-label" }, lane.label));
+    if (i) svg.append(el("line", { x1: x, y1: HEADER_H, x2: x, y2: height - 16, stroke: "#e2e8f0" }));
+    x += lane.w;
+  });
+  svg.append(el("rect", { x: LEFT, y: HEADER_H, width: 1000, height: height - HEADER_H - 16, fill: "none", stroke: "#dbe2ea" }));
+  svg.append(el("text", { x: 56, y: 99, class: "lane-caption" }, s.title));
+  svg.append(el("text", { x: 56, y: 118, fill: "#64748b", "font-size": "11" }, s.subtitle));
+
+  edges().forEach(ed => {
+    const a = nodeById(ed.from), b = nodeById(ed.to);
+    if (!a || !b) return;
+    const color = ed.style === "money" ? "#059669" : ed.style === "error" ? "#dc2626" : "#64748b";
+    const path = el("path", {
+      d: edgePath(a, b), fill: "none", stroke: color,
+      "stroke-width": selected?.kind === "edge" && selected.id === ed.id ? 3 : 1.7,
+      "stroke-dasharray": ed.style === "dashed" || ed.style === "error" ? "6 4" : "",
+      class: "edge",
+      "marker-end": `url(#${ed.style === "money" ? "arrow-green" : ed.style === "error" ? "arrow-red" : "arrow"})`
+    });
+    path.onclick = e => { e.stopPropagation(); selected = { kind: "edge", id: ed.id }; edgeMode = null; render(); };
+    svg.append(path);
+    if (ed.label) {
+      const p = anchor(a, b), q = anchor(b, a);
+      svg.append(el("text", {
+        x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 - 7, "text-anchor": "middle",
+        class: `edge-label ${ed.label.startsWith("是") ? "branch-yes" : ed.label.startsWith("否") ? "branch-no" : ""}`
+      }, ed.label));
+    }
+  });
+
+  s.nodes.forEach(n => renderNode(n));
+  renderInspector();
+}
+
+function fillFor(n) {
+  if (n.type === "terminal") return n.variant === "fail" ? "#fef2f2" : (n.title.includes("结束") ? "#047857" : "#334155");
+  if (n.variant === "optional") return "#f8fafc";
+  if (n.lane === "app") return "#fdf0f5";
+  if (n.lane === "wechat") return "#eafaf1";
+  return "#f1f4f8";
+}
+function strokeFor(n) {
+  if (n.type === "terminal") return n.variant === "fail" ? "#fca5a5" : "none";
+  if (n.variant === "optional") return "#cbd5e1";
+  if (n.lane === "app") return "#f3c3d6";
+  if (n.lane === "wechat") return "#bfe8d0";
+  return "#cbd5e1";
+}
+function badgeColor(n) {
+  if (n.lane === "app") return "#e8467c";
+  if (n.lane === "wechat") return "#07a555";
+  return "#475569";
+}
+
+function renderNode(n) {
+  const g = el("g", { class: `node ${selected?.kind === "node" && selected.id === n.id ? "selected" : ""}`, "data-id": n.id });
+  let shape;
+  if (n.type === "decision") {
+    const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
+    shape = el("polygon", {
+      points: `${cx},${n.y} ${n.x + n.w},${cy} ${cx},${n.y + n.h} ${n.x},${cy}`,
+      class: "shape", fill: "#fff7ed", stroke: "#f59e0b", "stroke-width": 1.5
+    });
+  } else {
+    shape = el("rect", {
+      x: n.x, y: n.y, width: n.w, height: n.h,
+      rx: n.type === "terminal" ? n.h / 2 : 6,
+      class: "shape", fill: fillFor(n), stroke: strokeFor(n), "stroke-width": 1.4,
+      "stroke-dasharray": n.variant === "optional" ? "5 4" : ""
+    });
+  }
+  g.append(shape);
+
+  if (n.badge) {
+    g.append(el("circle", { cx: n.x, cy: n.y + n.h / 2, r: 13, fill: badgeColor(n) }));
+    g.append(el("text", { x: n.x, y: n.y + n.h / 2 + 4, "text-anchor": "middle", fill: "#fff", "font-size": "11", "font-weight": "700" }, n.badge));
+  }
+
+  const lines = String(n.title || "").split("\n");
+  const details = String(n.detail || "").split("\n").filter(Boolean);
+  const isTerm = n.type === "terminal";
+  const tc = isTerm ? (n.variant === "fail" ? "#b91c1c" : "#fff") : (n.type === "decision" ? "#92400e" : "#172033");
+  const titleBlock = lines.length + (details.length ? 1 : 0);
+  let startY = n.y + n.h / 2 - (titleBlock - 1) * 9;
+
+  lines.forEach((line, i) => {
+    g.append(el("text", {
+      x: n.x + n.w / 2, y: startY + i * 18,
+      "text-anchor": "middle", class: "label", fill: tc, "font-size": isTerm && n.w < 120 ? "10.5" : "13"
+    }, line));
+  });
+  details.forEach((line, i) => {
+    g.append(el("text", {
+      x: n.x + n.w / 2, y: startY + lines.length * 18 + i * 16,
+      "text-anchor": "middle", class: "detail",
+      fill: line.includes("勾选") ? "#059669" : (n.variant === "fail" ? "#dc2626" : "#64748b")
+    }, line));
+  });
+
+  g.onmousedown = startDrag;
+  g.onclick = e => {
+    e.stopPropagation();
+    if (edgeMode) { connectNode(n.id); return; }
+    selected = { kind: "node", id: n.id };
+    render();
+  };
+  svg.append(g);
+}
+
+let dragging = null;
+function svgPoint(event) {
+  const r = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
+  return { x: (event.clientX - r.left) * vb.width / r.width, y: (event.clientY - r.top) * vb.height / r.height };
+}
+function startDrag(e) {
+  if (edgeMode) return;
+  const id = e.currentTarget.dataset.id;
+  const n = nodeById(id);
+  snapshot();
+  dragging = { id, dx: svgPoint(e).x - n.x, dy: svgPoint(e).y - n.y };
+  selected = { kind: "node", id };
+  window.addEventListener("mousemove", moveDrag);
+  window.addEventListener("mouseup", stopDrag, { once: true });
+}
+function moveDrag(e) {
+  if (!dragging) return;
+  const n = nodeById(dragging.id);
+  const p = svgPoint(e);
+  const lane = laneOf(n.lane);
+  const minX = laneX(n.lane) + 8;
+  const maxX = laneX(n.lane) + lane.w - n.w - 8;
+  n.x = Math.max(minX, Math.min(maxX, p.x - dragging.dx));
+  n.y = Math.max(135, Math.min(fitScene() - n.h - 20, p.y - dragging.dy));
+  render();
+}
+function stopDrag() { dragging = null; window.removeEventListener("mousemove", moveDrag); }
+
+function renderInspector() {
+  if (!selected) { inspector.innerHTML = '<div class="empty">请选择一个节点或连线</div>'; return; }
+  if (selected.kind === "node") {
+    const n = nodeById(selected.id);
+    if (!n) return;
+    inspector.innerHTML = `
+      <div class="field"><label>节点类型</label>
+        <select data-k="type">
+          <option value="process">处理（矩形）</option>
+          <option value="decision">判断（菱形）</option>
+          <option value="terminal">开始/结束（胶囊）</option>
+        </select>
+      </div>
+      <div class="field"><label>标题（可用换行）</label><textarea data-k="title">${esc(n.title)}</textarea></div>
+      <div class="field"><label>说明（可用换行）</label><textarea data-k="detail">${esc(n.detail)}</textarea></div>
+      <div class="pair">
+        <div class="field"><label>所属泳道</label>
+          <select data-k="lane">${state.lanes.map(l => `<option value="${l.id}">${l.label}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>编号角标</label><input data-k="badge" value="${esc(n.badge || "")}"></div>
+      </div>
+      <div class="pair">
+        <div class="field"><label>节点 ID</label><input data-k="id" value="${esc(n.id)}"></div>
+        <div class="field"><label>样式变体</label>
+          <select data-k="variant">
+            <option value="">默认</option>
+            <option value="fail">失败结束</option>
+            <option value="optional">可选虚线</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>画布高度</label><input data-k="sceneHeight" type="number" min="800" step="20" value="${fitScene()}"></div>
+      <div class="panel-note">拖拽可调位置；改泳道会自动对齐到对应列。改 ID 会同步更新连线。</div>`;
+    inspector.querySelector('[data-k="type"]').value = n.type;
+    inspector.querySelector('[data-k="lane"]').value = n.lane;
+    inspector.querySelector('[data-k="variant"]').value = n.variant || "";
+    bindNodeFields(n);
+  } else {
+    const idx = +selected.id.replace("edge-", "");
+    const e = scene().edges[idx];
+    if (!e) return;
+    inspector.innerHTML = `
+      <div class="field"><label>起点节点</label><select data-k="from">${nodeOptions(e[0])}</select></div>
+      <div class="field"><label>终点节点</label><select data-k="to">${nodeOptions(e[1])}</select></div>
+      <div class="field"><label>连线标签（如：是 / 否）</label><input data-k="label" value="${esc(e[2])}"></div>
+      <div class="field"><label>线条语义</label>
+        <select data-k="style">
+          <option value="solid">主流程</option>
+          <option value="dashed">系统通知 / 可选</option>
+          <option value="money">是 / 到账</option>
+          <option value="error">否 / 异常</option>
+        </select>
+      </div>`;
+    inspector.querySelector('[data-k="style"]').value = e[3];
+    bindEdgeFields(idx);
+  }
+}
+
+function esc(s = "") { return String(s).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;"); }
+function nodeOptions(selectedId) {
+  return scene().nodes.map(n => `<option value="${n.id}" ${n.id === selectedId ? "selected" : ""}>${esc(n.title.replace(/\n/g, " "))} · ${n.id}</option>`).join("");
+}
+function bindNodeFields(n) {
+  inspector.querySelectorAll("[data-k]").forEach(input => {
+    input.onchange = () => {
+      snapshot();
+      const k = input.dataset.k, v = input.value;
+      if (k === "sceneHeight") {
+        scene().height = Math.max(800, +v || 1200);
+      } else if (k === "id") {
+        if (scene().nodes.some(x => x !== n && x.id === v) || !v) { alert("节点 ID 不能为空且必须唯一"); input.value = n.id; return; }
+        scene().edges.forEach(e => { if (e[0] === n.id) e[0] = v; if (e[1] === n.id) e[1] = v; });
+        n.id = v; selected.id = v;
+      } else if (k === "variant") {
+        if (v) n.variant = v; else delete n.variant;
+      } else {
+        n[k] = v;
+        if (k === "lane") n.x = laneX(v) + 48;
+      }
+      render();
+    };
+  });
+}
+function bindEdgeFields(index) {
+  inspector.querySelectorAll("[data-k]").forEach(input => {
+    input.onchange = () => {
+      snapshot();
+      scene().edges[index][{ from: 0, to: 1, label: 2, style: 3 }[input.dataset.k]] = input.value;
+      render();
+    };
+  });
+}
+
+function addNode(type) {
+  snapshot();
+  const id = `node-${Date.now()}`;
+  const n = {
+    id, type, lane: "app", x: 88, y: 160,
+    w: type === "decision" ? 220 : 224,
+    h: type === "decision" ? 90 : 64,
+    badge: "",
+    title: type === "decision" ? "是否满足条件？" : type === "terminal" ? "开始 / 结束" : "新增处理节点",
+    detail: type === "process" ? "请填写说明" : ""
+  };
+  scene().nodes.push(n);
+  selected = { kind: "node", id };
+  render();
+}
+function connectNode(id) {
+  if (!edgeMode) { edgeMode = id; statusEl.textContent = "已选起点，请点击终点节点"; return; }
+  if (edgeMode === id) return;
+  snapshot();
+  scene().edges.push([edgeMode, id, "", "solid"]);
+  selected = { kind: "edge", id: `edge-${scene().edges.length - 1}` };
+  edgeMode = null;
+  statusEl.textContent = "已新增连线";
+  render();
+}
+function deleteSelected() {
+  if (!selected) return;
+  snapshot();
+  if (selected.kind === "node") {
+    const id = selected.id;
+    scene().nodes = scene().nodes.filter(n => n.id !== id);
+    scene().edges = scene().edges.filter(e => e[0] !== id && e[1] !== id);
+  } else {
+    scene().edges.splice(+selected.id.replace("edge-", ""), 1);
+  }
+  selected = null;
+  render();
+}
+
+function downloadPng() {
+  const clone = svg.cloneNode(true);
+  clone.querySelectorAll(".selected").forEach(x => x.classList.remove("selected"));
+  const xml = new XMLSerializer().serializeToString(clone);
+  const blob = new Blob([xml], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const h = fitScene();
+    const c = document.createElement("canvas");
+    c.width = 2160; c.height = Math.ceil(2160 * h / 1080);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const a = document.createElement("a");
+    a.download = `${scene().title}.png`;
+    a.href = c.toDataURL("image/png");
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+function currentHtml() {
+  const html = document.documentElement.outerHTML;
+  return html.replace(/const INITIAL_DATA = \{[\s\S]*?\n\};\n\nconst svg/, `const INITIAL_DATA = ${JSON.stringify(state, null, 2)};\n\nconst svg`);
+}
+function downloadHtml() {
+  const a = document.createElement("a");
+  a.download = "微信自动到账-分场景流程图-v3（可编辑版）.html";
+  a.href = URL.createObjectURL(new Blob([currentHtml()], { type: "text/html;charset=utf-8" }));
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 500);
+}
+async function openFile() {
+  if (!window.showOpenFilePicker) { statusEl.textContent = "当前浏览器不支持直接写回，请使用「下载 HTML」"; return; }
+  try {
+    [fileHandle] = await window.showOpenFilePicker({ types: [{ description: "HTML 文件", accept: { "text/html": [".html"] } }] });
+    statusEl.textContent = `已选择：${fileHandle.name}`;
+  } catch {}
+}
+async function saveFile() {
+  if (!fileHandle) { await openFile(); if (!fileHandle) return; }
+  try {
+    const writable = await fileHandle.createWritable();
+    await writable.write(currentHtml());
+    await writable.close();
+    statusEl.textContent = `已保存到 ${fileHandle.name} · ${new Date().toLocaleTimeString()}`;
+  } catch {
+    statusEl.textContent = "保存失败，请确认文件写入权限";
+  }
+}
+
+document.getElementById("addProcess").onclick = () => addNode("process");
+document.getElementById("addDecision").onclick = () => addNode("decision");
+document.getElementById("addStart").onclick = () => addNode("terminal");
+document.getElementById("connect").onclick = () => { edgeMode = null; statusEl.textContent = "新增连线：请先点击起点节点"; };
+document.getElementById("delete").onclick = deleteSelected;
+document.getElementById("undo").onclick = undo;
+document.getElementById("redo").onclick = redo;
+document.getElementById("openFile").onclick = openFile;
+document.getElementById("saveFile").onclick = saveFile;
+document.getElementById("downloadHtml").onclick = downloadHtml;
+document.getElementById("exportPng").onclick = downloadPng;
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  sceneId = b.dataset.scene;
+  selected = null;
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("selected", x === b));
+  render();
+});
+svg.onclick = () => { selected = null; edgeMode = null; render(); };
+window.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  if ((e.key === "Delete" || e.key === "Backspace") && document.activeElement === document.body) deleteSelected();
+});
+render();
+</script>
+</body>
+</html>

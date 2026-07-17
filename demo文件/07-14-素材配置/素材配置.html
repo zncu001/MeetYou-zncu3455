@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>素材配置 - 后台原型</title>
+  <style>
+    :root {
+      --brand-pink: #ff4d94;
+      --brand-pink-light: #ffe5f0;
+      --text-main: #303133;
+      --text-regular: #606266;
+      --text-placeholder: #c0c4cc;
+      --border-color: #dcdfe6;
+      --border-light: #e4e7ed;
+      --bg-page: #f0f2f5;
+      --bg-disabled: #f5f7fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      color: var(--text-main);
+      background: #fff;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body.theme-dark {
+      --text-main: #e5eaf3;
+      --text-regular: #cfd3dc;
+      --text-placeholder: #8d9095;
+      --border-color: #4c4d4f;
+      --border-light: #414243;
+      --bg-page: #141414;
+      --bg-disabled: #262727;
+    }
+
+    .page-wrap {
+      min-height: 100vh;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 16px 20px 40px;
+    }
+
+    .form-panel {
+      width: 382px;
+      background: #fff;
+      padding: 0;
+    }
+
+    body.theme-dark .form-panel {
+      background: #1d1e1f;
+    }
+
+    /* 素材配置头部 */
+    .material-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-bottom: 4px;
+    }
+
+    .material-label {
+      font-size: 14px;
+      color: var(--text-main);
+      line-height: 20px;
+      flex-shrink: 0;
+      padding-right: 0;
+      margin-top: 6px;
+      white-space: nowrap;
+    }
+
+    .material-input-wrap {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .protocol-box {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .protocol-textarea {
+      width: 100%;
+      height: 68px;
+      padding: 6px 24px 6px 10px;
+      border: 1px solid var(--brand-pink);
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-main);
+      background: #fff;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+    }
+
+    body.theme-dark .protocol-textarea {
+      background: #1d1e1f;
+    }
+
+    .protocol-star {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 14px;
+      height: 14px;
+      color: var(--brand-pink);
+      pointer-events: none;
+    }
+
+    .protocol-star svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--brand-pink);
+    }
+
+    .btn-add {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: #fff;
+      color: var(--text-placeholder);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 4px;
+      font-size: 16px;
+      line-height: 1;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    body.theme-dark .btn-add {
+      background: #1d1e1f;
+    }
+
+    .btn-add:hover {
+      border-color: var(--brand-pink);
+      color: var(--brand-pink);
+    }
+
+    .protocol-tip {
+      display: block;
+      font-size: 14px;
+      color: var(--brand-pink);
+      margin: 2px 0 10px 64px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .protocol-tip:hover {
+      opacity: 0.85;
+    }
+
+    /* 操作按钮 */
+    .action-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn-outline {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text-regular);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    body.theme-dark .btn-outline {
+      background: #1d1e1f;
+    }
+
+    .btn-outline:hover {
+      background: #fafafa;
+    }
+
+    /* 表单字段 */
+    .form-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-row-split {
+      display: flex;
+      gap: 8px;
+    }
+
+    .form-row-split .field-left { flex: 0 0 112px; min-width: 0; }
+    .form-row-split .field-right { flex: 1; min-width: 0; }
+
+    .field {
+      position: relative;
+      width: 100%;
+    }
+
+    .field-with-help {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-with-help .field { flex: 1; min-width: 0; }
+
+    .input-inner,
+    .select-inner {
+      width: 100%;
+      height: 32px;
+      padding: 0 30px 0 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-regular);
+      background: #fff;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+
+    body.theme-dark .input-inner,
+    body.theme-dark .select-inner {
+      background: #1d1e1f;
+    }
+
+    .input-inner::placeholder {
+      color: var(--text-placeholder);
+    }
+
+    .input-inner:focus,
+    .select-inner:focus {
+      border-color: var(--brand-pink);
+    }
+
+    .input-inner.is-disabled {
+      background: var(--bg-disabled);
+      color: var(--text-placeholder);
+      cursor: not-allowed;
+      font-size: 11px;
+      padding: 0 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .input-inner.is-disabled.has-value {
+      color: var(--text-regular);
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--text-placeholder);
+      pointer-events: none;
+    }
+
+    .select-inner {
+      cursor: pointer;
+      color: var(--text-regular);
+    }
+
+    .select-inner.is-placeholder {
+      color: var(--text-placeholder);
+    }
+
+    .help-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--brand-pink);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .help-icon:hover {
+      opacity: 0.88;
+    }
+
+    .btn-field {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text-regular);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    body.theme-dark .btn-field {
+      background: #1d1e1f;
+    }
+
+    .btn-field:hover {
+      background: #fafafa;
+    }
+
+    /* 复选框 */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .custom-checkbox {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .custom-checkbox input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .custom-checkbox .check-box {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--brand-pink);
+      border-radius: 2px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    body.theme-dark .custom-checkbox .check-box {
+      background: #1d1e1f;
+    }
+
+    .custom-checkbox input:checked + .check-box {
+      background: var(--brand-pink);
+    }
+
+    .custom-checkbox .check-box svg {
+      width: 10px;
+      height: 10px;
+      stroke: #fff;
+      stroke-width: 2.5;
+      fill: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .custom-checkbox input:checked + .check-box svg {
+      opacity: 1;
+    }
+
+    .checkbox-label {
+      font-size: 14px;
+      color: var(--brand-pink);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* 提示弹层 */
+    .tooltip {
+      position: fixed;
+      z-index: 200;
+      max-width: 280px;
+      padding: 10px 14px;
+      background: #303133;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.6;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #303133;
+    }
+
+    /* 路由协议示例弹窗 */
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-mask.show { display: flex; }
+
+    .modal-box {
+      width: 480px;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    body.theme-dark .modal-box {
+      background: #1d1e1f;
+    }
+
+    .modal-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      color: var(--text-placeholder);
+      font-size: 20px;
+      line-height: 1;
+      border: none;
+      background: none;
+    }
+
+    .modal-body {
+      padding: 16px 20px 20px;
+      font-size: 13px;
+      color: var(--text-regular);
+      line-height: 1.7;
+    }
+
+    .modal-body code {
+      display: block;
+      margin-top: 10px;
+      padding: 12px;
+      background: var(--bg-disabled);
+      border-radius: 4px;
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      color: var(--brand-pink);
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="form-panel">
+      <!-- 素材配置 -->
+      <div class="material-header">
+        <span class="material-label">素材配置:</span>
+        <div class="material-input-wrap">
+          <div class="protocol-box">
+            <textarea class="protocol-textarea" placeholder=""></textarea>
+            <span class="protocol-star" title="必填">
+              <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7-5.4-4.7 7.1-.6z"/></svg>
+            </span>
+          </div>
+          <button class="btn-add" type="button" title="新增配置" aria-label="新增">+</button>
+        </div>
+      </div>
+      <a class="protocol-tip" href="javascript:void(0)" id="protocolExample">路由协议填写示例</a>
+
+      <!-- 操作按钮 -->
+      <div class="action-btns">
+        <button class="btn-outline" type="button" id="uploadBtn">上传图片</button>
+        <button class="btn-outline" type="button" id="darkModeBtn">暗黑模式</button>
+      </div>
+
+      <!-- 表单字段 -->
+      <div class="form-stack">
+        <div class="form-row-split">
+          <div class="field field-left select-wrap">
+            <select class="select-inner" id="activityType">
+              <option value="eleme">饿了么活动</option>
+              <option value="meituan" selected>美团活动</option>
+              <option value="taobao">淘宝活动</option>
+              <option value="jd">京东活动</option>
+            </select>
+          </div>
+          <div class="field field-right">
+            <input type="text" class="input-inner is-disabled" id="protocolOutput" value="根据推广pid、活动id、跳转类型自动生成" readonly>
+          </div>
+        </div>
+
+        <div class="field">
+          <input type="text" class="input-inner" id="activityIdInput" placeholder="输入美团联盟后台获取的推广活动ID">
+        </div>
+
+        <div class="field-with-help">
+          <div class="field">
+            <input type="text" class="input-inner" placeholder="pid(除京东&拼多多&抖音&1688，其余商城用于埋点上报)">
+          </div>
+          <span class="help-icon" data-tip="pid 用于埋点上报，京东、拼多多、抖音、1688 除外">?</span>
+        </div>
+
+        <div class="field-with-help">
+          <div class="field select-wrap">
+            <select class="select-inner is-placeholder" id="pidSelect">
+              <option value="" selected disabled>请选择pid</option>
+              <option value="mm_151590176_58150058_12394550479">mm_151590176_58150058_12394550479</option>
+              <option value="mm_151590176_58150058_98765432101">mm_151590176_58150058_98765432101</option>
+            </select>
+          </div>
+          <span class="help-icon" data-tip="选择对应推广位的 pid 标识">?</span>
+        </div>
+
+        <div class="field-with-help">
+          <div class="field">
+            <input type="text" class="input-inner" id="skipTypeInput" placeholder="skip_type(用于埋点上报)">
+          </div>
+          <span class="help-icon" data-tip="skip_type 用于跳转类型埋点上报">?</span>
+        </div>
+
+        <div class="field">
+          <input type="text" class="input-inner" placeholder="商城id">
+        </div>
+
+        <div class="field">
+          <input type="text" class="input-inner" placeholder="素材名称">
+        </div>
+
+        <button class="btn-field" type="button" id="logoBtn">出站弹窗logo</button>
+
+        <div class="field">
+          <input type="text" class="input-inner" placeholder="出站弹窗文案">
+        </div>
+      </div>
+
+      <!-- 用户需登录 -->
+      <div class="checkbox-row">
+        <label class="custom-checkbox">
+          <input type="checkbox" id="needLogin" checked>
+          <span class="check-box">
+            <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+          </span>
+        </label>
+        <label class="checkbox-label" for="needLogin">用户需登录</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <div class="modal-mask" id="exampleModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        路由协议填写示例
+        <button class="modal-close" id="closeModal" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>填入推广活动 ID、选择 pid 并填写跳转类型后，系统自动拼接跳转协议：</p>
+        <code>{"activity_id":"10144","pid":"mm_151590176_58150058_12394550479","skip_type":"h5"}</code>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" accept="image/*" hidden>
+
+  <script>
+    const body = document.body;
+    const darkModeBtn = document.getElementById('darkModeBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const protocolExample = document.getElementById('protocolExample');
+    const exampleModal = document.getElementById('exampleModal');
+    const closeModal = document.getElementById('closeModal');
+    const tooltip = document.getElementById('tooltip');
+
+    darkModeBtn.addEventListener('click', () => {
+      body.classList.toggle('theme-dark');
+      darkModeBtn.textContent = body.classList.contains('theme-dark') ? '浅色模式' : '暗黑模式';
+    });
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        uploadBtn.textContent = '已选择: ' + e.target.files[0].name.slice(0, 16) + (e.target.files[0].name.length > 16 ? '…' : '');
+      }
+    });
+
+    protocolExample.addEventListener('click', () => exampleModal.classList.add('show'));
+    closeModal.addEventListener('click', () => exampleModal.classList.remove('show'));
+    exampleModal.addEventListener('click', (e) => {
+      if (e.target === exampleModal) exampleModal.classList.remove('show');
+    });
+
+    const activityPlaceholders = {
+      eleme: '输入饿了么联盟后台获取的推广活动ID',
+      meituan: '输入美团联盟后台获取的推广活动ID',
+      taobao: '输入淘宝联盟后台获取的推广活动ID',
+      jd: '输入京东联盟后台获取的推广活动ID'
+    };
+
+    const activityType = document.getElementById('activityType');
+    const activityIdInput = document.getElementById('activityIdInput');
+    const pidSelect = document.getElementById('pidSelect');
+    const skipTypeInput = document.getElementById('skipTypeInput');
+    const protocolOutput = document.getElementById('protocolOutput');
+    const PROTOCOL_PLACEHOLDER = '根据推广pid、活动id、跳转类型自动生成';
+
+    function syncActivityPlaceholder() {
+      activityIdInput.placeholder = activityPlaceholders[activityType.value] || activityPlaceholders.meituan;
+    }
+
+    function syncJumpProtocol() {
+      const activityId = activityIdInput.value.trim();
+      const pid = pidSelect.value;
+      const skipType = skipTypeInput.value.trim();
+
+      if (activityId && pid && skipType) {
+        const protocol = JSON.stringify({ activity_id: activityId, pid, skip_type: skipType });
+        protocolOutput.value = protocol;
+        protocolOutput.title = protocol;
+        protocolOutput.classList.add('has-value');
+      } else {
+        protocolOutput.value = PROTOCOL_PLACEHOLDER;
+        protocolOutput.title = PROTOCOL_PLACEHOLDER;
+        protocolOutput.classList.remove('has-value');
+      }
+    }
+
+    activityType.addEventListener('change', syncActivityPlaceholder);
+    activityIdInput.addEventListener('input', syncJumpProtocol);
+    skipTypeInput.addEventListener('input', syncJumpProtocol);
+    pidSelect.addEventListener('change', () => {
+      pidSelect.classList.toggle('is-placeholder', !pidSelect.value);
+      syncJumpProtocol();
+    });
+
+    syncActivityPlaceholder();
+    syncJumpProtocol();
+
+    document.querySelectorAll('.select-inner').forEach(sel => {
+      if (sel.id === 'pidSelect') return;
+      const syncPlaceholder = () => {
+        sel.classList.toggle('is-placeholder', !sel.value);
+      };
+      sel.addEventListener('change', syncPlaceholder);
+      syncPlaceholder();
+    });
+
+    document.querySelectorAll('.help-icon').forEach(icon => {
+      icon.addEventListener('mouseenter', (e) => {
+        tooltip.textContent = icon.dataset.tip;
+        const rect = icon.getBoundingClientRect();
+        tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+        tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+        tooltip.classList.add('show');
+      });
+      icon.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+    });
+
+    document.getElementById('logoBtn').addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = () => {
+        if (input.files.length) {
+          document.getElementById('logoBtn').textContent = '已上传 logo';
+        }
+      };
+      input.click();
+    });
+  </script>
+</body>
+</html>

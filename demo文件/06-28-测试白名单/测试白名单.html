@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>测试白名单 · 功能产品流程图</title>
+<style>
+  :root {
+    --text: #303133;
+    --text-2: #606266;
+    --text-3: #909399;
+    --line: #e4e7ed;
+    --bg: #f0f2f5;
+    --pink: #ff6c91;
+    --p0: #37c787;
+    --p0-bg: #f0f9eb;
+    --p0-border: #c2e7b0;
+    --p1: #409eff;
+    --p1-bg: #ecf5ff;
+    --warn: #e6a23c;
+    --warn-bg: #fdf6ec;
+    --node: #fff;
+    --arrow: #c0c4cc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 20px 48px;
+  }
+
+  .page-head { margin-bottom: 24px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .page-head .logic {
+    background: #fff;
+    border-left: 3px solid var(--pink);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    color: var(--text-2);
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  .page-head .logic strong { color: var(--text); }
+
+  .section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 22px 20px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .section-head { margin-bottom: 16px; }
+  .section-head h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-head h2::before {
+    content: "";
+    width: 3px; height: 16px;
+    background: var(--pink);
+    border-radius: 2px;
+  }
+  .section-head p { font-size: 13px; color: var(--text-3); padding-left: 11px; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    padding: 10px 14px;
+    background: #fafafa;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-2);
+    margin-bottom: 18px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .badge { font-size: 11px; padding: 1px 7px; border-radius: 3px; font-weight: 600; }
+  .badge-p0 { background: var(--p0-bg); color: #2d9a62; }
+  .badge-p1 { background: var(--p1-bg); color: #337ecc; }
+
+  .rule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+  .rule-table th, .rule-table td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .rule-table th { background: #fafafa; width: 24%; font-weight: 600; }
+
+  .arch-wrap {
+    overflow-x: auto;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: #fafbfd;
+    padding: 16px 12px;
+  }
+  .arch-wrap svg { display: block; margin: 0 auto; }
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .flow-node {
+    width: 100%;
+    max-width: 360px;
+    padding: 10px 14px;
+    background: var(--node);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .flow-node .sub { display: block; font-size: 11px; color: var(--text-3); margin-top: 3px; }
+  .flow-node strong { color: var(--text); }
+  .flow-node.start, .flow-node.end {
+    max-width: 200px;
+    border-radius: 999px;
+    background: #f4f4f5;
+    border-color: #dcdfe6;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .flow-node.decision {
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 24px 32px;
+    max-width: 220px;
+    font-size: 12px;
+    background: #fafafa;
+    border-color: #dcdfe6;
+    color: var(--text);
+  }
+  .flow-node.p0 { border-color: var(--p0); background: var(--p0-bg); }
+  .flow-node.p1 { border-color: var(--p1); background: var(--p1-bg); }
+  .flow-node.highlight {
+    border-color: var(--pink);
+    background: #fff5f7;
+  }
+
+  .flow-arrow {
+    width: 2px; height: 18px;
+    background: var(--arrow);
+    position: relative;
+  }
+  .flow-arrow::after {
+    content: "";
+    position: absolute; bottom: -1px; left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--arrow);
+  }
+  .flow-arrow.short { height: 12px; }
+
+  .flow-branch {
+    width: 100%;
+    max-width: 540px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 4px 0;
+  }
+  .flow-branch-item {
+    flex: 1;
+    max-width: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .flow-branch-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .flow-branch-item .flow-node { max-width: none; font-size: 12px; padding: 8px 10px; }
+
+  .flow-note { font-size: 11px; color: var(--text-3); margin: 2px 0; }
+
+  .plan-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  @media (max-width: 820px) {
+    .plan-cards { grid-template-columns: 1fr; }
+  }
+  .plan-card {
+    border: 1px solid var(--p0-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--p0-bg);
+  }
+  .plan-card-head {
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d9a62;
+    border-bottom: 1px solid var(--p0-border);
+    background: rgba(255,255,255,.6);
+  }
+  .plan-card-body {
+    padding: 12px;
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+  .plan-card-body dt {
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 6px;
+  }
+  .plan-card-body dt:first-child { margin-top: 0; }
+  .plan-card-body dd { margin-left: 0; color: var(--text-3); }
+
+  .field-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid var(--pink);
+    color: var(--pink);
+    font-weight: 600;
+    margin: 0 2px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="page-head">
+    <h1>测试白名单 · 功能产品流程图</h1>
+    <p class="logic">
+      <strong>核心逻辑：</strong>在素材维度挂载<strong>测试计划</strong>，每条计划独立配置
+      <span class="field-tag">测试 UID 白名单</span> 与
+      <span class="field-tag">测试生效时间</span>。
+      <strong>一条素材可配置多条测试计划</strong>，不同运营、不同 UID 组、不同时间段并行验证，互不干扰。
+      请求命中时：当前 UID 在白名单内且处于生效时段 → 返回该素材的测试内容。
+    </p>
+  </header>
+
+  <!-- 图1：数据模型 -->
+  <section class="section">
+    <div class="section-head">
+      <h2>一、数据模型：一条素材 · 多条测试计划</h2>
+      <p>测试白名单不是全局配置，而是挂在「素材 → 测试计划」下；每条计划拥有自己的 UID 列表与生效时间窗。</p>
+    </div>
+    <div class="arch-wrap">
+      <svg width="860" height="380" viewBox="0 0 860 380" xmlns="http://www.w3.org/2000/svg"
+           font-family="PingFang SC, Microsoft YaHei, sans-serif">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#909399"/>
+          </marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#37c787"/>
+          </marker>
+        </defs>
+
+        <!-- 素材 -->
+        <rect x="30" y="140" width="160" height="100" rx="8" fill="#fff5f7" stroke="#ff6c91" stroke-width="2"/>
+        <text x="110" y="172" text-anchor="middle" font-size="13" font-weight="700" fill="#303133">素材 A</text>
+        <text x="110" y="194" text-anchor="middle" font-size="10.5" fill="#606266">Banner 图 · 跳转链接</text>
+        <text x="110" y="218" text-anchor="middle" font-size="10" fill="#909399">1 : N 挂载测试计划</text>
+
+        <!-- 连线 -->
+        <line x1="190" y1="170" x2="248" y2="100" stroke="#37c787" stroke-width="1.5" marker-end="url(#arr-green)"/>
+        <line x1="190" y1="190" x2="248" y2="190" stroke="#37c787" stroke-width="1.5" marker-end="url(#arr-green)"/>
+        <line x1="190" y1="210" x2="248" y2="280" stroke="#37c787" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+        <!-- 测试计划 1 -->
+        <rect x="250" y="60" width="220" height="80" rx="6" fill="#f0f9eb" stroke="#37c787" stroke-width="1.5"/>
+        <text x="360" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#2d9a62">测试计划 ①</text>
+        <text x="360" y="104" text-anchor="middle" font-size="10" fill="#606266">白名单 UID: 1001, 1002</text>
+        <text x="360" y="122" text-anchor="middle" font-size="10" fill="#606266">生效: 06-28 10:00 – 10:30</text>
+
+        <!-- 测试计划 2 -->
+        <rect x="250" y="150" width="220" height="80" rx="6" fill="#f0f9eb" stroke="#37c787" stroke-width="1.5"/>
+        <text x="360" y="174" text-anchor="middle" font-size="12" font-weight="700" fill="#2d9a62">测试计划 ②</text>
+        <text x="360" y="194" text-anchor="middle" font-size="10" fill="#606266">白名单 UID: 2001, 2002, 2003</text>
+        <text x="360" y="212" text-anchor="middle" font-size="10" fill="#606266">生效: 06-28 14:00 – 18:00</text>
+
+        <!-- 测试计划 3 -->
+        <rect x="250" y="240" width="220" height="80" rx="6" fill="#f0f9eb" stroke="#37c787" stroke-width="1.5"/>
+        <text x="360" y="264" text-anchor="middle" font-size="12" font-weight="700" fill="#2d9a62">测试计划 ③</text>
+        <text x="360" y="284" text-anchor="middle" font-size="10" fill="#606266">白名单 UID: 3001</text>
+        <text x="360" y="302" text-anchor="middle" font-size="10" fill="#606266">生效: 06-29 00:00 – 23:59</text>
+
+        <!-- 白名单字段说明 -->
+        <rect x="520" y="40" width="310" height="300" rx="8" fill="#fafafa" stroke="#e4e7ed"/>
+        <text x="675" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#303133">测试计划必填字段</text>
+
+        <rect x="540" y="88" width="270" height="56" rx="6" fill="#fff" stroke="#ff6c91" stroke-width="1.5"/>
+        <text x="675" y="112" text-anchor="middle" font-size="12" font-weight="700" fill="#ff6c91">① 测试 UID 白名单</text>
+        <text x="675" y="130" text-anchor="middle" font-size="10" fill="#606266">支持多个 UID，逗号/换行分隔</text>
+
+        <rect x="540" y="158" width="270" height="56" rx="6" fill="#fff" stroke="#ff6c91" stroke-width="1.5"/>
+        <text x="675" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#ff6c91">② 测试生效时间</text>
+        <text x="675" y="200" text-anchor="middle" font-size="10" fill="#606266">开始时间 · 结束时间（精确到分钟）</text>
+
+        <rect x="540" y="228" width="270" height="56" rx="6" fill="#fff" stroke="#e4e7ed"/>
+        <text x="675" y="252" text-anchor="middle" font-size="12" font-weight="600" fill="#606266">③ 计划名称 / 备注（可选）</text>
+        <text x="675" y="270" text-anchor="middle" font-size="10" fill="#909399">便于运营识别是谁的测试</text>
+
+        <line x1="470" y1="100" x2="538" y2="116" stroke="#c0c4cc" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <line x1="470" y1="190" x2="538" y2="186" stroke="#c0c4cc" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <line x1="470" y1="280" x2="538" y2="256" stroke="#c0c4cc" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+        <text x="675" y="318" text-anchor="middle" font-size="10" fill="#909399">同一 UID 可出现在不同计划，按遍历顺序优先命中</text>
+      </svg>
+    </div>
+    <table class="rule-table">
+      <tr><th>素材 : 计划</th><td>1 条素材可挂 <strong>N 条</strong>测试计划；计划之间 UID 隔离，可并行、可错峰</td></tr>
+      <tr><th>白名单 UID</th><td>仅列表内 UID 在生效时段内能看到该素材的测试态；列表外 UID 走正式投放逻辑</td></tr>
+      <tr><th>测试生效时间</th><td>计划仅在 [开始, 结束] 内参与匹配；到期自动失效，无需手动下线白名单</td></tr>
+    </table>
+  </section>
+
+  <!-- 图2：配置流程 -->
+  <section class="section">
+    <div class="section-head">
+      <h2>二、运营配置流程：填写白名单与生效时间</h2>
+      <p>在素材编辑页进入「测试计划」模块，逐条新增；每条计划独立保存 UID 白名单与测试生效时间。</p>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="badge badge-p0">白名单</span> 必填配置项</div>
+      <div class="legend-item">虚线框 = 可重复添加</div>
+    </div>
+    <div class="flow">
+      <div class="flow-node start">运营需对某素材做灰度验证</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">进入素材编辑页 · 打开「测试计划」Tab</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node p0"><strong>新增测试计划</strong></div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node highlight"><strong>填写测试 UID 白名单</strong><span class="sub">例：1001, 1002, 1003 — 指定参与测试的账号</span></div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node highlight"><strong>设置测试生效时间</strong><span class="sub">开始时间 + 结束时间，定义白名单何时生效</span></div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">（可选）填写计划名称 / 备注</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node decision">同一素材还需<br/>其他测试计划？</div>
+      <div class="flow-branch">
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">是</div>
+          <div class="flow-node p0">再新增一条计划<span class="sub">不同 UID 组 · 不同生效时段 · 同素材</span></div>
+        </div>
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">否</div>
+          <div class="flow-node">保存全部测试计划</div>
+        </div>
+      </div>
+      <div class="flow-arrow short"></div>
+      <div class="flow-note">到达开始时间 → 计划状态「进行中」，白名单开始生效</div>
+      <div class="flow-arrow short"></div>
+      <div class="flow-node">通知白名单 UID 进入 App 验证素材展示</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node end">到达结束时间 → 白名单自动失效</div>
+    </div>
+
+    <div class="plan-cards">
+      <div class="plan-card">
+        <div class="plan-card-head">计划 ① · 运营甲</div>
+        <div class="plan-card-body">
+          <dl>
+            <dt>白名单 UID</dt>
+            <dd>1001, 1002</dd>
+            <dt>测试生效时间</dt>
+            <dd>06-28 10:00 – 10:30</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="plan-card">
+        <div class="plan-card-head">计划 ② · 运营乙</div>
+        <div class="plan-card-body">
+          <dl>
+            <dt>白名单 UID</dt>
+            <dd>2001, 2002, 2003</dd>
+            <dt>测试生效时间</dt>
+            <dd>06-28 14:00 – 18:00</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="plan-card">
+        <div class="plan-card-head">计划 ③ · 运营丙</div>
+        <div class="plan-card-body">
+          <dl>
+            <dt>白名单 UID</dt>
+            <dd>3001</dd>
+            <dt>测试生效时间</dt>
+            <dd>06-29 全天</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--text-3);text-align:center;">↑ 同一素材 A 下的三条并行测试计划示例</p>
+  </section>
+
+  <!-- 图3：服务端匹配 -->
+  <section class="section">
+    <div class="section-head">
+      <h2>三、服务端匹配流程：白名单 + 生效时间双校验</h2>
+      <p>用户请求携带 UID；服务端加载该素材下所有「进行中」测试计划，逐条校验白名单与生效时间。</p>
+    </div>
+    <div class="flow">
+      <div class="flow-node start">用户请求素材 / 资源位</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">读取 UID · 素材 ID</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node">加载该素材下所有「进行中」测试计划</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node decision">存在进行中<br/>的测试计划？</div>
+      <div class="flow-branch">
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">否</div>
+          <div class="flow-node p1">走正式投放规则</div>
+        </div>
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">是</div>
+          <div class="flow-node">按顺序遍历各测试计划</div>
+        </div>
+      </div>
+      <div class="flow-arrow short"></div>
+      <div class="flow-note">↓ 逐条计划校验（白名单 → 生效时间）</div>
+      <div class="flow-arrow short"></div>
+      <div class="flow-node decision highlight">当前 UID 在该计划<br/>白名单内？</div>
+      <div class="flow-branch">
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">否</div>
+          <div class="flow-node">检查下一条计划<span class="sub">全部不匹配 → 走正式规则</span></div>
+        </div>
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">是</div>
+          <div class="flow-node">继续</div>
+        </div>
+      </div>
+      <div class="flow-arrow short"></div>
+      <div class="flow-node decision highlight">当前时间在<br/>测试生效时段内？</div>
+      <div class="flow-branch">
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">否</div>
+          <div class="flow-node">检查下一条计划<span class="sub">白名单内但未到/已过时段 → 不命中</span></div>
+        </div>
+        <div class="flow-branch-item">
+          <div class="flow-branch-label">是</div>
+          <div class="flow-node p0"><strong>命中该测试计划</strong></div>
+        </div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node p0">返回素材测试态内容<span class="sub">跳过正式上下线 / 人群包等限制</span></div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node end">响应客户端</div>
+    </div>
+    <table class="rule-table">
+      <tr><th>命中条件</th><td>三者<strong>同时</strong>满足：① 计划状态 = 进行中；② UID ∈ 该计划白名单；③ now ∈ 测试生效时间</td></tr>
+      <tr><th>多计划优先级</th><td>按配置顺序遍历，<strong>先命中先返回</strong>；建议不同计划 UID 组互不重叠</td></tr>
+      <tr><th>未命中</th><td>白名单外 UID、生效时间外、计划已结束 → 一律走正式投放，<strong>看不到测试态</strong></td></tr>
+    </table>
+  </section>
+
+  <!-- 图4：生命周期 -->
+  <section class="section">
+    <div class="section-head">
+      <h2>四、测试计划生命周期</h2>
+      <p>白名单随计划状态自动流转，运营只需配置 UID 与生效时间，无需单独维护白名单开关。</p>
+    </div>
+    <div class="arch-wrap">
+      <svg width="820" height="120" viewBox="0 0 820 120" xmlns="http://www.w3.org/2000/svg"
+           font-family="PingFang SC, Microsoft YaHei, sans-serif">
+        <defs>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#909399"/>
+          </marker>
+        </defs>
+        <rect x="20" y="40" width="120" height="44" rx="22" fill="#f4f4f5" stroke="#dcdfe6"/>
+        <text x="80" y="67" text-anchor="middle" font-size="12" fill="#606266">待生效</text>
+        <text x="80" y="98" text-anchor="middle" font-size="10" fill="#909399">已保存，未到开始时间</text>
+
+        <line x1="140" y1="62" x2="178" y2="62" stroke="#c0c4cc" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="159" y="54" text-anchor="middle" font-size="9" fill="#909399">到达开始</text>
+
+        <rect x="180" y="40" width="120" height="44" rx="22" fill="#f0f9eb" stroke="#37c787" stroke-width="1.5"/>
+        <text x="240" y="67" text-anchor="middle" font-size="12" font-weight="700" fill="#2d9a62">进行中</text>
+        <text x="240" y="98" text-anchor="middle" font-size="10" fill="#606266">白名单 + 生效时间内有效</text>
+
+        <line x1="300" y1="62" x2="338" y2="62" stroke="#c0c4cc" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="319" y="54" text-anchor="middle" font-size="9" fill="#909399">到达结束</text>
+
+        <rect x="340" y="40" width="120" height="44" rx="22" fill="#f4f4f5" stroke="#dcdfe6"/>
+        <text x="400" y="67" text-anchor="middle" font-size="12" fill="#606266">已结束</text>
+        <text x="400" y="98" text-anchor="middle" font-size="10" fill="#909399">白名单自动失效</text>
+
+        <line x1="460" y1="62" x2="498" y2="62" stroke="#c0c4cc" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="479" y="54" text-anchor="middle" font-size="9" fill="#909399">可选</text>
+
+        <rect x="500" y="40" width="120" height="44" rx="22" fill="#fff" stroke="#e4e7ed"/>
+        <text x="560" y="67" text-anchor="middle" font-size="12" fill="#909399">已作废</text>
+        <text x="560" y="98" text-anchor="middle" font-size="10" fill="#909399">运营手动终止</text>
+
+        <rect x="660" y="30" width="140" height="64" rx="6" fill="#fff5f7" stroke="#ff6c91" stroke-dasharray="4,3"/>
+        <text x="730" y="54" text-anchor="middle" font-size="11" font-weight="600" fill="#ff6c91">白名单生效区间</text>
+        <text x="730" y="74" text-anchor="middle" font-size="10" fill="#606266">= 进行中状态</text>
+        <text x="730" y="88" text-anchor="middle" font-size="10" fill="#606266">∩ 测试生效时间</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 图5：三种用户结果 -->
+  <section class="section">
+    <div class="section-head">
+      <h2>五、用户侧结果</h2>
+      <p>白名单保证测试可预期，生效时间保证测试可控，多计划保证并行不串扰。</p>
+    </div>
+    <table class="rule-table">
+      <tr>
+        <th>用户类型</th>
+        <th>条件</th>
+        <th>看到的内容</th>
+      </tr>
+      <tr>
+        <td>白名单 UID</td>
+        <td>计划进行中 + 当前在测试生效时间内</td>
+        <td><strong>素材测试态</strong>（不受正式规则限制）</td>
+      </tr>
+      <tr>
+        <td>白名单 UID</td>
+        <td>计划已结束 / 未到开始时间</td>
+        <td>走正式投放（与普通用户相同）</td>
+      </tr>
+      <tr>
+        <td>非白名单 UID</td>
+        <td>任意时间</td>
+        <td><strong>永远看不到测试态</strong>，仅走正式投放</td>
+      </tr>
+      <tr>
+        <td>多计划并行</td>
+        <td>UID 1001 在计划①，UID 2001 在计划②</td>
+        <td>同一素材，不同 UID 各自命中对应计划，互不影响</td>
+      </tr>
+    </table>
+  </section>
+
+</div>
+</body>
+</html>

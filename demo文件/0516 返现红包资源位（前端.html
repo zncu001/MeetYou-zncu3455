@@ -1,0 +1,1665 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>返现红包客户端原型 Demo v2</title>
+  <style>
+    :root {
+      --bg: #ffeef6;
+      --panel: #ffffff;
+      --line: #e8eaf0;
+      --text: #2d2d2d;
+      --muted: #7f8795;
+      --primary: #ff4f9c;
+      --red: #ff2f2f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f3f5f8;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 10px 24px;
+    }
+    .tip {
+      width: min(980px, 96vw);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #5b6372;
+    }
+    .wrap {
+      width: min(980px, 96vw);
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .phone {
+      width: 390px;
+      height: 844px;
+      border: 10px solid #111;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg);
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
+    }
+    .status {
+      height: 34px;
+      padding: 8px 14px 0;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .app {
+      height: calc(100% - 34px);
+      overflow: auto;
+      padding: 8px 12px 80px;
+    }
+    .row-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .search {
+      flex: 1;
+      border-radius: 18px;
+      background: #fff;
+      color: #a7adba;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    .metric {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .metric .box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+    }
+    .metric b {
+      display: block;
+      margin-top: 4px;
+      font-size: 24px;
+    }
+    .tabs {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      overflow: auto;
+      white-space: nowrap;
+    }
+    .tabs .active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .slot-wrap {
+      margin-top: 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .slot-row {
+      --card-width: 106px;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: var(--card-width);
+      gap: 8px;
+      min-width: 100%;
+      width: max-content;
+    }
+    .coupon {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #ffd2d2;
+      background: #fff;
+      cursor: pointer;
+    }
+    .coupon.dead {
+      opacity: 0.72;
+      filter: grayscale(0.35);
+    }
+    .coupon.dead .coupon-top {
+      background: linear-gradient(180deg, #b8b8b8, #9a9a9a);
+    }
+    .coupon.dead .coupon-inner {
+      background: #f5f5f5;
+    }
+    .coupon.dead .coupon-name,
+    .coupon.dead .coupon-amount,
+    .coupon.dead .coupon-sub {
+      color: #888;
+    }
+    .coupon.dead .coupon-amount {
+      color: #999;
+    }
+    .coupon.used-done .coupon-top {
+      background: linear-gradient(180deg, #7eb88a, #5a9e6a);
+    }
+    .coupon.pending-cashback .coupon-top {
+      background: linear-gradient(180deg, #ffb347, #ff8f42);
+    }
+    .coupon.pending-cashback .coupon-inner {
+      background: #fffaf5;
+    }
+    .coupon-top {
+      background: linear-gradient(180deg, #ff4545, #ff2f2f);
+      padding: 6px;
+    }
+    .coupon-inner {
+      min-height: 136px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    .coupon-name {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      min-height: 30px;
+    }
+    .coupon-amount {
+      margin-top: 4px;
+      color: var(--red);
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .coupon-amount small {
+      font-size: 14px;
+      vertical-align: 4px;
+      margin-right: 1px;
+    }
+    .coupon-sub {
+      margin-top: 5px;
+      font-size: 11px;
+      color: #ff6666;
+      min-height: 28px;
+      line-height: 1.2;
+    }
+    .coupon-sub .countdown {
+      color: #bc0505;
+      font-weight: 700;
+    }
+    .coupon-btn {
+      margin-top: auto;
+      border: 0;
+      border-radius: 6px;
+      height: 26px;
+      background: #ff2f2f;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .coupon-btn.view { background: #ff6e6e; }
+    .coupon-btn.gray { background: #c6c9d2; cursor: not-allowed; }
+
+    .shop {
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .shop-item {
+      border: 1px solid #f4e3ec;
+      background: #fff8fc;
+      border-radius: 8px;
+      padding: 6px 2px;
+    }
+    .shop-icon {
+      width: 26px;
+      height: 26px;
+      margin: 0 auto 4px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #ff8f2f, #ff4969);
+    }
+    .nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 66px;
+      background: #fff;
+      border-top: 1px solid #eceff4;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 12px;
+      color: #666;
+    }
+    .nav .active { color: var(--primary); font-weight: 700; }
+    .toast {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 88px;
+      background: rgba(30, 30, 30, 0.86);
+      color: #fff;
+      border-radius: 14px;
+      padding: 7px 12px;
+      font-size: 12px;
+      display: none;
+      z-index: 10;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .panel h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+    .g {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .f { display: flex; flex-direction: column; gap: 4px; }
+    .f label { font-size: 12px; color: #667081; }
+    .f input, .f select {
+      height: 30px;
+      border: 1px solid #e3d9e0;
+      border-radius: 8px;
+      padding: 0 8px;
+      font-size: 12px;
+      background: #fff;
+    }
+    .btns { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      border: 1px solid #e2d7de;
+      background: #fff;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .small {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 860px) {
+      .wrap { grid-template-columns: 1fr; }
+      .phone { margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="tip">
+    <b>规则演示：</b>支持选择第 N 个红包配置；含即将可领/可领/不可领/即将可核销/可核销/不可核销/<b>已核销·待到账</b>/返现已到账；超过单屏 X 可横滑；异常与待到账态固定排在列表末尾。
+  </div>
+
+  <div class="wrap">
+    <section class="phone">
+      <div class="status"><span id="timeText">15:00</span><span>5G ▮▮▮</span></div>
+      <div class="app">
+        <div class="row-top">
+          <div class="logo">美柚返现</div>
+          <div class="search">🔍 搜你想买的</div>
+        </div>
+        <div class="metric">
+          <div class="box">累计已省<b>¥80.99</b></div>
+          <div class="box">我的订单<b>¥0.97</b></div>
+        </div>
+        <div class="tabs">
+          <div class="active">大家都在用</div><div>外卖返现</div><div>拼多多</div><div>打车返现</div>
+        </div>
+
+        <div class="slot-wrap">
+          <div class="slot-row" id="slotRow"></div>
+        </div>
+
+        <div class="shop">
+          <div class="shop-item"><div class="shop-icon"></div>淘宝</div>
+          <div class="shop-item"><div class="shop-icon"></div>京东</div>
+          <div class="shop-item"><div class="shop-icon"></div>抖音</div>
+          <div class="shop-item"><div class="shop-icon"></div>拼多多</div>
+          <div class="shop-item"><div class="shop-icon"></div>唯品会</div>
+        </div>
+      </div>
+      <div class="nav"><div>美柚</div><div>记录</div><div class="active">返现</div><div>消息</div><div>我</div></div>
+      <div class="toast" id="toast">提示</div>
+    </section>
+
+    <aside class="panel">
+      <h3>全局配置</h3>
+      <div class="g">
+        <div class="f">
+          <label for="packetCount">红包数量</label>
+          <input id="packetCount" type="number" min="1" value="5" />
+        </div>
+        <div class="f">
+          <label for="maxVisible">单屏最多展示 X</label>
+          <input id="maxVisible" type="number" min="1" value="4" />
+        </div>
+        <div class="f">
+          <label for="simNow">模拟当前时间</label>
+          <input id="simNow" type="datetime-local" />
+        </div>
+        <div class="f">
+          <label for="packetIndex">选择第N个红包</label>
+          <select id="packetIndex"></select>
+        </div>
+      </div>
+
+      <h3 style="margin-top:12px;">第 N 个红包配置</h3>
+      <div class="g">
+        <div class="f">
+          <label for="cfgName">红包名称</label>
+          <input id="cfgName" type="text" />
+        </div>
+        <div class="f">
+          <label for="cfgImageText">红包图片素材文案</label>
+          <input id="cfgImageText" type="text" />
+        </div>
+        <div class="f">
+          <label for="cfgAmount">红包金额（元）</label>
+          <input id="cfgAmount" type="number" min="0" step="1" />
+        </div>
+        <div class="f">
+          <label for="cfgThreshold">使用门槛（满X元）</label>
+          <input id="cfgThreshold" type="number" min="0" step="1" />
+        </div>
+        <div class="f">
+          <label for="cfgClaimStart">可领取开始时间</label>
+          <input id="cfgClaimStart" type="datetime-local" />
+        </div>
+        <div class="f">
+          <label for="cfgClaimEnd">可领取结束时间</label>
+          <input id="cfgClaimEnd" type="datetime-local" />
+        </div>
+        <div class="f">
+          <label for="cfgUseStart">可使用开始时间</label>
+          <input id="cfgUseStart" type="datetime-local" />
+        </div>
+        <div class="f">
+          <label for="cfgUseEnd">可使用结束时间</label>
+          <input id="cfgUseEnd" type="datetime-local" />
+        </div>
+        <div class="f">
+          <label for="cfgProtocol">协议地址（可核销点击跳转）</label>
+          <input id="cfgProtocol" type="text" />
+        </div>
+        <div class="f">
+          <label for="cfgRandom">随机金额（未领取显示??）</label>
+          <select id="cfgRandom"><option value="false">否</option><option value="true">是</option></select>
+        </div>
+        <div class="f">
+          <label for="cfgUserLimit">单人领取上限</label>
+          <input id="cfgUserLimit" type="number" min="1" step="1" />
+        </div>
+        <div class="f">
+          <label for="cfgQtyLimit">数量上限（发放总数）</label>
+          <input id="cfgQtyLimit" type="number" min="1" step="1" />
+        </div>
+        <div class="f">
+          <label for="cfgAmountLimit">金额上限（总预算）</label>
+          <input id="cfgAmountLimit" type="number" min="1" step="1" />
+        </div>
+        <div class="f">
+          <label for="cfgClaimedTimes">当前用户已领取次数</label>
+          <input id="cfgClaimedTimes" type="number" min="0" step="1" />
+        </div>
+        <div class="f">
+          <label for="cfgPendingCashback">已核销·待到账</label>
+          <select id="cfgPendingCashback" title="领取后已满足使用/下单，返现未到账">
+            <option value="false">否</option>
+            <option value="true">是</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="cfgRedeemed">返现已到账（完结）</label>
+          <select id="cfgRedeemed"><option value="false">否</option><option value="true">是</option></select>
+        </div>
+      </div>
+      <div class="btns">
+        <button class="btn" id="saveCfg">保存当前红包配置</button>
+        <button class="btn" id="markClaimed">设为已领取</button>
+        <button class="btn" id="markUnclaimed">设为未领取</button>
+        <button class="btn" id="resetAll">重置示例数据</button>
+      </div>
+      <h3 style="margin-top:12px;">场景模拟（当前选中红包）</h3>
+      <div class="btns">
+        <button class="btn" id="demoSoldout" type="button">不可领取·已达上限/抢光</button>
+        <button class="btn" id="demoClaimExpired" type="button">不可领取·已过领取期</button>
+        <button class="btn" id="demoUseExpired" type="button">不可核销·已过期</button>
+        <button class="btn" id="demoPendingCashback" type="button">已核销·待到账</button>
+        <button class="btn" id="demoRedeemed" type="button">返现已到账·完结</button>
+        <button class="btn" id="demoClearScenario" type="button">清除场景标记</button>
+      </div>
+      <div class="small">
+        <b>时间边界（严格）：</b>即将/可领/可核销均不含左端「&lt; 开始」；不可领/不可核销为「&gt; 结束」。<br />
+        1) <b>即将可领取</b>：当前时间 &lt; 可领取开始时间；<br />
+        2) <b>可领取</b>：当前时间 ∈ [可领取开始, 可领取结束] 且未达发放上限；<br />
+        3) <b>不可领取</b>：当前时间 &gt; 可领取结束时间（或窗口内抢光等，置灰展示）；<br />
+        4) <b>即将可核销</b>：已领取、非待到账、非完结，且当前时间 &lt; 可使用开始时间；<br />
+        5) <b>可核销</b>：当前时间 ∈ [可使用开始, 可使用结束]，且非待到账、非完结；<br />
+        6) <b>不可核销</b>：当前时间 &gt; 可使用结束时间，且非待到账、非完结；<br />
+        7) <b>已核销/待到账</b>：领取后在有效期内已满足使用门槛并完成下单条件，订单返现<strong>未到账</strong>（与返现已到账互斥）。<br />
+        8) <b>返现已到账（完结）</b>：返现已入账后的终态展示。<br />
+        <b>尾部排序：</b>不可领取、不可核销、待到账、完结态固定排在列表末尾。
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const slotRow = document.getElementById("slotRow");
+    const toast = document.getElementById("toast");
+    const timeText = document.getElementById("timeText");
+
+    const packetCount = document.getElementById("packetCount");
+    const maxVisible = document.getElementById("maxVisible");
+    const simNow = document.getElementById("simNow");
+    const packetIndex = document.getElementById("packetIndex");
+
+    const cfgName = document.getElementById("cfgName");
+    const cfgImageText = document.getElementById("cfgImageText");
+    const cfgAmount = document.getElementById("cfgAmount");
+    const cfgThreshold = document.getElementById("cfgThreshold");
+    const cfgClaimStart = document.getElementById("cfgClaimStart");
+    const cfgClaimEnd = document.getElementById("cfgClaimEnd");
+    const cfgUseStart = document.getElementById("cfgUseStart");
+    const cfgUseEnd = document.getElementById("cfgUseEnd");
+    const cfgProtocol = document.getElementById("cfgProtocol");
+    const cfgRandom = document.getElementById("cfgRandom");
+    const cfgUserLimit = document.getElementById("cfgUserLimit");
+    const cfgQtyLimit = document.getElementById("cfgQtyLimit");
+    const cfgAmountLimit = document.getElementById("cfgAmountLimit");
+    const cfgClaimedTimes = document.getElementById("cfgClaimedTimes");
+    const cfgPendingCashback = document.getElementById("cfgPendingCashback");
+    const cfgRedeemed = document.getElementById("cfgRedeemed");
+
+    const saveCfg = document.getElementById("saveCfg");
+    const markClaimed = document.getElementById("markClaimed");
+    const markUnclaimed = document.getElementById("markUnclaimed");
+    const resetAll = document.getElementById("resetAll");
+
+    const hour = 3600 * 1000;
+    let countdownTimer = null;
+    let packets = [];
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => { toast.style.display = "none"; }, 1600);
+    }
+
+    function fmtDate(ts) {
+      const d = new Date(ts);
+      return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    }
+    function fmtMonthDay(ts) {
+      const d = new Date(ts);
+      return `${d.getMonth() + 1}.${d.getDate()}`;
+    }
+    function fmtHHmm(ts) {
+      const d = new Date(ts);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+    function fmtCount(ms) {
+      const s = Math.max(0, Math.floor(ms / 1000));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+    }
+
+    function toLocalInput(ts) {
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${y}-${m}-${day}T${hh}:${mm}`;
+    }
+    function fromLocalInput(val) {
+      return val ? new Date(val).getTime() : Date.now();
+    }
+
+    function nowTs() {
+      return simNow.value ? fromLocalInput(simNow.value) : Date.now();
+    }
+
+    function seedData() {
+      const now = Date.now();
+      packets = [
+        makePacket("逛逛专属红包", "后台图A", 10, 99, false, now - 2 * hour, now + 36 * hour, now - 1 * hour, now + 30 * hour),
+        makePacket("春季专属红包", "后台图B", 12, 88, true, now + 4 * hour, now + 40 * hour, now + 8 * hour, now + 72 * hour),
+        makePacket("新客专享红包", "后台图C", 5, 30, false, now - 20 * hour, now + 4 * hour, now + 2 * hour, now + 30 * hour),
+        makePacket("周末加码红包", "后台图D", 15, 129, false, now - 10 * hour, now + 8 * hour, now - 2 * hour, now + 10 * hour),
+        makePacket("母婴专属红包", "后台图E", 8, 69, true, now - 6 * hour, now + 18 * hour, now + 2 * hour, now + 20 * hour)
+      ];
+      packetCount.value = String(packets.length);
+      maxVisible.value = "4";
+      if (!simNow.value) simNow.value = toLocalInput(now);
+    }
+
+    function makePacket(name, imageText, amount, threshold, random, claimStart, claimEnd, useStart, useEnd) {
+      return {
+        id: Math.random().toString(36).slice(2),
+        name,
+        imageText,
+        amount,
+        threshold,
+        random,
+        claimStart,
+        claimEnd,
+        useStart,
+        useEnd,
+        protocolUrl: "meiyou://cashback/redpacket-list",
+        userClaimLimit: 1,
+        qtyLimit: 300,
+        amountLimit: 3000,
+        userClaimedTimes: 0,
+        issuedQty: 0,
+        issuedAmount: 0,
+        claimedByCurrentUser: false,
+        redeemed: false,
+        pendingCashback: false
+      };
+    }
+
+    function ensureCount() {
+      const target = Math.max(1, Math.floor(Number(packetCount.value) || 1));
+      while (packets.length < target) {
+        const now = nowTs();
+        packets.push(makePacket(`新红包${packets.length + 1}`, "后台图", 10, 99, false, now - hour, now + 24 * hour, now - hour, now + 30 * hour));
+      }
+      if (packets.length > target) packets = packets.slice(0, target);
+    }
+
+    function isClaimSoldOut(p) {
+      if (p.issuedQty >= p.qtyLimit) return true;
+      if (p.userClaimedTimes >= p.userClaimLimit) return true;
+      if (p.issuedAmount + p.amount > p.amountLimit) return true;
+      return false;
+    }
+
+    function computeState(p, now) {
+      if (!p.claimedByCurrentUser) {
+        if (now > p.claimEnd) return "unclaimable_expired_claim";
+        if (now < p.claimStart) return "soon_claim";
+        if (now >= p.claimStart && now <= p.claimEnd) {
+          if (isClaimSoldOut(p)) return "unclaimable_soldout";
+          return "claimable";
+        }
+        return "unclaimable_other";
+      }
+      if (p.pendingCashback && !p.redeemed) return "redeemed_pending";
+      if (p.redeemed) return "redeemed_used";
+      if (now > p.useEnd) return "unredeemable_expired";
+      if (now < p.useStart) return "soon_redeem";
+      if (now >= p.useStart && now <= p.useEnd) return "redeemable";
+      return "hidden";
+    }
+
+    const TAIL_STATES = new Set([
+      "unclaimable_expired_claim",
+      "unclaimable_soldout",
+      "unclaimable_other",
+      "unredeemable_expired",
+      "redeemed_pending",
+      "redeemed_used"
+    ]);
+
+    function sortTailLast(cards) {
+      const head = cards.filter((c) => !TAIL_STATES.has(c.state));
+      const tail = cards.filter((c) => TAIL_STATES.has(c.state));
+      tail.sort((a, b) => a.idx - b.idx);
+      return head.concat(tail);
+    }
+
+    function claimDisplayText(p, now) {
+      const sameDay = new Date(now).toDateString() === new Date(p.claimStart).toDateString();
+      return sameDay ? `${fmtHHmm(p.claimStart)}可领` : `${fmtMonthDay(p.claimStart)}可领`;
+    }
+
+    function useStartDisplayText(p, now) {
+      const sameDay = new Date(now).toDateString() === new Date(p.useStart).toDateString();
+      return sameDay ? `${fmtHHmm(p.useStart)}可用` : `${fmtMonthDay(p.useStart)}可用`;
+    }
+
+    function renderPackets() {
+      const now = nowTs();
+      const x = Math.max(1, Math.floor(Number(maxVisible.value) || 1));
+      let cards = packets
+        .map((p, idx) => ({ p, idx, state: computeState(p, now) }))
+        .filter((i) => i.state !== "hidden");
+      cards = sortTailLast(cards);
+
+      let width;
+      if (cards.length <= 1) width = "calc(100% - 2px)";
+      else if (cards.length === 2) width = "calc((100% - 8px) / 2)";
+      else if (cards.length <= x) width = `calc((100% - ${(cards.length - 1) * 8}px) / ${cards.length})`;
+      else width = "106px";
+      slotRow.style.setProperty("--card-width", width);
+
+      slotRow.innerHTML = cards.map(({ p, idx, state }) => {
+        let amount = `<small>¥</small>${p.amount}`;
+        let sub = "";
+        let btnText = "";
+        let btnClass = "";
+        let extraClass = "";
+
+        if (state === "soon_claim") {
+          amount = "";
+          sub = "即将可领取";
+          btnText = claimDisplayText(p, now);
+          btnClass = "gray";
+        } else if (state === "claimable") {
+          amount = p.random ? "??" : `<small>¥</small>${p.amount}`;
+          sub = "点击领取";
+          btnText = "点击领取";
+        } else if (state === "soon_redeem") {
+          sub = `满${p.threshold}元可用`;
+          btnText = useStartDisplayText(p, now);
+          btnClass = "view";
+        } else if (state === "redeemable") {
+          const remain = p.useEnd - now;
+          const endText = remain <= 24 * hour ? `<span class="countdown">${fmtCount(remain)}</span>` : `有效期至 ${fmtDate(p.useEnd)}`;
+          sub = `满${p.threshold}元可用<br />${endText}`;
+          btnText = "去使用";
+          btnClass = "view";
+        } else if (state === "unclaimable_expired_claim") {
+          extraClass = " dead";
+          amount = p.random ? "??" : `<small>¥</small>${p.amount}`;
+          sub = "不可领取";
+          btnText = "红包已过领取时间";
+          btnClass = "gray";
+        } else if (state === "unclaimable_soldout") {
+          extraClass = " dead";
+          amount = p.random ? "??" : `<small>¥</small>${p.amount}`;
+          sub = "不可领取";
+          btnText = "红包已被抢光";
+          btnClass = "gray";
+        } else if (state === "unclaimable_other") {
+          extraClass = " dead";
+          amount = p.random ? "??" : `<small>¥</small>${p.amount}`;
+          sub = "不可领取";
+          btnText = "已失效";
+          btnClass = "gray";
+        } else if (state === "unredeemable_expired") {
+          extraClass = " dead";
+          amount = `<small>¥</small>${p.amount}`;
+          sub = "已过期";
+          btnText = "已失效";
+          btnClass = "gray";
+        } else if (state === "redeemed_pending") {
+          extraClass = " pending-cashback";
+          amount = `<small>¥</small>${p.amount}`;
+          sub = "已核销·返现待到账";
+          btnText = "查看关联订单";
+          btnClass = "view";
+        } else if (state === "redeemed_used") {
+          extraClass = " used-done";
+          amount = `<small>¥</small>${p.amount}`;
+          sub = "返现已到账";
+          btnText = "查看关联订单";
+          btnClass = "view";
+        }
+        return `
+          <div class="coupon${extraClass}" data-index="${idx}" data-state="${state}">
+            <div class="coupon-top">
+              <div class="coupon-inner">
+                <div class="coupon-name">${p.name}</div>
+                <div class="coupon-amount">${amount}</div>
+                <div class="coupon-sub">${sub}</div>
+                <button class="coupon-btn ${btnClass}" data-action="click-packet">${btnText}</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function syncIndexOptions() {
+      const old = Number(packetIndex.value) || 1;
+      packetIndex.innerHTML = packets.map((_, i) => `<option value="${i + 1}">第${i + 1}个红包</option>`).join("");
+      const next = Math.min(Math.max(1, old), packets.length);
+      packetIndex.value = String(next);
+      loadSelectedConfig();
+    }
+
+    function loadSelectedConfig() {
+      const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+      const p = packets[i];
+      if (!p) return;
+      cfgName.value = p.name;
+      cfgImageText.value = p.imageText;
+      cfgAmount.value = String(p.amount);
+      cfgThreshold.value = String(p.threshold);
+      cfgClaimStart.value = toLocalInput(p.claimStart);
+      cfgClaimEnd.value = toLocalInput(p.claimEnd);
+      cfgUseStart.value = toLocalInput(p.useStart);
+      cfgUseEnd.value = toLocalInput(p.useEnd);
+      cfgProtocol.value = p.protocolUrl;
+      cfgRandom.value = String(p.random);
+      cfgUserLimit.value = String(p.userClaimLimit);
+      cfgQtyLimit.value = String(p.qtyLimit);
+      cfgAmountLimit.value = String(p.amountLimit);
+      cfgClaimedTimes.value = String(p.userClaimedTimes);
+      cfgPendingCashback.value = String(!!p.pendingCashback);
+      cfgRedeemed.value = String(!!p.redeemed);
+    }
+
+    function saveSelectedConfig() {
+      const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+      const p = packets[i];
+      if (!p) return;
+      p.name = cfgName.value.trim() || p.name;
+      p.imageText = cfgImageText.value.trim() || p.imageText;
+      p.amount = Math.max(0, Number(cfgAmount.value) || 0);
+      p.threshold = Math.max(0, Number(cfgThreshold.value) || 0);
+      p.claimStart = fromLocalInput(cfgClaimStart.value);
+      p.claimEnd = fromLocalInput(cfgClaimEnd.value);
+      p.useStart = fromLocalInput(cfgUseStart.value);
+      p.useEnd = fromLocalInput(cfgUseEnd.value);
+      p.protocolUrl = cfgProtocol.value.trim() || "meiyou://cashback/redpacket-list";
+      p.random = cfgRandom.value === "true";
+      p.userClaimLimit = Math.max(1, Number(cfgUserLimit.value) || 1);
+      p.qtyLimit = Math.max(1, Number(cfgQtyLimit.value) || 1);
+      p.amountLimit = Math.max(1, Number(cfgAmountLimit.value) || 1);
+      p.userClaimedTimes = Math.max(0, Number(cfgClaimedTimes.value) || 0);
+      p.pendingCashback = cfgPendingCashback.value === "true";
+      p.redeemed = cfgRedeemed.value === "true";
+      if (p.redeemed) {
+        p.pendingCashback = false;
+        p.claimedByCurrentUser = true;
+      }
+      if (p.pendingCashback) {
+        p.redeemed = false;
+        p.claimedByCurrentUser = true;
+      }
+      render();
+      showToast("配置已保存并实时生效");
+    }
+
+    function tryClaim(i) {
+      const p = packets[i];
+      const now = nowTs();
+      if (!p) return;
+      if (now < p.claimStart) {
+        showToast("未到可领取时间");
+        return;
+      }
+      if (now > p.claimEnd) {
+        showToast("红包已过领取时间");
+        return;
+      }
+      if (p.userClaimedTimes >= p.userClaimLimit || p.issuedQty >= p.qtyLimit || p.issuedAmount + p.amount > p.amountLimit) {
+        showToast("红包已被抢光");
+        return;
+      }
+      p.claimedByCurrentUser = true;
+      p.pendingCashback = false;
+      p.userClaimedTimes += 1;
+      p.issuedQty += 1;
+      p.issuedAmount += p.amount;
+      render();
+      loadSelectedConfig();
+      showToast("领取成功");
+    }
+
+    function handlePacketClick(i) {
+      const p = packets[i];
+      if (!p) return;
+      const s = computeState(p, nowTs());
+      if (s === "soon_claim") {
+        showToast("未到可领取时间");
+      } else if (s === "claimable") {
+        tryClaim(i);
+      } else if (s === "soon_redeem") {
+        showToast("已跳转红包列表页");
+      } else if (s === "redeemable") {
+        showToast(`已跳转协议地址：${p.protocolUrl}`);
+      } else if (s === "unclaimable_expired_claim") {
+        showToast("红包已过领取时间");
+      } else if (s === "unclaimable_soldout") {
+        showToast("红包已被抢光");
+      } else if (s === "unclaimable_other") {
+        showToast("该红包已失效");
+      } else if (s === "unredeemable_expired") {
+        showToast("红包已过期");
+      } else if (s === "redeemed_pending") {
+        showToast("已跳转关联订单 / 返现进度");
+      } else if (s === "redeemed_used") {
+        showToast("已跳转关联订单列表");
+      }
+    }
+
+    function renderClock() {
+      const n = nowTs();
+      const d = new Date(n);
+      timeText.textContent = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function render() {
+      ensureCount();
+      syncIndexOptions();
+      renderPackets();
+      renderClock();
+    }
+
+    function bind() {
+      packetCount.addEventListener("input", render);
+      maxVisible.addEventListener("input", render);
+      simNow.addEventListener("input", render);
+      packetIndex.addEventListener("change", loadSelectedConfig);
+      saveCfg.addEventListener("click", saveSelectedConfig);
+      markClaimed.addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        packets[i].claimedByCurrentUser = true;
+        packets[i].redeemed = false;
+        packets[i].pendingCashback = false;
+        render();
+      });
+      markUnclaimed.addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        packets[i].claimedByCurrentUser = false;
+        packets[i].redeemed = false;
+        packets[i].pendingCashback = false;
+        render();
+      });
+      resetAll.addEventListener("click", () => {
+        seedData();
+        render();
+      });
+      document.getElementById("demoSoldout").addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        const p = packets[i];
+        const now = nowTs();
+        p.claimedByCurrentUser = false;
+        p.redeemed = false;
+        p.pendingCashback = false;
+        p.claimStart = now - hour;
+        p.claimEnd = now + 24 * hour;
+        p.issuedQty = p.qtyLimit;
+        render();
+        loadSelectedConfig();
+        showToast("已模拟：不可领取·抢光");
+      });
+      document.getElementById("demoClaimExpired").addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        const p = packets[i];
+        const now = nowTs();
+        p.claimedByCurrentUser = false;
+        p.redeemed = false;
+        p.pendingCashback = false;
+        p.claimEnd = now - 2 * hour;
+        p.claimStart = p.claimEnd - 7 * 24 * hour;
+        p.issuedQty = 0;
+        render();
+        loadSelectedConfig();
+        showToast("已模拟：不可领取·过领取期");
+      });
+      document.getElementById("demoUseExpired").addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        const p = packets[i];
+        const now = nowTs();
+        p.claimedByCurrentUser = true;
+        p.redeemed = false;
+        p.pendingCashback = false;
+        p.useEnd = now - hour;
+        p.useStart = p.useEnd - 7 * 24 * hour;
+        render();
+        loadSelectedConfig();
+        showToast("已模拟：不可核销·已过期");
+      });
+      document.getElementById("demoPendingCashback").addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        const p = packets[i];
+        const now = nowTs();
+        p.claimedByCurrentUser = true;
+        p.pendingCashback = true;
+        p.redeemed = false;
+        p.useStart = now - 3 * hour;
+        p.useEnd = now + 48 * hour;
+        render();
+        loadSelectedConfig();
+        showToast("已模拟：已核销·待到账");
+      });
+      document.getElementById("demoRedeemed").addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        const p = packets[i];
+        p.claimedByCurrentUser = true;
+        p.redeemed = true;
+        p.pendingCashback = false;
+        render();
+        loadSelectedConfig();
+        showToast("已模拟：返现已到账·完结");
+      });
+      document.getElementById("demoClearScenario").addEventListener("click", () => {
+        const i = Math.max(0, (Number(packetIndex.value) || 1) - 1);
+        const p = packets[i];
+        p.redeemed = false;
+        p.pendingCashback = false;
+        p.issuedQty = 0;
+        p.userClaimedTimes = 0;
+        const now = nowTs();
+        p.claimStart = now - 2 * hour;
+        p.claimEnd = now + 36 * hour;
+        p.useStart = now - hour;
+        p.useEnd = now + 30 * hour;
+        render();
+        loadSelectedConfig();
+        showToast("已清除场景标记");
+      });
+      slotRow.addEventListener("click", (e) => {
+        const btn = e.target.closest('[data-action="click-packet"]');
+        if (!btn) return;
+        const card = e.target.closest("[data-index]");
+        if (!card) return;
+        handlePacketClick(Number(card.dataset.index));
+      });
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(renderPackets, 1000);
+    }
+
+    seedData();
+    bind();
+    render();
+  </script>
+</body>
+</html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>返现红包客户端原型</title>
+  <style>
+    :root {
+      --bg: #ffeef6;
+      --panel: #ffffff;
+      --line: #f2d9e7;
+      --text: #2d2d2d;
+      --muted: #888;
+      --primary: #ff4f9c;
+      --primary-dark: #e93d89;
+      --warning: #ff8a00;
+      --success: #15b368;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 12px 28px;
+    }
+    .hint {
+      width: min(920px, 95vw);
+      background: #fff;
+      border: 1px solid #e6e8ef;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #5b6372;
+    }
+    .hint b { color: #2f3744; }
+    .prototype-wrap {
+      width: min(920px, 95vw);
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border: 10px solid #1a1a1a;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    .status-bar {
+      height: 34px;
+      padding: 8px 14px 0;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .app {
+      padding: 8px 12px 80px;
+      height: calc(100% - 34px);
+      overflow: auto;
+    }
+    .top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo {
+      font-weight: 800;
+      color: #252525;
+      font-size: 24px;
+    }
+    .search {
+      flex: 1;
+      background: #fff;
+      border-radius: 18px;
+      color: #aaa;
+      font-size: 14px;
+      padding: 9px 12px;
+    }
+    .card-row {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .metric-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+    .metric-card b {
+      display: block;
+      margin-top: 4px;
+      font-size: 24px;
+    }
+    .tools {
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+    }
+    .input-box {
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #ececec;
+      height: 120px;
+      padding: 10px;
+      color: #aaa;
+      background: #fafafa;
+      position: relative;
+    }
+    .paste-btn {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      border-radius: 18px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .tabs {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: auto;
+      padding-bottom: 2px;
+    }
+    .tab-active { color: var(--primary); font-weight: 700; }
+    .shop-grid {
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      font-size: 12px;
+      text-align: center;
+    }
+    .shop {
+      background: #fff8fc;
+      border: 1px solid #f7e3ee;
+      border-radius: 10px;
+      padding: 8px 2px;
+    }
+    .icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      margin: 0 auto 5px;
+      background: linear-gradient(135deg, #ff8c2b, #ff405f);
+    }
+    .rebate { color: var(--primary); margin-top: 2px; }
+
+    .resource-row-wrap {
+      margin-top: 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .resource-row {
+      --slot-width: 105px;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: var(--slot-width);
+      gap: 8px;
+      width: max-content;
+      min-width: 100%;
+    }
+    .resource-slot {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #ffd4e8;
+      background: #fff;
+      cursor: pointer;
+    }
+    .slot-coupon {
+      background: linear-gradient(180deg, #ff4f4f, #ff2f2f);
+      padding: 6px;
+    }
+    .slot-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 7px 8px;
+      min-height: 126px;
+      display: flex;
+      flex-direction: column;
+    }
+    .slot-title {
+      font-size: 12px;
+      color: #333;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .slot-amount {
+      margin-top: 5px;
+      color: #ff2f2f;
+      line-height: 1;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -1px;
+    }
+    .slot-amount small {
+      font-size: 14px;
+      margin-right: 1px;
+      vertical-align: 4px;
+    }
+    .slot-threshold {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #ff5d5d;
+      min-height: 28px;
+      line-height: 1.2;
+    }
+    .slot-threshold .countdown {
+      color: #b00000;
+      font-weight: 700;
+    }
+    .slot-cta {
+      margin-top: auto;
+      height: 26px;
+      border-radius: 6px;
+      border: 0;
+      color: #fff;
+      background: #ff2f2f;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .slot-cta.view {
+      background: #ff6b6b;
+    }
+    .slot-cta:disabled {
+      background: #d0d0d0;
+      cursor: not-allowed;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 66px;
+      background: #fff;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 12px;
+      color: #666;
+    }
+    .nav-active { color: var(--primary); font-weight: 700; }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #e6e8ef;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .panel h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .cfg-grid {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .cfg-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .cfg-item label {
+      font-size: 12px;
+      color: #6a7382;
+    }
+    .cfg-item input[type="text"],
+    .cfg-item input[type="number"] {
+      height: 30px;
+      border: 1px solid #e5d5df;
+      border-radius: 8px;
+      padding: 0 8px;
+      font-size: 12px;
+      background: #fff;
+    }
+    .cfg-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #596172;
+      margin-top: 6px;
+    }
+    .btn {
+      border: 1px solid #e5d5df;
+      border-radius: 8px;
+      background: #fff;
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 90px;
+      background: rgba(30, 30, 30, 0.85);
+      color: #fff;
+      font-size: 12px;
+      border-radius: 14px;
+      padding: 7px 12px;
+      display: none;
+      z-index: 9;
+    }
+
+    @media (max-width: 840px) {
+      .prototype-wrap {
+        grid-template-columns: 1fr;
+      }
+      .phone {
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hint">
+    <b>原型说明：</b>资源位为“可插入图片”的配置位，此处模拟了图片素材 + 红包状态层。点击手机中的红包资源位即可演示完整流程：未领取 → 领取确认弹层 → 已领取待使用 → 去下单（模拟）→ 已使用。
+  </div>
+
+  <div class="prototype-wrap">
+    <section class="phone">
+      <div class="status-bar">
+        <span>15:00</span>
+        <span>5G ▮▮▮</span>
+      </div>
+
+      <div class="app">
+        <div class="top-row">
+          <div class="logo">美柚返现</div>
+          <div class="search">🔍 垃圾袋</div>
+        </div>
+
+        <div class="card-row">
+          <div class="metric-card">累计已省<b>¥80.99</b></div>
+          <div class="metric-card">我的订单<b>¥0.97</b></div>
+        </div>
+
+        <div class="tools">
+          <div><b>小技巧：</b>粘贴抖音直播商品链接可查隐藏返现</div>
+          <div class="input-box">粘贴商品链接或口令
+            <button class="paste-btn">粘贴</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab-active">大家都在用</div>
+          <div>外卖返现</div>
+          <div>拼多多</div>
+          <div>打车返现</div>
+        </div>
+
+        <div class="resource-row-wrap">
+          <div class="resource-row" id="resourceRow"></div>
+        </div>
+
+        <div class="shop-grid">
+          <div class="shop"><div class="icon"></div>淘宝<div class="rebate">约返5%</div></div>
+          <div class="shop"><div class="icon"></div>京东<div class="rebate">约返3%</div></div>
+          <div class="shop"><div class="icon"></div>抖音<div class="rebate">约返7%</div></div>
+          <div class="shop"><div class="icon"></div>拼多多<div class="rebate">约返2.5%</div></div>
+          <div class="shop"><div class="icon"></div>唯品会<div class="rebate">约返5%</div></div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div>美柚</div>
+        <div>记录</div>
+        <div class="nav-active">返现</div>
+        <div>消息</div>
+        <div>我</div>
+      </div>
+
+      <div class="toast" id="toast">领取成功</div>
+    </section>
+
+    <aside class="panel">
+      <h3>客户端功能设计（对应后台红包资源位）</h3>
+      1) <b>资源位渲染能力：</b>支持后台下发图片素材 + 红包信息（名称、金额、CTA、门槛）。<br />
+      2) <b>状态机能力：</b>未领取、已领取待使用、已使用 三态切换。<br />
+      3) <b>领取流程：</b>点击“点击领取”，成功后弹出“领取成功”并切态。<br />
+      4) <b>转化承接：</b>已领取态点击“去查看”跳转红包列表。<br />
+      5) <b>提醒语义：</b>红包有效期 <=24h 展示实时倒计时，减少“领了不用”的流失。
+
+      <div class="actions">
+        <input class="btn" id="slotCountInput" type="number" min="1" value="2" title="一行n个" style="width:110px;" />
+        <button class="btn" id="btnReset">重置为未领取</button>
+        <button class="btn" id="btnExpire">切换为临期状态</button>
+        <button class="btn primary" id="btnUse">模拟完成下单</button>
+      </div>
+
+      <h3 style="margin-top: 14px;">交互流程</h3>
+      A. 用户点击“点击领取” → 直接领取并弹出“领取成功”。<br />
+      B. 卡片状态切换为“已领取待使用”，展示具体金额、使用门槛与有效期。<br />
+      C. 点击“去查看” → 进入红包列表（原型中以 Toast 代替）。<br />
+      D. 完成下单后 → 资源位状态更新为“已使用”。
+
+      <h3 style="margin-top: 14px;">建议埋点</h3>
+      `resource_exposure`、`resource_click`、`claim_success`、`go_list_click`、`order_success_from_redpacket`、`redpacket_status_change`。
+
+      <h3 style="margin-top: 14px;">后台配置项模拟（实时预览）</h3>
+      <div class="cfg-grid">
+        <div class="cfg-item">
+          <label for="cfgName">红包名称</label>
+          <input id="cfgName" type="text" value="逛逛专属红包" />
+        </div>
+        <div class="cfg-item">
+          <label for="cfgAmount">红包金额（元）</label>
+          <input id="cfgAmount" type="number" min="0" step="1" value="10" />
+        </div>
+        <div class="cfg-item">
+          <label for="cfgThreshold">使用门槛（满X元可用）</label>
+          <input id="cfgThreshold" type="number" min="0" step="1" value="99" />
+        </div>
+        <div class="cfg-item">
+          <label for="cfgExpiryHours">有效期（小时）</label>
+          <input id="cfgExpiryHours" type="number" min="1" step="1" value="36" />
+        </div>
+      </div>
+      <label class="cfg-check">
+        <input id="cfgRandom" type="checkbox" />
+        <span>随机金额（未领取前展示 ??）</span>
+      </label>
+      <div class="muted" style="margin-top:6px;">说明：该配置用于演示第1个红包卡片，输入后会实时同步到客户端样式。</div>
+    </aside>
+  </div>
+
+  <script>
+    const toast = document.getElementById("toast");
+    const resourceRow = document.getElementById("resourceRow");
+    const slotCountInput = document.getElementById("slotCountInput");
+
+    const btnReset = document.getElementById("btnReset");
+    const btnExpire = document.getElementById("btnExpire");
+    const btnUse = document.getElementById("btnUse");
+    const cfgName = document.getElementById("cfgName");
+    const cfgAmount = document.getElementById("cfgAmount");
+    const cfgThreshold = document.getElementById("cfgThreshold");
+    const cfgExpiryHours = document.getElementById("cfgExpiryHours");
+    const cfgRandom = document.getElementById("cfgRandom");
+
+    const basePackets = [
+      { id: "rp1", name: "逛逛专属红包", amount: 10, threshold: 99, random: false, expiryHours: 36 },
+      { id: "rp2", name: "春季专属红包", amount: 0, threshold: 59, random: true, expiryHours: 20 },
+      { id: "rp3", name: "新客专享红包", amount: 5, threshold: 30, random: false, expiryHours: 12 },
+      { id: "rp4", name: "回流激励红包", amount: 15, threshold: 120, random: false, expiryHours: 30 },
+      { id: "rp5", name: "母婴专享红包", amount: 8, threshold: 69, random: true, expiryHours: 8 },
+      { id: "rp6", name: "周末加码红包", amount: 12, threshold: 88, random: false, expiryHours: 24 }
+    ];
+    let packets = [];
+    let currentCount = 0;
+    let state = "unclaimed"; // unclaimed | claimed | expiring | used
+    let countdownTimer = null;
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 1800);
+    }
+
+    function buildPackets(n) {
+      const count = Math.max(1, Math.floor(n || 1));
+      packets = Array.from({ length: count }, (_, i) => {
+        const src = basePackets[i % basePackets.length];
+        return { ...src, id: src.id + "_" + i, expireAt: null };
+      });
+      currentCount = count;
+    }
+
+    function ensurePackets(n) {
+      const count = Math.max(1, Math.floor(n || 1));
+      if (count !== currentCount) {
+        buildPackets(count);
+        if (state === "claimed" || state === "expiring") {
+          const now = Date.now();
+          packets = packets.map((p) => ({ ...p, expireAt: now + p.expiryHours * 3600 * 1000 }));
+        }
+      }
+    }
+
+    function formatCountdown(ms) {
+      const total = Math.max(0, Math.floor(ms / 1000));
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function formatDate(ts) {
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}.${m}.${day}`;
+    }
+
+    function syncCountdownTimer() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      if (state === "claimed" || state === "expiring") {
+        countdownTimer = setInterval(() => {
+          renderCards();
+        }, 1000);
+      }
+    }
+
+    function applyConfigToFirstPacket() {
+      const amount = Math.max(0, Number(cfgAmount.value) || 0);
+      const threshold = Math.max(0, Number(cfgThreshold.value) || 0);
+      const expiryHours = Math.max(1, Number(cfgExpiryHours.value) || 1);
+      basePackets[0] = {
+        ...basePackets[0],
+        name: cfgName.value.trim() || "自定义红包",
+        amount,
+        threshold,
+        expiryHours,
+        random: cfgRandom.checked
+      };
+      const now = Date.now();
+      packets = packets.map((p, idx) => {
+        if (idx !== 0) return p;
+        return {
+          ...p,
+          ...basePackets[0],
+          expireAt: state === "claimed" || state === "expiring" ? now + expiryHours * 3600 * 1000 : null
+        };
+      });
+      renderCards();
+    }
+
+    function renderCards() {
+      const now = Date.now();
+      const cards = packets.map((p) => {
+        const amountText = state === "unclaimed" && p.random ? "??" : String(p.amount);
+        let threshold = "";
+        if (state !== "unclaimed") {
+          const remain = (p.expireAt || now) - now;
+          const countdownText = remain <= 24 * 3600 * 1000
+            ? `<span class="countdown">剩余 ${formatCountdown(remain)}</span>`
+            : `有效期至 ${formatDate(p.expireAt || now)}`;
+          threshold = `满${p.threshold}元可用<br />${countdownText}`;
+        }
+        const cta = state === "unclaimed" ? "点击领取" : (state === "used" ? "已使用" : "去查看");
+        return `
+          <div class="resource-slot">
+            <div class="slot-coupon">
+              <div class="slot-card">
+                <div class="slot-title">${p.name}</div>
+                <div class="slot-amount"><small>¥</small>${amountText}</div>
+                <div class="slot-threshold">${threshold}</div>
+                <button class="slot-cta ${state !== "unclaimed" ? "view" : ""}" data-action="packet-cta" ${state === "used" ? "disabled" : ""}>${cta}</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      resourceRow.innerHTML = cards;
+    }
+
+    function render() {
+      const n = Math.max(1, Math.floor(Number(slotCountInput.value) || 1));
+      ensurePackets(n);
+      const slotWidth = n === 1
+        ? "calc(100% - 2px)"
+        : (n === 2 ? "calc((100% - 8px) / 2)" : "105px");
+      resourceRow.style.setProperty("--slot-width", slotWidth);
+      renderCards();
+    }
+
+    resourceRow.addEventListener("click", (e) => {
+      const btn = e.target.closest('[data-action="packet-cta"]');
+      if (!btn) return;
+      if (state === "unclaimed") {
+        state = "claimed";
+        const now = Date.now();
+        packets = packets.map((p) => ({ ...p, expireAt: now + p.expiryHours * 3600 * 1000 }));
+        syncCountdownTimer();
+        render();
+        showToast("领取成功");
+        return;
+      }
+      if (state === "claimed" || state === "expiring") {
+        showToast("已模拟跳转返现红包列表");
+        return;
+      }
+      if (state === "used") showToast("红包已使用");
+    });
+
+    btnReset.addEventListener("click", () => {
+      state = "unclaimed";
+      packets = packets.map((p) => ({ ...p, expireAt: null }));
+      syncCountdownTimer();
+      render();
+    });
+    btnExpire.addEventListener("click", () => {
+      state = "expiring";
+      syncCountdownTimer();
+      render();
+    });
+    btnUse.addEventListener("click", () => {
+      state = "used";
+      syncCountdownTimer();
+      render();
+      showToast("已模拟完成下单，红包状态更新为已使用");
+    });
+
+    slotCountInput.addEventListener("input", () => {
+      render();
+    });
+
+    [cfgName, cfgAmount, cfgThreshold, cfgExpiryHours].forEach((el) => {
+      el.addEventListener("input", applyConfigToFirstPacket);
+    });
+    cfgRandom.addEventListener("change", applyConfigToFirstPacket);
+
+    buildPackets(Math.floor(Number(slotCountInput.value) || 1));
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>微信提现自动到账 · 可编辑流程图</title>
+  <style>
+    :root { --pink:#e8467c; --ink:#172033; --slate:#516076; --line:#cbd5e1; --green:#05835f; --mint:#ecfdf5; --orange:#d97706; --red:#dc2626; --bg:#eef1f5; }
+    * { box-sizing:border-box; } body { margin:0; min-width:1080px; background:var(--bg); color:var(--ink); font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+    .app { max-width:1600px; margin:0 auto; padding:24px; }
+    .top { display:flex; justify-content:space-between; gap:24px; padding:20px 24px; background:#fff; border-radius:16px 16px 0 0; }
+    h1 { margin:0 0 4px; font-size:21px; } .desc { margin:0; color:#64748b; }
+    .save-status { align-self:center; color:#64748b; font-size:12px; }
+    .toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 24px; background:#fff; border-top:1px solid #edf1f5; border-bottom:1px solid #e5eaf0; }
+    button, select, input, textarea { font:inherit; } button { border:1px solid #d7dee8; background:#fff; border-radius:7px; padding:7px 11px; color:#334155; cursor:pointer; } button:hover { background:#f8fafc; } button.primary { background:#2563eb; border-color:#2563eb; color:#fff; } button.primary:hover { background:#1d4ed8; } button.danger { color:#b91c1c; border-color:#fecaca; } button.active { background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; } .divider { width:1px; height:26px; background:#e2e8f0; margin:0 3px; }
+    .tabs { display:flex; gap:2px; margin-left:auto; } .tab { border-radius:7px; } .tab.selected { background:#334155; color:#fff; border-color:#334155; }
+    .editor { display:grid; grid-template-columns:minmax(820px,1fr) 322px; min-height:760px; background:#fff; border-radius:0 0 16px 16px; overflow:hidden; }
+    .canvas-zone { position:relative; overflow:auto; background:#f8fafc; padding:18px; }
+    #diagram { width:1180px; height:1040px; display:block; background:#fff; border:1px solid #dbe2ea; border-radius:12px; }
+    .side { border-left:1px solid #e5eaf0; background:#fff; padding:18px; overflow:auto; }
+    .side h2 { font-size:15px; margin:0 0 14px; } .empty { color:#94a3b8; padding:10px 0; }
+    .field { margin:0 0 12px; } .field label { display:block; color:#64748b; font-size:12px; margin:0 0 5px; } .field input,.field select,.field textarea { width:100%; border:1px solid #d7dee8; border-radius:7px; padding:8px; color:#172033; background:#fff; } .field textarea { min-height:62px; resize:vertical; }
+    .pair { display:grid; grid-template-columns:1fr 1fr; gap:9px; } .panel-note { background:#f8fafc; border:1px solid #e7edf4; color:#64748b; font-size:12px; padding:10px; border-radius:8px; }
+    .node { cursor:grab; } .node:active { cursor:grabbing; } .node.selected .shape { stroke:#2563eb; stroke-width:3; } .edge { cursor:pointer; } .edge.selected { stroke:#2563eb!important; stroke-width:3!important; }
+    .lane-label { fill:#fff; font-size:15px; font-weight:700; } .lane-caption { fill:#334155; font-size:13px; font-weight:700; } .label { fill:#172033; font-size:13px; font-weight:650; } .detail { fill:#64748b; font-size:11px; } .edge-label { fill:#64748b; font-size:11px; paint-order:stroke; stroke:#fff; stroke-width:4px; } .branch-yes { fill:#05835f; font-weight:700; } .branch-no { fill:#dc2626; font-weight:700; }
+    .help { margin-top:16px; color:#64748b; font-size:12px; } kbd { padding:1px 5px; border:1px solid #d7dee8; border-bottom-width:2px; border-radius:4px; background:#fff; color:#475569; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div><h1>微信提现「自动到账」· 可编辑流程图</h1><p class="desc">点击节点或连线编辑；拖拽节点调整位置；支持增删改、撤销重做与本地文件保存。</p></div>
+    <div id="saveStatus" class="save-status">未选择本地文件</div>
+  </header>
+  <nav class="toolbar">
+    <button id="addProcess">＋ 处理节点</button><button id="addDecision">＋ 判断节点</button><button id="addStart">＋ 开始/结束</button>
+    <button id="connect">↗ 新增连线</button><button id="delete" class="danger">删除选中</button>
+    <span class="divider"></span><button id="undo">↶ 撤销</button><button id="redo">↷ 重做</button>
+    <span class="divider"></span><button id="openFile">打开流程图文件</button><button id="saveFile" class="primary">保存到当前文件</button><button id="downloadHtml">下载 HTML</button><button id="exportPng">导出 PNG</button>
+    <div class="tabs"><button class="tab selected" data-scene="newUser">场景① 新用户</button><button class="tab" data-scene="existingUser">场景② 存量用户</button></div>
+  </nav>
+  <main class="editor">
+    <section class="canvas-zone"><svg id="diagram" viewBox="0 0 1180 1040" aria-label="可编辑泳道流程图"></svg><p class="help">拖拽节点在泳道内调整位置。点击「新增连线」后，依次点击起点和终点；判断节点请用连线标签填写「是 / 否」。</p></section>
+    <aside class="side"><h2>属性编辑</h2><div id="inspector" class="empty">请选择一个节点或连线</div></aside>
+  </main>
+</div>
+
+<script>
+const INITIAL_DATA = {
+  lanes: [
+    { id:"app", label:"美柚 App（用户端）", color:"#e8467c", fill:"#fdf3f7" },
+    { id:"meiyou", label:"美柚服务端", color:"#516076", fill:"#f6f8fa" },
+    { id:"wechatServer", label:"微信服务端", color:"#05835f", fill:"#f0faf4" },
+    { id:"wechatClient", label:"微信客户端（用户微信）", color:"#07a555", fill:"#f2fbf6" }
+  ],
+  scenes: {
+    newUser: {
+      title:"场景① 新用户 · 绑定微信账号时一并完成开通",
+      subtitle:"用户从未绑定微信账号，在绑定动线内完成「自动到账」开通。",
+      nodes:[
+        {id:"n-start",type:"terminal",lane:"app",x:92,y:118,w:140,h:44,title:"开始",detail:""},
+        {id:"n-bind",type:"process",lane:"app",x:50,y:195,w:224,h:62,title:"绑定微信账号",detail:"点击「绑定微信 · 提现到微信」"},
+        {id:"n-oauth",type:"process",lane:"wechatClient",x:905,y:195,w:224,h:62,title:"微信授权登录页",detail:"请求账号关联授权"},
+        {id:"n-oauth-check",type:"decision",lane:"wechatClient",x:883,y:286,w:268,h:88,title:"是否同意授权登录？",detail:""},
+        {id:"n-bind-end",type:"terminal",lane:"wechatClient",x:912,y:406,w:210,h:44,title:"结束 · 未完成绑定",detail:""},
+        {id:"n-record",type:"process",lane:"meiyou",x:335,y:300,w:224,h:62,title:"建立绑定关系",detail:"保存账号关联"},
+        {id:"n-apply",type:"process",lane:"meiyou",x:335,y:393,w:224,h:62,title:"发起「自动到账」开通申请",detail:"绑定动线内顺带发起"},
+        {id:"n-receive",type:"process",lane:"wechatServer",x:620,y:393,w:224,h:62,title:"受理开通申请",detail:"等待用户确认（24 小时内）"},
+        {id:"n-jump",type:"process",lane:"app",x:50,y:485,w:224,h:62,title:"引导跳转微信",detail:"进入官方开通确认页"},
+        {id:"n-confirm",type:"process",lane:"wechatClient",x:905,y:485,w:224,h:62,title:"微信官方开通确认页",detail:"展示「自动到账」开通信息"},
+        {id:"n-confirm-check",type:"decision",lane:"wechatClient",x:883,y:576,w:268,h:88,title:"24 小时内确认开通？",detail:""},
+        {id:"n-open-end",type:"terminal",lane:"wechatClient",x:905,y:696,w:224,h:44,title:"结束 · 开通失败",detail:"可重新发起"},
+        {id:"n-success",type:"process",lane:"wechatServer",x:620,y:590,w:224,h:62,title:"开通成功",detail:"长期有效，直至用户主动关闭"},
+        {id:"n-status",type:"process",lane:"meiyou",x:335,y:682,w:224,h:62,title:"记录开通状态",detail:"该用户后续提现均自动到账"},
+        {id:"n-success-ui",type:"process",lane:"app",x:50,y:682,w:224,h:62,title:"展示开通成功态",detail:"已开通自动到账，提现秒到"},
+        {id:"n-withdraw",type:"process",lane:"app",x:50,y:814,w:224,h:62,title:"发起提现",detail:"无需再做任何确认操作"},
+        {id:"n-pay",type:"process",lane:"meiyou",x:335,y:814,w:224,h:62,title:"发起打款",detail:"大额提现校验收款人姓名"},
+        {id:"n-transfer",type:"process",lane:"wechatServer",x:620,y:814,w:224,h:62,title:"执行转账",detail:"资金直接进入用户零钱"},
+        {id:"n-message",type:"process",lane:"wechatClient",x:905,y:906,w:224,h:62,title:"收到微信入账消息",detail:"无需确认 · 无需任何操作"},
+        {id:"n-notice",type:"process",lane:"app",x:50,y:906,w:224,h:62,title:"App 内到账通知",detail:"余额更新 · 提现完成"},
+        {id:"n-end",type:"terminal",lane:"app",x:72,y:986,w:180,h:44,title:"结束 · 提现完成",detail:""}
+      ],
+      edges:[
+        ["n-start","n-bind","","solid"],["n-bind","n-oauth","拉起微信授权登录","solid"],["n-oauth","n-oauth-check","","solid"],["n-oauth-check","n-record","是 · 同意","solid"],["n-oauth-check","n-bind-end","否","error"],["n-record","n-apply","","solid"],["n-apply","n-receive","开通申请","solid"],["n-receive","n-jump","需用户确认（24 小时内）","solid"],["n-jump","n-confirm","跳转微信官方开通确认页","solid"],["n-confirm","n-confirm-check","","solid"],["n-confirm-check","n-success","是 · 确认开通","solid"],["n-confirm-check","n-open-end","否 · 超时/放弃","error"],["n-success","n-status","开通成功通知","dashed"],["n-status","n-success-ui","","solid"],["n-success-ui","n-withdraw","此后每次提现","dashed"],["n-withdraw","n-pay","","solid"],["n-pay","n-transfer","发起打款","solid"],["n-transfer","n-message","资金直接进零钱","money"],["n-transfer","n-notice","到账通知 · 余额更新","dashed"],["n-notice","n-end","","solid"]
+      ],
+    },
+    existingUser: {
+      title:"场景② 存量用户 · 从手动确认收款升级为自动到账",
+      subtitle:"已绑定微信用户通过升级引导开通服务；拒绝或超时均维持手动确认，提现不受影响。",
+      nodes:[
+        {id:"e-start",type:"terminal",lane:"app",x:92,y:118,w:140,h:44,title:"开始",detail:""},
+        {id:"e-bound",type:"process",lane:"app",x:50,y:195,w:224,h:62,title:"已绑定微信账号",detail:"每笔提现需手动确认收款"},
+        {id:"e-guide",type:"process",lane:"app",x:50,y:287,w:224,h:62,title:"展示「升级自动到账」引导",detail:"时机：提现时 / 到账后 / 钱包页"},
+        {id:"e-agree",type:"decision",lane:"app",x:28,y:378,w:268,h:88,title:"用户是否同意开通？",detail:""},
+        {id:"e-keep",type:"terminal",lane:"app",x:37,y:498,w:250,h:44,title:"结束 · 保持手动确认",detail:"提现不受影响"},
+        {id:"e-apply",type:"process",lane:"meiyou",x:335,y:452,w:224,h:62,title:"向微信发起开通申请",detail:"自动到账服务"},
+        {id:"e-receive",type:"process",lane:"wechatServer",x:620,y:452,w:224,h:62,title:"受理开通申请",detail:"等待用户确认（24 小时内）"},
+        {id:"e-jump",type:"process",lane:"app",x:50,y:558,w:224,h:62,title:"引导跳转微信",detail:"进入官方开通确认页"},
+        {id:"e-confirm",type:"process",lane:"wechatClient",x:905,y:558,w:224,h:62,title:"微信官方开通确认页",detail:"展示自动到账开通信息"},
+        {id:"e-confirm-check",type:"decision",lane:"wechatClient",x:883,y:654,w:268,h:88,title:"24 小时内确认开通？",detail:""},
+        {id:"e-fail",type:"terminal",lane:"wechatClient",x:905,y:774,w:224,h:44,title:"结束 · 开通失败",detail:"保持手动确认"},
+        {id:"e-success",type:"process",lane:"wechatServer",x:620,y:668,w:224,h:62,title:"开通成功",detail:"长期有效，直至用户主动关闭"},
+        {id:"e-status",type:"process",lane:"meiyou",x:335,y:760,w:224,h:62,title:"记录开通状态",detail:"手动确认 → 自动到账"},
+        {id:"e-success-ui",type:"process",lane:"app",x:50,y:852,w:224,h:62,title:"展示升级成功态",detail:"以后提现自动到账，无需确认"},
+        {id:"e-withdraw",type:"process",lane:"app",x:50,y:984,w:224,h:62,title:"发起提现",detail:"不再需要去微信手动确认"},
+        {id:"e-pay",type:"process",lane:"meiyou",x:335,y:984,w:224,h:62,title:"发起打款",detail:"大额提现校验收款人姓名"},
+        {id:"e-transfer",type:"process",lane:"wechatServer",x:620,y:984,w:224,h:62,title:"执行转账",detail:"资金直接进入用户零钱"},
+        {id:"e-message",type:"process",lane:"wechatClient",x:905,y:1076,w:224,h:62,title:"收到微信入账消息",detail:"无需确认 · 无需任何操作"},
+        {id:"e-notice",type:"process",lane:"app",x:50,y:1076,w:224,h:62,title:"App 内到账通知",detail:"余额更新 · 提现完成"},
+        {id:"e-end",type:"terminal",lane:"app",x:72,y:1160,w:180,h:44,title:"结束 · 提现完成",detail:""}
+      ],
+      edges:[
+        ["e-start","e-bound","","solid"],["e-bound","e-guide","","solid"],["e-guide","e-agree","","solid"],["e-agree","e-apply","是 · 同意开通","solid"],["e-agree","e-keep","否","error"],["e-apply","e-receive","开通申请","solid"],["e-receive","e-jump","需用户确认（24 小时内）","solid"],["e-jump","e-confirm","跳转微信官方开通确认页","solid"],["e-confirm","e-confirm-check","","solid"],["e-confirm-check","e-success","是 · 确认开通","solid"],["e-confirm-check","e-fail","否 · 超时/放弃","error"],["e-success","e-status","开通成功通知","dashed"],["e-status","e-success-ui","","solid"],["e-success-ui","e-withdraw","此后每次提现","dashed"],["e-withdraw","e-pay","","solid"],["e-pay","e-transfer","发起打款","solid"],["e-transfer","e-message","资金直接进零钱","money"],["e-transfer","e-notice","到账通知 · 余额更新","dashed"],["e-notice","e-end","","solid"]
+      ]
+    }
+  }
+};
+
+const svg = document.getElementById("diagram"), inspector = document.getElementById("inspector"), statusEl = document.getElementById("saveStatus");
+let state = structuredClone(INITIAL_DATA), sceneId = "newUser", selected = null, edgeMode = null, history = [], future = [], fileHandle = null;
+const W=1180, H=1040, laneW=285, left=20, headerH=64;
+const el = (tag, attrs={}, text="") => { const n=document.createElementNS("http://www.w3.org/2000/svg",tag); Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v)); if(text) n.textContent=text; return n; };
+const scene = () => state.scenes[sceneId];
+const edges = () => scene().edges.map((e,i)=>({id:`edge-${i}`,from:e[0],to:e[1],label:e[2],style:e[3]}));
+const nodeById = id => scene().nodes.find(n=>n.id===id);
+const laneIndex = id => state.lanes.findIndex(l=>l.id===id);
+function snapshot(){ history.push(JSON.stringify(state)); if(history.length>50) history.shift(); future=[]; }
+function restore(raw){ state=JSON.parse(raw); selected=null; render(); }
+function undo(){ if(!history.length)return; future.push(JSON.stringify(state)); restore(history.pop()); }
+function redo(){ if(!future.length)return; history.push(JSON.stringify(state)); restore(future.pop()); }
+function fitScene(){ return sceneId==="existingUser" ? 1250 : 1080; }
+function anchor(a,b){
+  const ax=a.x+a.w/2, ay=a.y+a.h/2, bx=b.x+b.w/2, by=b.y+b.h/2;
+  if(Math.abs(bx-ax)>Math.abs(by-ay)) return bx>ax?{x:a.x+a.w,y:ay}:{x:a.x,y:ay};
+  return by>ay?{x:ax,y:a.y+a.h}:{x:ax,y:a.y};
+}
+function edgePath(a,b){
+  const p=anchor(a,b), q=anchor(b,a);
+  if(Math.abs(q.x-p.x)>80) { const m=(p.x+q.x)/2; return `M${p.x} ${p.y} H${m} V${q.y} H${q.x}`; }
+  const m=(p.y+q.y)/2; return `M${p.x} ${p.y} V${m} H${q.x} V${q.y}`;
+}
+function render(){
+  const s=scene(); const height=Math.max(H, fitScene()); svg.setAttribute("viewBox",`0 0 ${W} ${height}`); svg.setAttribute("height",height);
+  svg.innerHTML=`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#64748b"/></marker><marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#dc2626"/></marker><marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#059669"/></marker></defs>`;
+  state.lanes.forEach((lane,i)=>{ const x=left+i*laneW; svg.append(el("rect",{x,y:headerH,width:laneW,height:height-headerH-16,fill:lane.fill})); svg.append(el("rect",{x,y:16,width:laneW,height:48,rx:10,fill:lane.color})); svg.append(el("text",{x:x+laneW/2,y:45,"text-anchor":"middle",class:"lane-label"},lane.label)); if(i)svg.append(el("line",{x1:x,y1:headerH,x2:x,y2:height-16,stroke:"#e2e8f0"})); });
+  svg.append(el("rect",{x:left,y:headerH,width:1140,height:height-headerH-16,fill:"none",stroke:"#dbe2ea"}));
+  svg.append(el("text",{x:46,y:99,class:"lane-caption"},s.title));
+  svg.append(el("text",{x:46,y:119,fill:"#64748b","font-size":"11"},s.subtitle));
+  const firstPost = Math.min(...s.nodes.filter(n=>n.y>750).map(n=>n.y), height); if(firstPost<height) { svg.append(el("line",{x1:20,y1:firstPost-40,x2:1160,y2:firstPost-40,stroke:"#cbd5e1","stroke-dasharray":"6 5"})); }
+  edges().forEach(ed=>{ const a=nodeById(ed.from),b=nodeById(ed.to); if(!a||!b)return; const color=ed.style==="money"?"#059669":ed.style==="error"?"#dc2626":"#64748b"; const path=el("path",{d:edgePath(a,b),fill:"none",stroke:color,"stroke-width":selected?.kind==="edge"&&selected.id===ed.id?3:1.7,"stroke-dasharray":ed.style==="dashed"||ed.style==="error"?"6 4":"",class:"edge","marker-end":`url(#${ed.style==="money"?"arrow-green":ed.style==="error"?"arrow-red":"arrow"})`}); path.onclick=e=>{e.stopPropagation();selected={kind:"edge",id:ed.id};edgeMode=null;render();};svg.append(path); if(ed.label){ const p=anchor(a,b),q=anchor(b,a),x=(p.x+q.x)/2,y=(p.y+q.y)/2-7;svg.append(el("text",{x,y,"text-anchor":"middle",class:`edge-label ${ed.label.startsWith("是")?"branch-yes":ed.label.startsWith("否")?"branch-no":""}`},ed.label)); } });
+  s.nodes.forEach(n=>renderNode(n)); renderInspector();
+}
+function renderNode(n){
+  const g=el("g",{class:`node ${selected?.kind==="node"&&selected.id===n.id?"selected":""}`,"data-id":n.id}); let shape;
+  if(n.type==="decision"){ const cx=n.x+n.w/2,cy=n.y+n.h/2; shape=el("polygon",{points:`${cx},${n.y} ${n.x+n.w},${cy} ${cx},${n.y+n.h} ${n.x},${cy}`,class:"shape",fill:"#fff7ed",stroke:"#f59e0b","stroke-width":1.5}); }
+  else { shape=el("rect",{x:n.x,y:n.y,width:n.w,height:n.h,rx:n.type==="terminal"?n.h/2:4,class:"shape",fill:n.type==="terminal"?(n.title.includes("结束")?"#047857":"#334155"):(n.lane==="app"?"#fdf0f5":n.lane==="wechatClient"?"#eafaf1":n.lane==="wechatServer"?"#e7f6ee":"#f1f4f8"),stroke:n.type==="terminal"?"none":(n.lane==="app"?"#f3c3d6":"#cbd5e1"),"stroke-width":1.4}); }
+  g.append(shape); const tc=n.type==="terminal"?"#fff":"#172033"; const titleY=n.type==="decision"?n.y+n.h/2-3:n.y+n.h/2-(n.detail?4:-4); g.append(el("text",{x:n.x+n.w/2,y:titleY,"text-anchor":"middle",class:"label",fill:tc},n.title)); if(n.detail)g.append(el("text",{x:n.x+n.w/2,y:titleY+19,"text-anchor":"middle",class:"detail"},n.detail)); g.onmousedown=startDrag; g.onclick=e=>{e.stopPropagation(); if(edgeMode){ connectNode(n.id); return;} selected={kind:"node",id:n.id};render();}; svg.append(g);
+}
+let dragging=null;
+function svgPoint(event){ const r=svg.getBoundingClientRect(); const vb=svg.viewBox.baseVal; return {x:(event.clientX-r.left)*vb.width/r.width,y:(event.clientY-r.top)*vb.height/r.height}; }
+function startDrag(e){ if(edgeMode)return; const id=e.currentTarget.dataset.id; const n=nodeById(id); snapshot(); dragging={id,dx:svgPoint(e).x-n.x,dy:svgPoint(e).y-n.y}; selected={kind:"node",id}; window.addEventListener("mousemove",moveDrag);window.addEventListener("mouseup",stopDrag,{once:true}); }
+function moveDrag(e){ if(!dragging)return; const n=nodeById(dragging.id),p=svgPoint(e),i=laneIndex(n.lane),minX=left+i*laneW+10,maxX=left+(i+1)*laneW-n.w-10; n.x=Math.max(minX,Math.min(maxX,p.x-dragging.dx)); n.y=Math.max(135,Math.min(fitScene()-n.h-20,p.y-dragging.dy)); render(); }
+function stopDrag(){dragging=null;window.removeEventListener("mousemove",moveDrag);}
+function renderInspector(){
+  if(!selected){inspector.innerHTML='<div class="empty">请选择一个节点或连线</div>';return;}
+  if(selected.kind==="node"){ const n=nodeById(selected.id); if(!n)return; inspector.innerHTML=`<div class="field"><label>节点类型</label><select data-k="type"><option value="process">处理（矩形）</option><option value="decision">判断（菱形）</option><option value="terminal">开始/结束（胶囊）</option></select></div><div class="field"><label>标题</label><input data-k="title" value="${esc(n.title)}"></div><div class="field"><label>说明</label><textarea data-k="detail">${esc(n.detail)}</textarea></div><div class="pair"><div class="field"><label>所属泳道</label><select data-k="lane">${state.lanes.map(l=>`<option value="${l.id}">${l.label}</option>`).join("")}</select></div><div class="field"><label>节点 ID</label><input data-k="id" value="${esc(n.id)}"></div></div><div class="panel-note">拖拽节点可以调整位置。改变节点 ID 会同步更新相连的连线。</div>`; inspector.querySelector('[data-k="type"]').value=n.type;inspector.querySelector('[data-k="lane"]').value=n.lane; bindNodeFields(n); }
+  else { const idx=+selected.id.replace("edge-",""),e=scene().edges[idx]; if(!e)return; inspector.innerHTML=`<div class="field"><label>起点节点</label><select data-k="from">${nodeOptions(e[0])}</select></div><div class="field"><label>终点节点</label><select data-k="to">${nodeOptions(e[1])}</select></div><div class="field"><label>连线标签（如：是 / 否）</label><input data-k="label" value="${esc(e[2])}"></div><div class="field"><label>线条语义</label><select data-k="style"><option value="solid">主流程</option><option value="dashed">系统通知 / 后续动作</option><option value="money">资金到账</option><option value="error">异常 / 否分支</option></select></div>`; inspector.querySelector('[data-k="style"]').value=e[3]; bindEdgeFields(idx); }
+}
+function esc(s=""){return String(s).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;");}
+function nodeOptions(selectedId){return scene().nodes.map(n=>`<option value="${n.id}" ${n.id===selectedId?"selected":""}>${esc(n.title)} · ${n.id}</option>`).join("");}
+function bindNodeFields(n){ inspector.querySelectorAll("[data-k]").forEach(input=>input.onchange=()=>{snapshot();const k=input.dataset.k,v=input.value;if(k==="id"){if(scene().nodes.some(x=>x!==n&&x.id===v)||!v){alert("节点 ID 不能为空且必须唯一");input.value=n.id;return;}scene().edges.forEach(e=>{if(e[0]===n.id)e[0]=v;if(e[1]===n.id)e[1]=v;});n.id=v;selected.id=v;}else {n[k]=v;if(k==="lane"){const i=laneIndex(v);n.x=left+i*laneW+30;}}render(); }); }
+function bindEdgeFields(index){ inspector.querySelectorAll("[data-k]").forEach(input=>input.onchange=()=>{snapshot();scene().edges[index][{from:0,to:1,label:2,style:3}[input.dataset.k]]=input.value;render();});}
+function addNode(type){snapshot();const id=`node-${Date.now()}`,lane="app",n={id,type,lane,x:50,y:150,w:type==="decision"?230:210,h:type==="decision"?80:58,title:type==="decision"?"是否满足条件？":type==="terminal"?"开始 / 结束":"新增处理节点",detail:type==="process"?"请填写说明":""};scene().nodes.push(n);selected={kind:"node",id};render();}
+function connectNode(id){ if(!edgeMode){edgeMode=id;statusEl.textContent="已选起点，请点击终点节点";return;} if(edgeMode===id)return; snapshot();scene().edges.push([edgeMode,id,"","solid"]);selected={kind:"edge",id:`edge-${scene().edges.length-1}`};edgeMode=null;statusEl.textContent="已新增连线";render(); }
+function deleteSelected(){if(!selected)return; snapshot();if(selected.kind==="node"){const id=selected.id;scene().nodes=scene().nodes.filter(n=>n.id!==id);scene().edges=scene().edges.filter(e=>e[0]!==id&&e[1]!==id);}else scene().edges.splice(+selected.id.replace("edge-",""),1);selected=null;render();}
+function downloadPng(){ const clone=svg.cloneNode(true);clone.querySelectorAll(".selected").forEach(x=>x.classList.remove("selected"));const xml=new XMLSerializer().serializeToString(clone),blob=new Blob([xml],{type:"image/svg+xml"}),url=URL.createObjectURL(blob),img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=2360;c.height=Math.ceil(2360*fitScene()/1180);const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);const a=document.createElement("a");a.download=`${scene().title}.png`;a.href=c.toDataURL("image/png");a.click();URL.revokeObjectURL(url);};img.src=url;}
+function currentHtml(){ const html=document.documentElement.outerHTML; return html.replace(/const INITIAL_DATA = \{[\s\S]*?\n\};\n\nconst svg/,`const INITIAL_DATA = ${JSON.stringify(state,null,2)};\n\nconst svg`); }
+function downloadHtml(){const a=document.createElement("a");a.download="微信自动到账-分场景流程图.html";a.href=URL.createObjectURL(new Blob([currentHtml()],{type:"text/html;charset=utf-8"}));a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);}
+async function openFile(){if(!window.showOpenFilePicker){statusEl.textContent="当前浏览器不支持直接写回，请使用下载 HTML";return;}try{[fileHandle]=await window.showOpenFilePicker({types:[{description:"HTML 文件",accept:{"text/html":[".html"]}}]});statusEl.textContent=`已选择：${fileHandle.name}`;}catch{}}
+async function saveFile(){if(!fileHandle){await openFile();if(!fileHandle)return;}try{const writable=await fileHandle.createWritable();await writable.write(currentHtml());await writable.close();statusEl.textContent=`已保存到 ${fileHandle.name} · ${new Date().toLocaleTimeString()}`;}catch(e){statusEl.textContent="保存失败，请确认文件写入权限";}}
+document.getElementById("addProcess").onclick=()=>addNode("process");document.getElementById("addDecision").onclick=()=>addNode("decision");document.getElementById("addStart").onclick=()=>addNode("terminal");document.getElementById("connect").onclick=()=>{edgeMode=null;statusEl.textContent="新增连线：请先点击起点节点";};document.getElementById("delete").onclick=deleteSelected;document.getElementById("undo").onclick=undo;document.getElementById("redo").onclick=redo;document.getElementById("openFile").onclick=openFile;document.getElementById("saveFile").onclick=saveFile;document.getElementById("downloadHtml").onclick=downloadHtml;document.getElementById("exportPng").onclick=downloadPng;document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{sceneId=b.dataset.scene;selected=null;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("selected",x===b));render();});svg.onclick=()=>{selected=null;edgeMode=null;render();};window.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key==="z"){e.preventDefault();e.shiftKey?redo():undo();}if((e.key==="Delete"||e.key==="Backspace")&&document.activeElement===document.body)deleteSelected();});render();
+</script>
+</body>
+</html>

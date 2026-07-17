@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提现流程优化成效分析报告</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root {
+  --brand: #ff4d88;
+  --bg: #f2f2f5;
+  --surface: #fff;
+  --text: #323232;
+  --text2: #666;
+  --text3: #999;
+  --line: rgba(0,0,0,.1);
+  --success: #00a878;
+  --danger: #ff4d4d;
+  --radius: 12px;
+  --shadow: 0 2px 10px rgba(50,50,50,.08);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.page { max-width: 1500px; margin: 0 auto; }
+.hero {
+  background: linear-gradient(135deg, #ff4d88 0%, #ff7eb3 100%);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.hero h1 { margin: 0 0 8px; font-size: 26px; }
+.hero p { margin: 4px 0; font-size: 14px; opacity: .92; }
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.summary-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+.summary-card .label { color: var(--text3); font-size: 13px; margin-bottom: 6px; }
+.summary-card .value { font-size: 24px; font-weight: 700; }
+.summary-card .sub { color: var(--text3); font-size: 12px; margin-top: 4px; }
+.report-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+th {
+  background: #f7f7f9;
+  color: var(--text2);
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+td {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-size: 13px;
+  line-height: 1.65;
+}
+tr:last-child td { border-bottom: none; }
+th:nth-child(1), td:nth-child(1) { width: 13%; }
+th:nth-child(2), td:nth-child(2) { width: 22%; }
+th:nth-child(3), td:nth-child(3) { width: 35%; }
+th:nth-child(4), td:nth-child(4) { width: 30%; }
+.tag-name { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.trend-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.trend-label { color: var(--text3); font-size: 11px; }
+.trend-value { font-size: 22px; font-weight: 800; line-height: 1.2; }
+.trend-value.before { color: #666; }
+.trend-value.after { color: var(--brand); }
+.trend-arrow { color: var(--text3); font-size: 18px; }
+.delta {
+  display: inline-block;
+  margin: 6px 0 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0,168,120,.1);
+  color: var(--success);
+  font-size: 12px;
+}
+.mini-chart {
+  height: 122px;
+  padding: 8px 8px 2px;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff, #fafafa);
+}
+.chart-note { margin-top: 6px; color: var(--text3); font-size: 11px; }
+.case {
+  background: #fafafa;
+  border-left: 3px solid var(--brand);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.case-meta { color: var(--text3); font-size: 11px; margin-bottom: 4px; }
+.judgement {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7fa;
+  color: var(--text2);
+}
+.strategy-cell {
+  color: var(--text2);
+  font-size: 14px;
+}
+.strategy-list {
+  margin: 0;
+  padding-left: 18px;
+}
+.strategy-list li {
+  margin-bottom: 8px;
+}
+.strategy-list li:last-child { margin-bottom: 0; }
+.note {
+  margin-top: 14px;
+  color: var(--text3);
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  body { padding: 12px; }
+  .summary { grid-template-columns: 1fr; }
+  table, thead, tbody, tr, th, td { display: block; width: 100% !important; }
+  thead { display: none; }
+  tr { border-bottom: 12px solid var(--bg); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="hero">
+    <h1>提现流程优化成效分析报告</h1>
+    <p>统计口径：6.1—6.25 为优化前，6.26—7.1 为优化后；样本均为提现关键词反馈，共 165 条。</p>
+    <p>分析方法：整体收敛看提现反馈日均量；具体策略成效看关键标签在全部提现反馈中的占比变化。</p>
+  </section>
+
+  <section class="summary">
+    <div class="summary-card">
+      <div class="label">提现反馈日均量</div>
+      <div class="value">5.48→4.67 条/天</div>
+      <div class="sub">优化后整体反馈有所收敛</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">核心故障类占比</div>
+      <div class="value">38.0%→3.6%</div>
+      <div class="sub">失败、未到账、微信通道、余额异常</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">优化后归零标签</div>
+      <div class="value">4 个</div>
+      <div class="sub">未到账/处理中、微信通道、余额异常、投诉维权</div>
+    </div>
+  </section>
+
+  <section class="report-card">
+    <table>
+      <thead>
+        <tr>
+          <th>关键标签</th>
+          <th>占比变化与趋势</th>
+          <th>用户 case 与问题判断</th>
+          <th>优化策略与减少的反馈</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+      <tr>
+        <td class="tag-cell">
+          <div class="tag-name">提现失败/退回</div>
+        </td>
+        <td class="trend-cell">
+          <div class="trend-head">
+            <div>
+              <div class="trend-label">优化前占比</div>
+              <div class="trend-value before">16.1%</div>
+            </div>
+            <div class="trend-arrow">→</div>
+            <div>
+              <div class="trend-label">优化后占比</div>
+              <div class="trend-value after">3.6%</div>
+            </div>
+          </div>
+          <div class="delta">占比下降 12.5pp</div>
+          <div class="mini-chart"><canvas id="chart_0"></canvas></div>
+          <div class="chart-note">每日该标签反馈趋势</div>
+        </td>
+        <td class="case-cell">
+          <div class="case">
+          <div class="case-meta">2026-06-03 · 困惑 · ID 15197643106</div>
+          <div>我提现失败了，想了解是什么原因以及该怎么处理</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-25 · 困惑 · ID 15258410365</div>
+          <div>提现失败后资金会重新返回余额吗？可以重新提现吗？</div>
+        </div>
+          <div class="judgement"><strong>问题判断：</strong>用户反馈集中在提现失败后不知道资金是否退回、能否重新提现、失败原因是什么。典型 case：用户问“提现失败后资金会重新返回余额吗？可以重新提现吗？”；另有用户反馈微信提现卡住后“不知道怎么退回钱重新发起”。</div>
+        </td>
+        <td class="strategy-cell"><ul class="strategy-list"><li>通过优化提现通知的完备性，补齐提现成功/失败的信息。</li><li>明确告知失败原因和对应解决方案。</li><li>配合超时未到账自动排查和补偿机制，减少用户因“不知道失败后怎么办”产生的反馈。</li></ul></td>
+      </tr>
+    
+      <tr>
+        <td class="tag-cell">
+          <div class="tag-name">提现未到账/处理中</div>
+        </td>
+        <td class="trend-cell">
+          <div class="trend-head">
+            <div>
+              <div class="trend-label">优化前占比</div>
+              <div class="trend-value before">9.5%</div>
+            </div>
+            <div class="trend-arrow">→</div>
+            <div>
+              <div class="trend-label">优化后占比</div>
+              <div class="trend-value after">0.0%</div>
+            </div>
+          </div>
+          <div class="delta">占比下降 9.5pp</div>
+          <div class="mini-chart"><canvas id="chart_1"></canvas></div>
+          <div class="chart-note">每日该标签反馈趋势</div>
+        </td>
+        <td class="case-cell">
+          <div class="case">
+          <div class="case-meta">2026-06-24 · 困惑 · ID 15254084584</div>
+          <div>我的提现目前处于审核中，想咨询为什么还没完成提现。</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-22 · 困惑 · ID 15249871709</div>
+          <div>为什么一直显示提现中</div>
+        </div>
+          <div class="judgement"><strong>问题判断：</strong>用户核心疑问是提现长期停留在“处理中”、不知道是否还会到账，也不知道是否需要人工处理。典型 case：用户反馈“为什么一直显示提现中”“提现了但是没到账，想了解是什么原因以及该如何处理”。</div>
+        </td>
+        <td class="strategy-cell"><ul class="strategy-list"><li>通过优化提现状态流程和状态同步流程，减少“处理中”状态停留时间。</li><li>同时建立超时未到账自动排查和补偿机制，让异常处理前置，减少“提现中/未到账”类反馈。</li></ul></td>
+      </tr>
+    
+      <tr>
+        <td class="tag-cell">
+          <div class="tag-name">微信提现通道问题</div>
+        </td>
+        <td class="trend-cell">
+          <div class="trend-head">
+            <div>
+              <div class="trend-label">优化前占比</div>
+              <div class="trend-value before">8.0%</div>
+            </div>
+            <div class="trend-arrow">→</div>
+            <div>
+              <div class="trend-label">优化后占比</div>
+              <div class="trend-value after">0.0%</div>
+            </div>
+          </div>
+          <div class="delta">占比下降 8.0pp</div>
+          <div class="mini-chart"><canvas id="chart_2"></canvas></div>
+          <div class="chart-note">每日该标签反馈趋势</div>
+        </td>
+        <td class="case-cell">
+          <div class="case">
+          <div class="case-meta">2026-06-22 · 平静 · ID 15248574430</div>
+          <div>我提现的时候切错微信号了，一直显示提现中，麻烦帮忙处理。</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-15 · 平静 · ID 15228942445</div>
+          <div>我还是无法提现，我的收款微信和登录微信是一致的，我用的是微信分身，提现就会显示对应问题页面。</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-02 · 困惑 · ID 15197374885</div>
+          <div>我提现不成功，系统显示与绑定的收款微信不一致，但实际是一致的，该怎么处理？</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-12 · 困惑 · ID 15222533869</div>
+          <div>请问提现中要怎么处理，我现在按不了确认收款怎么办？</div>
+        </div>
+          <div class="judgement"><strong>问题判断：</strong>用户问题主要发生在微信外跳、微信分身、登录微信与收款微信不一致、确认收款页未弹出等环节。典型 case：用户反馈切错微信号后一直显示提现中，或收款微信与登录微信一致却提示不一致。</div>
+        </td>
+        <td class="strategy-cell"><ul class="strategy-list"><li>通过优化提现状态同步流程，增强外部通道中断、失败、未确认等状态识别。</li><li>同时完善失败通知和过程态展示，让用户知道当前卡在哪一步、是否可重试，从而减少微信提现通道类反馈。</li></ul></td>
+      </tr>
+    
+      <tr>
+        <td class="tag-cell">
+          <div class="tag-name">金额/余额异常</div>
+        </td>
+        <td class="trend-cell">
+          <div class="trend-head">
+            <div>
+              <div class="trend-label">优化前占比</div>
+              <div class="trend-value before">4.4%</div>
+            </div>
+            <div class="trend-arrow">→</div>
+            <div>
+              <div class="trend-label">优化后占比</div>
+              <div class="trend-value after">0.0%</div>
+            </div>
+          </div>
+          <div class="delta">占比下降 4.4pp</div>
+          <div class="mini-chart"><canvas id="chart_3"></canvas></div>
+          <div class="chart-note">每日该标签反馈趋势</div>
+        </td>
+        <td class="case-cell">
+          <div class="case">
+          <div class="case-meta">2026-06-15 · 困惑 · ID 15229169835</div>
+          <div>我的提现返现不了这是为什么？现在我的可用余额为0点不了，请问我是不是已经提现过了？</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-09 · 焦虑 · ID 15214439349</div>
+          <div>为什么我提现没成功也没到账，但余额却没了？退款要等24小时太慢了，能不能快点处理？</div>
+        </div>
+          <div class="judgement"><strong>问题判断：</strong>用户最焦虑的是“钱没到账，但余额已经没了/少了/归零了”。典型 case：用户反馈提现没成功也没到账但余额没了，或提现后账户出现负余额。</div>
+        </td>
+        <td class="strategy-cell"><ul class="strategy-list"><li>通过优化余额计算与钱包状态逻辑，未到账前不做余额扣减，并新增用户无感知的“冻结”态。</li><li>同时优化余额明细展示、明确余额来源，降低用户对资金丢失的担忧，减少余额异常反馈。</li></ul></td>
+      </tr>
+    
+      <tr>
+        <td class="tag-cell">
+          <div class="tag-name">提现状态/显示异常</div>
+        </td>
+        <td class="trend-cell">
+          <div class="trend-head">
+            <div>
+              <div class="trend-label">优化前占比</div>
+              <div class="trend-value before">2.2%</div>
+            </div>
+            <div class="trend-arrow">→</div>
+            <div>
+              <div class="trend-label">优化后占比</div>
+              <div class="trend-value after">3.6%</div>
+            </div>
+          </div>
+          <div class="delta">占比下降 -1.4pp</div>
+          <div class="mini-chart"><canvas id="chart_4"></canvas></div>
+          <div class="chart-note">每日该标签反馈趋势</div>
+        </td>
+        <td class="case-cell">
+          <div class="case">
+          <div class="case-meta">2026-06-10 · 平静 · ID 15216127487</div>
+          <div>我申请了返现金额提现，页面显示已到账，但是钱没有到微信里</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-04 · 困惑 · ID 15200927404</div>
+          <div>我申请提现时输入了自己的账号、身份证号和姓名，却提示和商家提供的信息不一致，系统跳过我提供的账号后显示返现成功，但我的两个微信账号都没收到这笔钱，不知道返现给到哪里了，另外请问可以设置使用支付宝提现吗？</div>
+        </div>
+          <div class="judgement"><strong>问题判断：</strong>用户反馈页面展示和实际到账不一致，例如显示提现成功但微信未到账、历史进度异常、状态显示与实际资金结果不一致。典型 case：用户反馈“显示已到账，但是钱没有到微信里”。</div>
+        </td>
+        <td class="strategy-cell"><ul class="strategy-list"><li>通过优化提现状态同步流程，统一前端展示与后端真实处理结果。</li><li>完善提现成功、失败的信息完整性，并新增历史余额变动结果，帮助用户回溯资金状态，减少状态显示异常反馈。</li></ul></td>
+      </tr>
+    
+      <tr>
+        <td class="tag-cell">
+          <div class="tag-name">虚假宣传/投诉维权</div>
+        </td>
+        <td class="trend-cell">
+          <div class="trend-head">
+            <div>
+              <div class="trend-label">优化前占比</div>
+              <div class="trend-value before">1.5%</div>
+            </div>
+            <div class="trend-arrow">→</div>
+            <div>
+              <div class="trend-label">优化后占比</div>
+              <div class="trend-value after">0.0%</div>
+            </div>
+          </div>
+          <div class="delta">占比下降 1.5pp</div>
+          <div class="mini-chart"><canvas id="chart_5"></canvas></div>
+          <div class="chart-note">每日该标签反馈趋势</div>
+        </td>
+        <td class="case-cell">
+          <div class="case">
+          <div class="case-meta">2026-06-09 · 困惑 · ID 15213739976</div>
+          <div>我在你们平台下了四单都提现不了，当时提现为什么会有相关显示？你们的提现活动是不是假的，是不是在欺骗消费者？</div>
+        </div><div class="case">
+          <div class="case-meta">2026-06-03 · 困惑 · ID 15199062277</div>
+          <div>我的返现显示已经到账1.21，但是去提现却只有0.28，想知道是什么原因，另外想问维权订单是什么意思，是不是因为之前有订单退款了？</div>
+        </div>
+          <div class="judgement"><strong>问题判断：</strong>这类反馈通常由提现失败、余额异常、状态不透明升级而来。典型 case：用户因为多单不能提现、页面提示异常，质疑活动是否虚假、是否欺骗消费者。</div>
+        </td>
+        <td class="strategy-cell"><ul class="strategy-list"><li>通过提现通知完备性、余额状态逻辑、过程态可视化三类优化，降低用户对资金流向和提现结果的误解，避免普通异常反馈升级为投诉或平台信任问题。</li></ul></td>
+      </tr>
+    
+      </tbody>
+    </table>
+  </section>
+  <div class="note">说明：占比 = 当前标签反馈数 / 当前阶段全部提现反馈数。趋势图展示每日该标签反馈数，红色虚线为 6.26 优化后起点。</div>
+</div>
+
+<script>
+const DATE_LABELS = ["06-01", "06-02", "06-03", "06-04", "06-05", "06-06", "06-07", "06-08", "06-09", "06-10", "06-11", "06-12", "06-13", "06-14", "06-15", "06-16", "06-17", "06-18", "06-19", "06-20", "06-21", "06-22", "06-23", "06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01"];
+const CHARTS = [{"id": "chart_0", "label": "提现失败/退回", "color": "#ff4d4d", "data": [0, 1, 2, 2, 1, 1, 0, 1, 2, 0, 0, 2, 1, 0, 0, 1, 0, 2, 0, 2, 0, 0, 2, 1, 1, 0, 0, 0, 0, 1, 0]}, {"id": "chart_1", "label": "提现未到账/处理中", "color": "#ff4d88", "data": [1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 0, 1, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0]}, {"id": "chart_2", "label": "微信提现通道问题", "color": "#9b59b6", "data": [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 2, 0, 1, 2, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "chart_3", "label": "金额/余额异常", "color": "#e67e22", "data": [1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"id": "chart_4", "label": "提现状态/显示异常", "color": "#4f7cae", "data": [1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]}, {"id": "chart_5", "label": "虚假宣传/投诉维权", "color": "#c0392b", "data": [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}];
+const CUTOFF_LINE_IDX = DATE_LABELS.indexOf('06-25') + 0.5;
+Chart.defaults.font.family = '"PingFang SC", -apple-system, sans-serif';
+Chart.defaults.color = '#666';
+CHARTS.forEach(cfg => {
+  new Chart(document.getElementById(cfg.id), {
+    type: 'line',
+    data: {
+      labels: DATE_LABELS,
+      datasets: [{
+        label: cfg.label,
+        data: cfg.data,
+        borderColor: cfg.color,
+        backgroundColor: cfg.color + '22',
+        fill: true,
+        tension: .3,
+        pointRadius: cfg.data.map(v => v > 0 ? 2.5 : 0),
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { title: ctx => '2026-' + ctx[0].label } },
+        annotation: {
+          annotations: {
+            cutoff: {
+              type: 'line',
+              xMin: CUTOFF_LINE_IDX,
+              xMax: CUTOFF_LINE_IDX,
+              borderColor: 'rgba(255,77,77,.6)',
+              borderDash: [4,3],
+              borderWidth: 1
+            }
+          }
+        }
+      },
+      scales: {
+        x: { display: false },
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

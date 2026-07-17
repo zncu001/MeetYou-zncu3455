@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<!-- cashback-redpack-prototype | last-generated: 2026-05-15 -->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>返现首页 · 红包资源位原型</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      background: #EAEEF3;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 16px 12px 40px; gap: 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Page hint ── */
+    .hint {
+      width: min(880px, 96vw); background: white;
+      border: 1px solid #E5E5EA; border-radius: 10px;
+      padding: 10px 14px; font-size: 13px; color: #555; line-height: 1.6;
+    }
+    .hint b { color: #1C1C1E; }
+
+    /* ── Outer grid ── */
+    .wrap {
+      width: min(880px, 96vw);
+      display: grid; grid-template-columns: 390px 1fr;
+      gap: 14px; align-items: start;
+    }
+    @media (max-width: 820px) {
+      .wrap { grid-template-columns: 1fr; }
+      .phone { margin: 0 auto; }
+    }
+
+    /* ══════════════════════════════════
+       PHONE SHELL
+    ══════════════════════════════════ */
+    .phone {
+      width: 390px; height: 844px;
+      border: 10px solid #1A1A1A; border-radius: 40px;
+      overflow: hidden; position: relative;
+      background: #FFF1F7;
+      box-shadow: 0 20px 44px rgba(0,0,0,0.24);
+    }
+
+    /* Status bar */
+    .sbar {
+      height: 44px; padding: 14px 18px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #FFF1F7;
+    }
+    .sbar-time { font-size: 15px; font-weight: 600; color: #1C1C1E; }
+    .sbar-icons { display: flex; align-items: center; gap: 5px; font-size: 14px; color: #1C1C1E; }
+
+    /* App scroll container */
+    .app {
+      height: calc(100% - 44px);
+      overflow-y: auto; overflow-x: hidden;
+      padding: 4px 14px 80px;
+      -webkit-overflow-scrolling: touch;
+      background: #FFF1F7;
+    }
+    .app::-webkit-scrollbar { display: none; }
+
+    /* ── Header ── */
+    .a-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0 10px;
+    }
+    .head-logo { font-size: 22px; font-weight: 800; color: #1C1C1E; flex-shrink: 0; }
+    .head-search {
+      flex: 1; background: white; border-radius: 20px;
+      padding: 7px 12px; font-size: 13px; color: #AEAEB2;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .head-search-icon { font-size: 12px; }
+    .head-coin {
+      position: relative; width: 38px; height: 38px;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .head-coin-circle {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B9C, #FF2D6B);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: white; line-height: 1.3;
+    }
+    .head-coin-badge {
+      position: absolute; top: -3px; right: -3px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #FF3B30; color: white;
+      font-size: 9px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      border: 1.5px solid white;
+    }
+
+    /* ── Stats ── */
+    .a-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .stat-box { background: white; border-radius: 14px; padding: 12px; }
+    .stat-label { font-size: 11.5px; color: #8E8E93; display: flex; align-items: center; gap: 3px; margin-bottom: 2px; }
+    .stat-help  { font-size: 10px; color: #C7C7CC; }
+    .stat-badge-new {
+      background: #FF4F9C; color: white; font-size: 9px;
+      font-weight: 600; padding: 1px 4px; border-radius: 3px; margin-left: 2px;
+    }
+    .stat-main  { display: flex; align-items: baseline; gap: 5px; }
+    .stat-val   { font-size: 24px; font-weight: 700; color: #1C1C1E; }
+    .stat-link  { font-size: 12px; color: #FF4F9C; font-weight: 500; }
+    .stat-rabbit { font-size: 18px; }
+    .stat-preview { font-size: 13px; color: #1C1C1E; font-weight: 500; margin-top: 2px; }
+
+    /* ── Promo banner ── */
+    .a-promo-banner {
+      background: #FFE8F3; border-radius: 10px;
+      padding: 8px 12px; margin-bottom: 8px;
+      font-size: 11.5px; color: #CC2266; text-align: center;
+    }
+
+    /* ── Platforms card ── */
+    .a-platforms {
+      background: white; border-radius: 14px;
+      padding: 10px 12px 0; margin-bottom: 10px;
+    }
+    .plt-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 10px;
+    }
+    .plt-icons { display: flex; gap: 4px; flex-shrink: 0; }
+    .plt-ico {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .plt-ico.tb  { background: #FF4400; }
+    .plt-ico.wpj { background: #9B2EAE; }
+    .plt-ico.dy  { background: #1A1A1A; }
+    .plt-ico.al  { background: #E8450A; font-size: 8px; }
+    .plt-desc { flex: 1; }
+    .plt-desc-top { font-size: 11.5px; color: #333; font-weight: 500; line-height: 1.4; }
+    .plt-desc-bot { font-size: 11px; color: #666; display: flex; align-items: center; gap: 6px; }
+    .plt-tutorial {
+      background: linear-gradient(90deg, #FF4F9C, #FF2D6B);
+      color: white; font-size: 10px; padding: 3px 8px;
+      border-radius: 10px; flex-shrink: 0; font-weight: 600;
+    }
+
+    /* ── Paste area ── */
+    .a-paste {
+      background: white; border-radius: 14px;
+      padding: 10px 12px; margin-bottom: 10px;
+    }
+    .paste-box {
+      background: #F8F8FB; border-radius: 10px;
+      border: 1px solid #EBEBED;
+      padding: 10px 12px; min-height: 88px;
+      font-size: 12px; color: #AEAEB2; line-height: 1.7;
+      position: relative;
+    }
+    .paste-btn {
+      position: absolute; bottom: 10px; right: 10px;
+      background: linear-gradient(90deg, #FF4F9C, #FF2D6B);
+      color: white; border: none; border-radius: 20px;
+      padding: 8px 20px; font-size: 13px; font-weight: 700;
+      font-family: inherit; cursor: pointer;
+    }
+
+    /* ── Resource Position ── */
+    .a-rp { margin-bottom: 10px; width: 100%; }
+    .rp-hd {
+      display: flex; align-items: center; gap: 5px;
+      margin-bottom: 8px; flex-wrap: wrap;
+    }
+    .rp-title  { font-size: 15px; font-weight: 700; color: #1C1C1E; }
+    .rp-sub    { font-size: 11px; color: #FF4F9C; }
+    .rp-sep    { font-size: 11px; color: #FFB3D3; }
+    .rp-badges { display: flex; gap: 4px; margin-left: auto; }
+    .rbadge {
+      width: 18px; height: 18px; border-radius: 50%;
+      font-size: 10px; font-weight: 700; color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rbadge-a { background: #FF9500; }
+    .rbadge-v { background: #34C759; }
+
+    .rp-scroll  { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+    .rp-scroll::-webkit-scrollbar { display: none; }
+    .rp-scroll.rp-nogrow { overflow-x: visible; }
+    .rp-row     { display: flex; gap: 10px; }
+    /* 一行一个：纵向堆叠，每张占满内容区宽度 */
+    .rp-row.rp-single {
+      flex-direction: column;
+      width: 100%;
+      align-items: stretch;
+    }
+    .rp-row.rp-single .coupon-outer { width: 100%; }
+    .rp-row.rp-single .coupon-card { width: 100% !important; }
+    /* 一行 n 个且 n≤3：自动换行铺满宽度 */
+    .rp-row.rp-multi-wrap {
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    /* 一行 n 个且 n>3：单行横向滑动 */
+    .rp-row.rp-multi-scroll {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      width: max-content;
+    }
+
+    /* ── COUPON CARD (1-per-row horizontal) ── */
+    .coupon-outer { position: relative; }
+    .coupon-card {
+      display: flex; border-radius: 10px; overflow: hidden;
+      border: 1px solid #FFCCE4;
+      box-shadow: 0 2px 10px rgba(255,79,156,0.14);
+      cursor: pointer; transition: transform .12s;
+    }
+    .coupon-card:active { transform: scale(0.975); }
+    .coupon-card.rp-fullwidth .c-left { width: 104px; }
+
+    /* Left section */
+    .c-left {
+      width: 104px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 12px 10px; position: relative;
+    }
+    .c-left::after {  /* dashed divider */
+      content: ''; position: absolute; right: 0;
+      top: 12%; height: 76%;
+      border-right: 1.5px dashed rgba(255,255,255,0.4);
+    }
+    .c-amt {
+      font-size: 24px; font-weight: 700; color: white;
+      line-height: 1.1; letter-spacing: -.5px;
+    }
+    .c-amt .yu {
+      font-size: 12px; font-weight: 600;
+      vertical-align: top; margin-top: 3px; display: inline-block;
+    }
+    .c-amt .rnd { letter-spacing: 2px; font-size: 22px; }
+    .c-lsub { font-size: 10px; color: rgba(255,255,255,0.9); margin-top: 3px; }
+
+    /* Right section */
+    .c-right {
+      flex: 1; background: white;
+      display: flex; align-items: center;
+      padding: 0 12px; gap: 10px; min-height: 68px;
+    }
+    .c-info { flex: 1; min-width: 0; }
+    .c-name { font-size: 13px; font-weight: 600; color: #1C1C1E; }
+    .c-rsub { font-size: 11px; color: #8E8E93; margin-top: 3px; }
+    .c-cta {
+      flex-shrink: 0;
+      border-radius: 14px; padding: 6px 10px;
+      font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      font-family: inherit;
+    }
+
+    /* Notch circles */
+    .notch {
+      position: absolute; width: 14px; height: 14px;
+      background: #FFF1F7; border-radius: 50%; z-index: 2;
+      left: 97px; /* c-left 104px - 7px */
+    }
+    .notch-t { top: -7px; }
+    .notch-b { bottom: -7px; }
+
+    /* ── VERTICAL CARD (2 / 3 per row) ── */
+    .vcoupon {
+      border-radius: 10px; overflow: hidden;
+      border: 1px solid #FFCCE4;
+      box-shadow: 0 2px 10px rgba(255,79,156,0.14);
+      cursor: pointer; transition: transform .12s;
+      display: flex; flex-direction: column;
+    }
+    .vcoupon:active { transform: scale(0.975); }
+    .vc-top {
+      padding: 12px 10px 10px;
+      display: flex; flex-direction: column; align-items: flex-start;
+    }
+    .vc-amt {
+      font-size: 22px; font-weight: 700; color: white; line-height: 1.1;
+    }
+    .vc-amt .yu { font-size: 11px; font-weight: 600; vertical-align: top; margin-top: 3px; display: inline-block; }
+    .vc-amt .rnd { letter-spacing: 2px; font-size: 20px; }
+    .vc-tsub { font-size: 10px; color: rgba(255,255,255,0.9); margin-top: 3px; }
+    .vc-bot {
+      flex: 1; background: white;
+      padding: 10px 10px 9px;
+      display: flex; flex-direction: column;
+    }
+    .vc-name { font-size: 12px; font-weight: 600; color: #1C1C1E; line-height: 1.3; }
+    .vc-sub  { font-size: 10px; color: #8E8E93; margin-top: 2px; flex: 1; line-height: 1.4; }
+    .vc-cta  {
+      margin-top: 8px; border-radius: 12px; padding: 6px 0;
+      font-size: 11px; font-weight: 600;
+      cursor: pointer; width: 100%;
+      font-family: inherit; border: none; text-align: center;
+    }
+
+    /* ── CTA button themes ── */
+    .cta-gray  { background: white; border: 1px solid #E0E0E0; color: #8E8E93; }
+    .cta-pink  { background: #FF4F9C; border: none; color: white; }
+    .cta-green { background: #34C759; border: none; color: white; }
+
+    /* ── Left section color themes ── */
+    .cl-orange { background: linear-gradient(150deg, #FFAA00, #FF5E00); }
+    .cl-pink   { background: linear-gradient(150deg, #FF6BAE, #E8003F); }
+    .cl-gray   { background: linear-gradient(150deg, #C7C7CC, #8E8E93); }
+    .cl-amber  { background: linear-gradient(150deg, #FF6BAE, #D0021B); }
+    .cl-active { background: linear-gradient(150deg, #FF4F9C, #B0001C); }
+    .cl-green  { background: linear-gradient(150deg, #34C759, #1A7A35); }
+    .cl-muted  { background: linear-gradient(150deg, #8E8E93, #3A3A3C); }
+
+    /* Countdown */
+    .countdown { font-variant-numeric: tabular-nums; }
+
+    /* ── Tabs ── */
+    .a-tabs {
+      display: flex; gap: 0; overflow-x: auto;
+      white-space: nowrap; margin-bottom: 10px;
+      padding-bottom: 1px; /* prevent underline clip */
+    }
+    .a-tabs::-webkit-scrollbar { display: none; }
+    .tab-item {
+      padding: 9px 14px; font-size: 13px; color: #666;
+      flex-shrink: 0; position: relative;
+    }
+    .tab-item.on {
+      color: #1C1C1E; font-weight: 700;
+    }
+    .tab-item.on::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 12px; right: 12px;
+      height: 2.5px; background: #FF4F9C; border-radius: 2px;
+    }
+    .tab-rbadge {
+      display: inline-block; background: #FF3B30; color: white;
+      font-size: 9px; padding: 1px 4px; border-radius: 3px;
+      margin-left: 3px; vertical-align: middle; font-weight: 700;
+    }
+
+    /* ── 商城返现 ── */
+    .a-shops { background: white; border-radius: 14px; padding: 12px; }
+    .shops-hd {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .shops-hd-t { font-size: 14px; font-weight: 700; color: #1C1C1E; }
+    .shops-hd-m { font-size: 12px; color: #FF4F9C; }
+    .shops-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
+    .shop-i { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .shop-ico {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: white;
+      overflow: hidden;
+    }
+    .shop-ico img { width: 100%; height: 100%; border-radius: 50%; }
+    .shop-n { font-size: 11px; color: #333; }
+
+    /* ── Bottom Nav ── */
+    .a-nav {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 66px; background: white; border-top: 1px solid #F0F0F0;
+      display: flex; justify-content: space-around; align-items: center;
+      padding-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px; font-size: 10px; color: #8E8E93; flex: 1;
+    }
+    .nav-item.on { color: #FF4F9C; }
+    .nav-ico { font-size: 22px; line-height: 1; }
+    .nav-item.on .nav-dot {
+      width: 28px; height: 3px; background: #FF4F9C;
+      border-radius: 2px; margin-bottom: 2px;
+    }
+    .nav-dot { display: none; }
+    .nav-item.on .nav-dot { display: block; }
+    .nav-ico-wrap {
+      position: relative; display: flex;
+      flex-direction: column; align-items: center;
+    }
+
+    /* ── Phone Toast ── */
+    .ptoast {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%) translateY(8px);
+      background: rgba(28,28,30,0.84); color: white;
+      padding: 8px 16px; border-radius: 18px;
+      font-size: 12px; z-index: 99;
+      opacity: 0; transition: opacity .2s, transform .2s;
+      pointer-events: none; white-space: nowrap;
+      max-width: 280px; text-align: center;
+    }
+    .ptoast.on { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+
+    /* ══════════════════════════════════
+       RIGHT PANEL
+    ══════════════════════════════════ */
+    .panel {
+      background: white; border: 1px solid #E5E5EA;
+      border-radius: 12px; padding: 14px; font-size: 13px;
+    }
+    .ps { margin-bottom: 16px; }
+    .ps:last-child { margin-bottom: 0; }
+    .pl {
+      font-size: 11px; font-weight: 600; color: #8E8E93;
+      letter-spacing: .3px; margin-bottom: 8px; text-transform: uppercase;
+    }
+    .lbtns { display: flex; gap: 6px; }
+    .lbtn {
+      flex: 1; padding: 7px 0; border: 1px solid #E5E5EA;
+      border-radius: 8px; background: white; font-size: 12px;
+      color: #555; cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .lbtn.on { background: #FF4F9C; border-color: #FF4F9C; color: white; font-weight: 600; }
+    .crow-list { display: flex; flex-direction: column; gap: 8px; }
+    .crow { display: flex; align-items: center; gap: 8px; }
+    .crow-idx { font-size: 12px; color: #8E8E93; width: 38px; flex-shrink: 0; }
+    .crow-sel {
+      flex: 1; height: 32px; border: 1px solid #E5E5EA;
+      border-radius: 8px; padding: 0 8px; font-size: 12px;
+      color: #1C1C1E; background: white; font-family: inherit; cursor: pointer;
+    }
+    .cfg-block {
+      border: 1px solid #ECECEC; border-radius: 10px;
+      padding: 10px 10px 8px; background: #FAFAFA;
+    }
+    .cfg-block-hd {
+      font-size: 12px; font-weight: 600; color: #1C1C1E;
+      margin-bottom: 8px; padding-bottom: 6px;
+      border-bottom: 1px solid #ECECEC;
+    }
+    .cfg-grid2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px;
+      align-items: center;
+    }
+    .cfg-f {
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .cfg-f label { font-size: 11px; color: #8E8E93; }
+    .cfg-f input, .cfg-f select {
+      height: 30px; border: 1px solid #E5E5EA; border-radius: 8px;
+      padding: 0 8px; font-size: 12px; font-family: inherit;
+      background: #fff; width: 100%;
+    }
+    .cfg-th-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .cfg-th-row label { font-size: 11px; color: #8E8E93; white-space: nowrap; }
+    .cfg-th-row input[type="number"] {
+      width: 72px; height: 30px; border: 1px solid #E5E5EA;
+      border-radius: 8px; padding: 0 8px; font-size: 12px;
+    }
+    .nper-wrap {
+      margin-top: 8px; display: none; align-items: center; gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nper-wrap.show { display: flex; }
+    .nper-wrap label { font-size: 12px; color: #555; }
+    .nper-wrap input {
+      width: 56px; height: 30px; border: 1px solid #E5E5EA;
+      border-radius: 8px; padding: 0 8px; font-size: 12px; font-family: inherit;
+    }
+    .pacts { display: flex; gap: 8px; margin-top: 8px; }
+    .pact {
+      flex: 1; padding: 7px; border: 1px solid #E5E5EA;
+      border-radius: 8px; background: white; font-size: 12px;
+      color: #444; cursor: pointer; font-family: inherit;
+    }
+    .pact:hover { background: #F5F5F7; }
+    .pnote {
+      background: #FFF8EC; border: 1px solid #FFE58F;
+      border-radius: 8px; padding: 10px 12px;
+      font-size: 11.5px; color: #7A6000; line-height: 1.7;
+    }
+    .pnote b { color: #5A4500; }
+  </style>
+</head>
+<body>
+
+<div class="hint">
+  <b>返现首页 · 红包资源位原型</b>：右侧可配置每张红包的<b>名称、金额、使用门槛、随机金额、失效与已过期文案、行动键文案</b>（行动键留空则跟随当前状态默认）；布局支持<b>一行一个</b>与<b>一行 n 个</b>（n≤3 换行铺满；n&gt;3 横向滑动）。点击手机内卡片可触发 Toast。<br>
+  <span style="color:#666;font-size:12px;margin-top:6px;display:block">本版文件路径（请用本地打开）：<code>file:///Users/zncu/cashback-redpack-prototype-0515.html</code></span>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ PHONE ══ -->
+  <section class="phone">
+
+    <!-- Status bar -->
+    <div class="sbar">
+      <span class="sbar-time" id="clock">9:41</span>
+      <div class="sbar-icons">
+        <span>▎▎▎▎</span>
+        <span>▿</span>
+        <span>▭</span>
+      </div>
+    </div>
+
+    <div class="app">
+
+      <!-- 1. Header -->
+      <div class="a-head">
+        <div class="head-logo">美柚返现</div>
+        <div class="head-search">
+          <span class="head-search-icon">🔍</span>
+          <span>搜商品，拿返现</span>
+        </div>
+        <div class="head-coin">
+          <div class="head-coin-circle">
+            <div>领</div>
+            <div>现金</div>
+          </div>
+          <div class="head-coin-badge">2</div>
+        </div>
+      </div>
+
+      <!-- 2. Stats -->
+      <div class="a-stats">
+        <div class="stat-box">
+          <div class="stat-label">累计已省 <span class="stat-help">?</span></div>
+          <div class="stat-main">
+            <span class="stat-val">¥299.99</span>
+          </div>
+          <div class="stat-link">提现 ›</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">我的订单 <span class="stat-badge-new">6笔新订单记录</span></div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
+            <span class="stat-rabbit">🐰</span>
+            <span class="stat-preview">预计返现 ¥3.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Promo banner -->
+      <div class="a-promo-banner">
+        从美柚去淘宝/京东/抖音下单，可额外获得现金返还
+      </div>
+
+      <!-- 4. Platform logos + paste -->
+      <div class="a-platforms">
+        <div class="plt-row">
+          <div class="plt-icons">
+            <div class="plt-ico tb">淘</div>
+            <div class="plt-ico wpj">唯</div>
+            <div class="plt-ico dy">抖</div>
+            <div class="plt-ico al">1688</div>
+          </div>
+          <div class="plt-desc">
+            <div class="plt-desc-top">复制商品链接🔗快速查返现</div>
+            <div class="plt-desc-bot">
+              下单约返1%~6%
+              <span class="plt-tutorial">教程 ▶</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Paste area -->
+      <div class="a-paste">
+        <div class="paste-box">
+          粘贴商品链接或口令，自动查返现<br>
+          <span style="color:#C8C8D0">例：https://item.taobao.com/item.htm?id=529338095872</span>
+          <button class="paste-btn">粘贴</button>
+        </div>
+      </div>
+
+      <!-- 6. Resource Position -->
+      <div class="a-rp">
+        <div class="rp-hd">
+          <span class="rp-title">返现红包</span>
+          <span class="rp-sub">叠加返现到账</span>
+          <span class="rp-sep">｜</span>
+          <span class="rp-sub">可提现</span>
+          <div class="rp-badges">
+            <div class="rbadge rbadge-a">A</div>
+            <div class="rbadge rbadge-v">✓</div>
+          </div>
+        </div>
+        <div class="rp-scroll" id="rpScroll">
+          <div class="rp-row" id="rpRow"></div>
+        </div>
+      </div>
+
+      <!-- 7. Tabs -->
+      <div class="a-tabs">
+        <div class="tab-item on">👋 大家都在用</div>
+        <div class="tab-item">外卖返现 <span class="tab-rbadge">红包</span></div>
+        <div class="tab-item">抖音直播间</div>
+        <div class="tab-item">打车返现</div>
+      </div>
+
+      <!-- 8. 商城返现 -->
+      <div class="a-shops">
+        <div class="shops-hd">
+          <span class="shops-hd-t">商城返现</span>
+          <span class="shops-hd-m">全部商城 ›</span>
+        </div>
+        <div class="shops-grid">
+          <div class="shop-i">
+            <div class="shop-ico" style="background:#FF4400">淘</div>
+            <span class="shop-n">淘宝</span>
+          </div>
+          <div class="shop-i">
+            <div class="shop-ico" style="background:#CC0000">京</div>
+            <span class="shop-n">京东</span>
+          </div>
+          <div class="shop-i">
+            <div class="shop-ico" style="background:#1A1A1A">抖</div>
+            <span class="shop-n">抖音</span>
+          </div>
+          <div class="shop-i">
+            <div class="shop-ico" style="background:#E8450A">拼</div>
+            <span class="shop-n">拼多多</span>
+          </div>
+          <div class="shop-i">
+            <div class="shop-ico" style="background:#9B2EAE">唯</div>
+            <span class="shop-n">唯品会</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /app -->
+
+    <!-- Bottom nav -->
+    <div class="a-nav">
+      <div class="nav-item">
+        <div class="nav-ico-wrap">
+          <div class="nav-ico">🏠</div>
+        </div>
+        <span>首页</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-ico-wrap">
+          <div class="nav-ico">📋</div>
+        </div>
+        <span>记录</span>
+      </div>
+      <div class="nav-item on">
+        <div class="nav-ico-wrap">
+          <div class="nav-dot"></div>
+          <div class="nav-ico">💰</div>
+        </div>
+        <span>返现</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-ico-wrap">
+          <div class="nav-ico">💬</div>
+        </div>
+        <span>消息</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-ico-wrap">
+          <div class="nav-ico">👤</div>
+        </div>
+        <span>我</span>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="ptoast" id="ptoast"></div>
+
+  </section>
+
+  <!-- ══ PANEL ══ -->
+  <aside class="panel">
+
+    <div class="ps">
+      <div class="pl">布局设置</div>
+      <div class="lbtns">
+        <button class="lbtn on" id="lb1" type="button" onclick="setLayoutMode('single')">一行一个</button>
+        <button class="lbtn" id="lbN" type="button" onclick="setLayoutMode('multi')">一行 n 个</button>
+      </div>
+      <div class="nper-wrap" id="nperWrap">
+        <label for="nPerRow">每行个数 n（2～8，n&gt;3 时横向滑动）</label>
+        <input id="nPerRow" type="number" min="2" max="8" value="2" oninput="onNPerRowInput()" />
+      </div>
+    </div>
+
+    <div class="ps">
+      <div class="pl">红包配置（每张卡片）</div>
+      <div class="crow-list" id="crowList"></div>
+      <div class="pacts">
+        <button class="pact" onclick="addCard()">＋ 添加红包</button>
+        <button class="pact" onclick="removeCard()">－ 删除末尾</button>
+      </div>
+    </div>
+
+    <div class="ps">
+      <div class="pnote">
+        <b>交互说明</b><br>
+        · 点击手机内卡片触发对应 Toast 提示<br>
+        · 「可领取」卡片点击后自动切换至「生效中」<br>
+        · ≤24小时状态倒计时实时计时<br>
+        · 「生效中&gt;24h」副标题固定为 <b>月.日后失效</b>（不写年）<br>
+        · 「已过期」副标题可整行自定义；留空则按「时间点」自动生成（时间点会去掉年份）<br>
+        · 一行 n 个且 n&gt;3 时横向滑动；n≤3 时换行铺满；一行一个时宽度铺满内容区
+    </div>
+
+  </aside>
+
+</div><!-- /wrap -->
+
+<script>
+/* ════════════════════════════════════════
+   STATE TEMPLATES（展示结构；文案由 card 配置覆盖）
+   ════════════════════════════════════════ */
+const STATES = {
+  'pending-claim-today': {
+    label: '即将可领取（今日）',
+    leftCls: 'cl-orange',
+    cta: '20:00可领', ctaCls: 'cta-gray',
+    click: () => toast('未到可领时间')
+  },
+  'pending-claim-other': {
+    label: '即将可领取（非今日）',
+    leftCls: 'cl-orange',
+    cta: '5.20可领', ctaCls: 'cta-gray',
+    click: () => toast('未到可领时间')
+  },
+  'claimable-fixed': {
+    label: '可领取（固定金额）',
+    leftCls: 'cl-pink',
+    cta: '点击领取', ctaCls: 'cta-pink',
+    click: (el) => doClaim(el)
+  },
+  'claimable-random': {
+    label: '可领取（随机金额）',
+    leftCls: 'cl-pink',
+    cta: '点击领取', ctaCls: 'cta-pink',
+    click: (el) => doClaim(el)
+  },
+  'sold-out': {
+    label: '已抢光',
+    leftCls: 'cl-gray',
+    cta: '已抢光', ctaCls: 'cta-gray',
+    click: () => toast('红包已被抢光啦')
+  },
+  'pending-use-today': {
+    label: '待生效（今日）',
+    leftCls: 'cl-amber',
+    cta: '20:00可用', ctaCls: 'cta-gray',
+    click: () => toast('未到可用时间')
+  },
+  'pending-use-other': {
+    label: '待生效（非今日）',
+    leftCls: 'cl-amber',
+    cta: '5.20可用', ctaCls: 'cta-gray',
+    click: () => toast('未到可用时间')
+  },
+  'active-gt24h': {
+    label: '生效中（>24小时）',
+    leftCls: 'cl-active',
+    cta: '下单后叠加到账', ctaCls: 'cta-pink',
+    click: () => toast('即将跳转至红包协议地址')
+  },
+  'active-lte24h': {
+    label: '生效中（≤24小时，倒计时）',
+    leftCls: 'cl-active',
+    cta: '下单后叠加到账', ctaCls: 'cta-pink',
+    click: () => toast('即将跳转至红包协议地址')
+  },
+  'redeemed': {
+    label: '已核销/待到账',
+    leftCls: 'cl-green',
+    cta: '查看订单', ctaCls: 'cta-green',
+    click: () => toast('即将跳转至关联订单详情')
+  },
+  'expired': {
+    label: '已过期',
+    leftCls: 'cl-muted',
+    cta: '已过期', ctaCls: 'cta-gray',
+    click: () => {}
+  }
+};
+
+const CONTENT_W = 334;
+
+function defaultCard(over) {
+  return Object.assign({
+    state: 'claimable-fixed',
+    name: '外卖满减返现红包',
+    amount: 8,
+    threshold: 30,
+    random: false,
+    expiryText: '05.20',
+    expiredSub: '2026.05.10 20:00',
+    expiredLine: '',
+    ctaText: ''
+  }, over || {});
+}
+
+/* ── App state ── */
+let layoutMode = 'single'; /* 'single' | 'multi' */
+let nPerRow = 2;
+let cardConfigs = [defaultCard({ state: 'pending-use-today', name: '外卖返现红包', amount: 1.25, threshold: 15 })];
+let cdSecs = 20 * 3600 + 40 * 60 + 30;
+let toastTmr;
+
+function toast(msg) {
+  const el = document.getElementById('ptoast');
+  clearTimeout(toastTmr);
+  el.textContent = msg;
+  el.classList.add('on');
+  toastTmr = setTimeout(() => el.classList.remove('on'), 1800);
+}
+
+function fmtMoney(n) {
+  const x = Math.max(0, Number(n) || 0);
+  return x.toFixed(2);
+}
+
+function amtHtml(card, stateKey) {
+  const randomShow =
+    card.random &&
+    (stateKey === 'claimable-random' ||
+      stateKey === 'pending-claim-today' ||
+      stateKey === 'pending-claim-other');
+  if (randomShow) {
+    return '<span class="rnd">??</span>';
+  }
+  return '<span class="yu">¥</span>' + fmtMoney(card.amount);
+}
+
+function thresholdLine(card, stateKey) {
+  if (stateKey !== 'active-gt24h' && stateKey !== 'active-lte24h') return '';
+  const t = Number(card.threshold) || 0;
+  return t <= 0 ? '无门槛' : ('满' + t + '可用');
+}
+
+/** 「生效中>24h」副标题：仅展示月日，如 02.20后失效（不写年） */
+function toMonthDayOnly(input) {
+  const s = String(input || '').trim().replace(/后失效\s*$/, '');
+  if (!s) return '05.20';
+  const y = s.match(/^(\d{4})[.\-/年](\d{1,2})[.\-/月](\d{1,2})(?:日)?$/);
+  if (y) return `${y[2].padStart(2, '0')}.${y[3].padStart(2, '0')}`;
+  const md = s.match(/^(\d{1,2})[.\/](\d{1,2})$/);
+  if (md) return `${md[1].padStart(2, '0')}.${md[2].padStart(2, '0')}`;
+  const ymdt = s.match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})\s+(\d{1,2}:\d{2}(?::\d{2})?)/);
+  if (ymdt) return `${ymdt[2].padStart(2, '0')}.${ymdt[3].padStart(2, '0')}`;
+  return s.split(/\s+/)[0].replace(/\//g, '.');
+}
+
+/** 「已过期」默认副标题中的时间：去掉年份，如 05.10 20:00 */
+function formatExpiredMoment(input) {
+  const s = String(input || '').trim();
+  const y = s.match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?/);
+  if (y) {
+    const md = `${y[2].padStart(2, '0')}.${y[3].padStart(2, '0')}`;
+    return y[4] ? `${md} ${y[4]}` : md;
+  }
+  const mdOnly = s.match(/^(\d{1,2})[.\/](\d{1,2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?/);
+  if (mdOnly) {
+    const md = `${mdOnly[1].padStart(2, '0')}.${mdOnly[2].padStart(2, '0')}`;
+    return mdOnly[3] ? `${md} ${mdOnly[3]}` : md;
+  }
+  return s;
+}
+
+function rightSubline(card, stateKey) {
+  if (stateKey === 'active-gt24h') {
+    return escapeHtml(toMonthDayOnly(card.expiryText)) + '后失效';
+  }
+  if (stateKey === 'active-lte24h') return '<span class="countdown"></span>后失效';
+  if (stateKey === 'expired') {
+    const custom = card.expiredLine != null ? String(card.expiredLine).trim() : '';
+    if (custom) return escapeHtml(custom);
+    const mid = formatExpiredMoment(card.expiredSub || '2026.05.10 20:00');
+    return escapeHtml('红包已于 ' + mid + ' 失效');
+  }
+  return '';
+}
+
+function ctaLabel(card, stateKey) {
+  const tpl = STATES[stateKey];
+  const custom = card.ctaText != null ? String(card.ctaText).trim() : '';
+  if (custom) return custom;
+  return tpl ? tpl.cta : '';
+}
+
+function doClaim(el) {
+  toast('领取成功');
+  const idx = +el.dataset.idx;
+  setTimeout(() => {
+    const c = cardConfigs[idx];
+    c.state = 'active-gt24h';
+    if (c.random) c.amount = 1.88;
+    c.random = false;
+    render();
+  }, 1500);
+}
+
+function layoutDims() {
+  const G = 10;
+  if (layoutMode === 'single') {
+    return { mode: 'single', horiz: true, h: 74, cardW: CONTENT_W, scrollRow: false };
+  }
+  const n = Math.min(8, Math.max(2, Math.floor(nPerRow) || 2));
+  if (n <= 3) {
+    const w = Math.floor((CONTENT_W - G * (n - 1)) / n);
+    return { mode: 'multi-wrap', horiz: false, h: 140, cardW: w, n, scrollRow: false };
+  }
+  const w = Math.floor((CONTENT_W - G * 2) / 3);
+  return { mode: 'multi-scroll', horiz: false, h: 140, cardW: w, n, scrollRow: true };
+}
+
+function buildCard(idx) {
+  const card = cardConfigs[idx];
+  const stateKey = card.state;
+  const tpl = STATES[stateKey];
+  if (!tpl) return '';
+  const d = layoutDims();
+  const name = (card.name || '').trim() || '未命名红包';
+  const leftAmt = amtHtml(card, stateKey);
+  const leftSub = thresholdLine(card, stateKey);
+  const sub = rightSubline(card, stateKey);
+  const cta = ctaLabel(card, stateKey);
+
+  if (d.horiz) {
+    return `
+      <div class="coupon-outer" style="flex-shrink:0;width:100%">
+        <div class="coupon-card rp-fullwidth" style="width:100%;height:${d.h}px"
+             data-idx="${idx}" data-state="${stateKey}" onclick="handleClick(event,this)">
+          <div class="c-left ${tpl.leftCls}">
+            <div class="c-amt">${leftAmt}</div>
+            ${leftSub ? `<div class="c-lsub">${leftSub}</div>` : ''}
+          </div>
+          <div class="c-right">
+            <div class="c-info">
+              <div class="c-name">${escapeHtml(name)}</div>
+              ${sub ? `<div class="c-rsub">${sub}</div>` : ''}
+            </div>
+            <button type="button" class="c-cta ${tpl.ctaCls}" onclick="event.stopPropagation();handleClick(event,this.closest('.coupon-card'))">${escapeHtml(cta)}</button>
+          </div>
+        </div>
+        <div class="notch notch-t"></div>
+        <div class="notch notch-b"></div>
+      </div>`;
+  }
+
+  const sm = d.n >= 4 ? 'style="font-size:10px"' : '';
+  return `
+    <div class="vcoupon ${tpl.leftCls}" style="width:${d.cardW}px;height:${d.h}px;flex-shrink:0"
+         data-idx="${idx}" data-state="${stateKey}" onclick="handleClick(event,this)">
+      <div class="vc-top ${tpl.leftCls}">
+        <div class="vc-amt">${leftAmt}</div>
+        ${leftSub ? `<div class="vc-tsub">${leftSub}</div>` : ''}
+      </div>
+      <div class="vc-bot">
+        <div class="vc-name" ${sm}>${escapeHtml(name)}</div>
+        ${sub ? `<div class="vc-sub" ${sm}>${sub}</div>` : '<div class="vc-sub"></div>'}
+        <button type="button" class="vc-cta ${tpl.ctaCls}" ${sm} onclick="event.stopPropagation();handleClick(event,this.closest('.vcoupon'))">${escapeHtml(cta)}</button>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function handleClick(ev, el) {
+  if (!el) el = ev.currentTarget;
+  const cfg = STATES[el.dataset.state];
+  if (cfg) cfg.click(el);
+}
+
+function renderCards() {
+  const d = layoutDims();
+  const scroll = document.getElementById('rpScroll');
+  const row = document.getElementById('rpRow');
+  scroll.classList.toggle('rp-nogrow', d.mode === 'single' || d.mode === 'multi-wrap');
+  scroll.style.overflowX = d.scrollRow ? 'auto' : (d.mode === 'single' ? 'visible' : 'visible');
+  row.className = 'rp-row' + (d.mode === 'single' ? ' rp-single' : (d.scrollRow ? ' rp-multi-scroll' : ' rp-multi-wrap'));
+  row.innerHTML = cardConfigs.map((_, i) => buildCard(i)).join('');
+  syncCd();
+}
+
+function setCardField(i, key, val) {
+  const c = cardConfigs[i];
+  if (key === 'amount') c.amount = Math.max(0, parseFloat(val) || 0);
+  else if (key === 'threshold') c.threshold = Math.max(0, parseInt(val, 10) || 0);
+  else if (key === 'random') c.random = !!val;
+  else if (key === 'name') c.name = val;
+  else if (key === 'expiryText') c.expiryText = val;
+  else if (key === 'expiredSub') c.expiredSub = val.trim();
+  else if (key === 'expiredLine') c.expiredLine = String(val || '').trim();
+  else if (key === 'ctaText') c.ctaText = String(val || '').trim();
+  render();
+}
+
+function renderPanel() {
+  const opts = Object.entries(STATES)
+    .map(([k, v]) => `<option value="${k}">${v.label}</option>`)
+    .join('');
+  document.getElementById('crowList').innerHTML = cardConfigs.map((c, i) => {
+    const th = Number(c.threshold) || 0;
+    const defCta = STATES[c.state] ? STATES[c.state].cta : '';
+    return `
+    <div class="cfg-block">
+      <div class="cfg-block-hd">红包 ${i + 1}</div>
+      <div class="cfg-grid2">
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>状态</label>
+          <select onchange="setCardState(${i},this.value)">
+            ${opts.replace(`value="${c.state}"`, `value="${c.state}" selected`)}
+          </select>
+        </div>
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>红包名称</label>
+          <input value="${escapeHtml(c.name)}" onchange="setCardField(${i},'name',this.value)" />
+        </div>
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>行动键文案（留空则使用当前状态默认：${escapeHtml(defCta)}）</label>
+          <input value="${escapeHtml(c.ctaText != null ? c.ctaText : '')}" placeholder="${escapeHtml(defCta)}"
+            onchange="setCardField(${i},'ctaText',this.value)" />
+        </div>
+        <div class="cfg-f">
+          <label>金额（元）</label>
+          <input type="number" min="0" step="0.01" value="${c.amount}"
+            onchange="setCardField(${i},'amount',this.value)"
+            ${c.random && (c.state === 'claimable-random' || c.state === 'pending-claim-today' || c.state === 'pending-claim-other') ? 'disabled title="随机金额展示 ??"' : ''} />
+        </div>
+        <div class="cfg-f">
+          <label>随机金额（「即将可领取」「可领取·随机」态展示 ??）</label>
+          <select onchange="setCardField(${i},'random',this.value==='1')">
+            <option value="0" ${!c.random ? 'selected' : ''}>否</option>
+            <option value="1" ${c.random ? 'selected' : ''}>是（仅「可领取·随机」态显示 ??）</option>
+          </select>
+        </div>
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>使用门槛（0=无门槛，&gt;0=满x可用，展示在「生效中」左侧）</label>
+          <input type="number" min="0" step="1" value="${th}"
+            onchange="setCardField(${i},'threshold',this.value)" />
+        </div>
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>失效日期（「生效中&gt;24h」副标题，展示为 <b>MM.DD后失效</b>，不写年；可填 05.20 或 2026.05.20）</label>
+          <input value="${escapeHtml((c.expiryText || '').replace(/后失效$/, ''))}" placeholder="如 05.20"
+            onchange="setCardField(${i},'expiryText',this.value)" />
+        </div>
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>已过期时间点（自动生成副标题时去掉年份，如 05.10 20:00）</label>
+          <input value="${escapeHtml(c.expiredSub || '2026.05.10 20:00')}"
+            onchange="setCardField(${i},'expiredSub',this.value)" />
+        </div>
+        <div class="cfg-f" style="grid-column:1/-1">
+          <label>已过期副标题（留空则按上栏生成「红包已于 … 失效」；填写则整行模拟展示）</label>
+          <input value="${escapeHtml(c.expiredLine != null ? c.expiredLine : '')}" placeholder="留空走默认，或填整行如：红包已于 05.10 20:00 失效"
+            onchange="setCardField(${i},'expiredLine',this.value)" />
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function render() {
+  renderCards();
+  renderPanel();
+}
+
+function setLayoutMode(mode) {
+  layoutMode = mode;
+  document.getElementById('lb1').classList.toggle('on', mode === 'single');
+  document.getElementById('lbN').classList.toggle('on', mode === 'multi');
+  document.getElementById('nperWrap').classList.toggle('show', mode === 'multi');
+  render();
+}
+
+function onNPerRowInput() {
+  const v = document.getElementById('nPerRow');
+  nPerRow = Math.min(8, Math.max(2, parseInt(v.value, 10) || 2));
+  v.value = nPerRow;
+  render();
+}
+
+function setCardState(i, state) {
+  cardConfigs[i].state = state;
+  render();
+}
+
+function addCard() {
+  if (cardConfigs.length >= 8) return;
+  cardConfigs.push(defaultCard());
+  render();
+}
+
+function removeCard() {
+  if (cardConfigs.length <= 1) return;
+  cardConfigs.pop();
+  render();
+}
+
+function syncCd() {
+  const h = String(Math.floor(cdSecs / 3600)).padStart(2, '0');
+  const m = String(Math.floor(cdSecs % 3600 / 60)).padStart(2, '0');
+  const s = String(cdSecs % 60).padStart(2, '0');
+  document.querySelectorAll('.countdown').forEach(el => el.textContent = `${h}:${m}:${s}`);
+}
+setInterval(() => { if (cdSecs > 0) cdSecs--; syncCd(); }, 1000);
+
+function updateClock() {
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+updateClock();
+setInterval(updateClock, 15000);
+
+document.getElementById('nPerRow').addEventListener('change', onNPerRowInput);
+setLayoutMode('single');
+</script>
+</body>
+</html>
