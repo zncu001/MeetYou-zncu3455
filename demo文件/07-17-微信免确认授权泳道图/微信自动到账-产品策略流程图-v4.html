@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微信提现「自动到账」— 产品策略流程图 v4</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: #eef1f5; color: #1e293b; padding: 32px 16px 56px;
+  }
+  .container { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  .card { background: #fff; border-radius: 16px; padding: 28px 30px; box-shadow: 0 2px 12px rgba(15,23,42,.06); }
+  h1 { font-size: 21px; margin-bottom: 6px; }
+  h2 { font-size: 16px; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.7; }
+  .toolbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .btn {
+    border: none; background: #2563eb; color: #fff; font-size: 13px; font-weight: 600;
+    padding: 7px 16px; border-radius: 8px; cursor: pointer;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #475569; align-items: center; margin-top: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .li { display: inline-block; width: 28px; height: 0; border-top: 2px solid #64748b; }
+  .li.dash { border-top-style: dashed; }
+  .li.green { border-color: #059669; }
+  .li.red { border-color: #dc2626; }
+  .li.blue { border-color: #2563eb; }
+  .shape { display: inline-block; }
+  .svg-wrap { overflow-x: auto; border: 1px solid #e8edf3; border-radius: 12px; background: #fff; }
+  svg { display: block; max-width: 100%; height: auto; }
+  .rules h2 { font-size: 15px; margin-bottom: 12px; }
+  .rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+  .rule {
+    font-size: 12.5px; line-height: 1.65; color: #475569; background: #f8fafc;
+    border: 1px solid #e8edf3; border-radius: 10px; padding: 10px 14px;
+  }
+  .rule b { color: #1e293b; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 999px; margin-right: 6px; vertical-align: middle;
+  }
+  .tag-inc { background: #eff6ff; color: #1d4ed8; }
+  .tag-stock { background: #fff7ed; color: #c2410c; }
+  .tag-ok { background: #ecfdf5; color: #047857; }
+  .req { margin-top: 4px; }
+  .req h3 { font-size: 14px; margin: 16px 0 8px; color: #0f172a; }
+  .req h3:first-child { margin-top: 0; }
+  .req p, .req li { font-size: 13px; line-height: 1.75; color: #475569; }
+  .req ul { padding-left: 18px; margin-bottom: 6px; }
+  .req table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0 4px; }
+  .req th, .req td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; vertical-align: top; }
+  .req th { background: #f8fafc; color: #334155; font-weight: 700; }
+  .req code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="card">
+    <h1>微信提现「自动到账」— 产品策略流程图（v4）</h1>
+    <p class="sub" style="margin-bottom:8px;">
+      同一套产品策略：先判断用户当前「关联 / 授权」状态，再执行对应策略流程。
+      不再按「场景」拆分；<b>增量用户</b>与<b>存量用户</b>可互相转化（含换绑回流）。
+    </p>
+    <p class="sub" style="margin-bottom:0;">
+      三泳道：<b>美柚 App</b> · <b>美柚服务端</b> · <b>微信</b>。
+      策略层只描述<b>判断结果</b>与<b>对应执行流程</b>，不绑定用户点击了哪个按钮；UI 入口由产品另行设计。
+    </p>
+    <div class="legend">
+      <span><svg class="shape" width="30" height="16"><rect x="1" y="1" width="28" height="14" rx="7" fill="#fff" stroke="#475569" stroke-width="1.5"/></svg>开始 / 结束</span>
+      <span><svg class="shape" width="30" height="16"><rect x="1" y="1" width="28" height="14" rx="2" fill="#fff" stroke="#475569" stroke-width="1.5"/></svg>处理</span>
+      <span><svg class="shape" width="30" height="18"><polygon points="15,1 29,9 15,17 1,9" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/></svg>判断</span>
+      <span><i class="li"></i>主流程</span>
+      <span><i class="li dash"></i>系统通知</span>
+      <span><i class="li green"></i>是 / 成功</span>
+      <span><i class="li dash red"></i>否 / 异常</span>
+      <span><i class="li blue"></i>状态回流</span>
+    </div>
+  </div>
+
+  <!-- ================= 总览：状态判断 → 策略路由 ================= -->
+  <div class="card">
+    <h2>总览 · 状态判断 → 策略路由</h2>
+    <p class="sub">
+      <span class="tag tag-inc">增量</span>未关联微信（关联时支持并要求顺带授权）&nbsp;
+      <span class="tag tag-stock">存量</span>已关联微信但未授权&nbsp;
+      <span class="tag tag-ok">达标</span>已关联 + 已授权 → 可免确认打款
+    </p>
+    <div class="toolbar">
+      <button class="btn" onclick="downloadPNG('svg-overview', 1080, 720, '自动到账-策略总览-v4.png')">下载 PNG</button>
+    </div>
+    <div class="svg-wrap">
+    <svg id="svg-overview" xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720" font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">
+      <defs>
+        <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+        <marker id="arrGO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+        <marker id="arrRO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+        <marker id="arrBO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+      </defs>
+
+      <rect x="40" y="30" width="1000" height="660" rx="12" fill="#fafbfc" stroke="#e2e8f0"/>
+
+      <rect x="390" y="50" width="300" height="44" rx="22" fill="#334155"/>
+      <text x="540" y="77" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">状态判断（关联 · 授权）</text>
+
+      <path d="M540 94 V120" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrO)"/>
+
+      <g>
+        <polygon points="540,125 660,175 540,225 420,175" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+        <text x="540" y="170" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">是否已关联</text>
+        <text x="540" y="190" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">微信账户？</text>
+      </g>
+
+      <!-- 否 → 增量 -->
+      <path d="M420 175 H180 V260" fill="none" stroke="#2563eb" stroke-width="1.7" marker-end="url(#arrBO)"/>
+      <text x="280" y="165" font-size="12" fill="#2563eb" font-weight="700">否 · 增量用户</text>
+
+      <g>
+        <rect x="70" y="265" width="220" height="88" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="180" y="295" text-anchor="middle" font-size="13" font-weight="700" fill="#1d4ed8">策略 A · 增量</text>
+        <text x="180" y="318" text-anchor="middle" font-size="12" fill="#334155">关联微信账户时</text>
+        <text x="180" y="338" text-anchor="middle" font-size="12" fill="#334155">支持并要求顺带授权</text>
+      </g>
+
+      <!-- 是 → 是否授权 -->
+      <path d="M660 175 H900 V210" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrO)"/>
+      <text x="780" y="165" font-size="12" fill="#64748b" font-weight="700">是</text>
+
+      <g>
+        <polygon points="900,215 1000,255 900,295 800,255" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+        <text x="900" y="250" text-anchor="middle" font-size="12.5" font-weight="600" fill="#92400e">是否已授权</text>
+        <text x="900" y="270" text-anchor="middle" font-size="12.5" font-weight="700" fill="#92400e">自动到账？</text>
+      </g>
+
+      <!-- 未授权 → 存量 -->
+      <path d="M800 255 H540 V320" fill="none" stroke="#c2410c" stroke-width="1.7" marker-end="url(#arrRO)"/>
+      <text x="650" y="245" font-size="12" fill="#c2410c" font-weight="700">否 · 存量用户</text>
+
+      <g>
+        <rect x="430" y="325" width="220" height="88" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+        <text x="540" y="355" text-anchor="middle" font-size="13" font-weight="700" fill="#c2410c">策略 B · 存量</text>
+        <text x="540" y="378" text-anchor="middle" font-size="12" fill="#334155">已关联 · 未授权</text>
+        <text x="540" y="398" text-anchor="middle" font-size="12" fill="#334155">提现时走收款中补授权</text>
+      </g>
+
+      <!-- 已授权 → 达标 -->
+      <path d="M900 295 V340" fill="none" stroke="#059669" stroke-width="1.7" marker-end="url(#arrGO)"/>
+      <text x="920" y="325" font-size="12" fill="#059669" font-weight="700">是 · 达标</text>
+
+      <g>
+        <rect x="790" y="345" width="220" height="72" rx="10" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+        <text x="900" y="375" text-anchor="middle" font-size="13" font-weight="700" fill="#047857">策略 C · 直接打款</text>
+        <text x="900" y="398" text-anchor="middle" font-size="12" fill="#334155">免确认 · 资金入零钱</text>
+      </g>
+
+      <!-- 策略结果汇合到达标态 -->
+      <path d="M180 353 V460 H540" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrBO)"/>
+      <path d="M540 413 V460" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrRO)"/>
+      <path d="M900 417 V490 H660" fill="none" stroke="#059669" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrGO)"/>
+      <text x="300" y="448" font-size="11" fill="#2563eb">授权成功 → 变成达标</text>
+      <text x="555" y="448" font-size="11" fill="#c2410c">补授权成功 → 变成达标</text>
+
+      <g>
+        <rect x="420" y="470" width="240" height="56" rx="10" fill="#ecfdf5" stroke="#34d399" stroke-width="1.6"/>
+        <text x="540" y="493" text-anchor="middle" font-size="13" font-weight="700" fill="#047857">目标态 · 已关联 + 已授权</text>
+        <text x="540" y="513" text-anchor="middle" font-size="11.5" fill="#334155">后续提现均走策略 C</text>
+      </g>
+
+      <!-- 回流：换绑 / 解约 -->
+      <path d="M420 498 H120 V175 H420" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrBO)"/>
+      <text x="100" y="340" text-anchor="middle" font-size="11" fill="#2563eb" font-weight="700" transform="rotate(-90 100 340)">换绑微信 B</text>
+      <text x="118" y="355" font-size="11" fill="#2563eb">→ 对新微信回到增量</text>
+
+      <path d="M660 498 H1040 V255 H1000" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrO)"/>
+      <text x="980" y="430" text-anchor="middle" font-size="11" fill="#64748b" font-weight="700">微信侧解约</text>
+      <text x="980" y="448" text-anchor="middle" font-size="11" fill="#64748b">→ 回到存量（已关联未授权）</text>
+
+      <text x="70" y="660" font-size="12" fill="#64748b">说明：增量 / 存量不是固定人群标签，而是对「当前状态」的策略分类；状态变化后立即切换策略。</text>
+    </svg>
+    </div>
+  </div>
+
+  <!-- ================= 策略 A：增量用户 ================= -->
+  <div class="card">
+    <h2><span class="tag tag-inc">策略 A</span>增量用户 · 关联时顺带授权</h2>
+    <p class="sub"><b>判断结果：未关联微信</b> → 执行本流程。关联过程中支持并要求顺带开通自动到账授权；成功后状态变为已关联 · 已授权。</p>
+    <div class="toolbar">
+      <button class="btn" onclick="downloadPNG('svg-a', 1080, 1160, '策略A-增量用户-关联顺带授权-v4.png')">下载 PNG</button>
+    </div>
+    <div class="svg-wrap">
+    <svg id="svg-a" xmlns="http://www.w3.org/2000/svg" width="1080" height="1160" viewBox="0 0 1080 1160" font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">
+      <defs>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+        <marker id="arrGA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+        <marker id="arrRA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+      </defs>
+
+      <rect x="40" y="70" width="320" height="1070" fill="#fdf3f7"/>
+      <rect x="360" y="70" width="320" height="1070" fill="#f6f8fa"/>
+      <rect x="680" y="70" width="360" height="1070" fill="#f0faf4"/>
+      <line x1="360" y1="70" x2="360" y2="1140" stroke="#e2e8f0"/>
+      <line x1="680" y1="70" x2="680" y2="1140" stroke="#e2e8f0"/>
+      <rect x="40" y="70" width="1000" height="1070" fill="none" stroke="#dbe2ea"/>
+
+      <rect x="40" y="18" width="320" height="48" rx="10" fill="#e8467c"/>
+      <rect x="360" y="18" width="320" height="48" rx="10" fill="#475569"/>
+      <rect x="680" y="18" width="360" height="48" rx="10" fill="#07a555"/>
+      <text x="200" y="47" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">美柚 App（用户端）</text>
+      <text x="520" y="47" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">美柚服务端</text>
+      <text x="860" y="47" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">微信</text>
+
+      <rect x="56" y="90" width="10" height="10" rx="2" fill="#1d4ed8"/>
+      <text x="74" y="100" font-size="13" font-weight="700" fill="#1d4ed8">判断结果 · 未关联 → 策略 A 执行流程</text>
+
+      <path d="M200 152 V175" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <path d="M200 228 V258" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <path d="M312 290 H408" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <path d="M632 322 V350 H748" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <text x="520" y="330" text-anchor="middle" font-size="11" fill="#64748b">拉起微信 · 授权页（关联 + 授权）</text>
+      <path d="M860 435 V470" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <path d="M860 565 V630" fill="none" stroke="#059669" stroke-width="1.7" marker-end="url(#arrGA)"/>
+      <text x="845" y="600" text-anchor="end" font-size="12" fill="#059669" font-weight="700">是 · 同意</text>
+      <path d="M970 520 H1030 V755" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrRA)"/>
+      <text x="1040" y="640" font-size="12" fill="#dc2626" font-weight="700">否</text>
+      <path d="M748 702 H700 V792 H632" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <text x="720" y="750" text-anchor="middle" font-size="11" fill="#64748b">点「完成」· 回跳商家</text>
+      <path d="M520 830 V865" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <path d="M408 902 H312" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+      <path d="M200 940 V990" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrA)"/>
+
+      <rect x="130" y="112" width="140" height="40" rx="20" fill="#334155"/>
+      <text x="200" y="137" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">开 始</text>
+
+      <g>
+        <rect x="88" y="180" width="224" height="48" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.6"/>
+        <text x="200" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="#1d4ed8">判断结果</text>
+        <text x="200" y="218" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1e293b">未关联微信</text>
+      </g>
+
+      <g>
+        <rect x="408" y="258" width="224" height="64" rx="6" fill="#f1f4f8" stroke="#cbd5e1" stroke-width="1.4"/>
+        <circle cx="408" cy="290" r="13" fill="#475569"/><text x="408" y="294" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">1</text>
+        <text x="520" y="284" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">发起关联顺带授权</text>
+        <text x="520" y="304" text-anchor="middle" font-size="11.5" fill="#64748b">关联账户 + 要求开通自动到账</text>
+      </g>
+
+      <g>
+        <rect x="88" y="258" width="224" height="64" rx="6" fill="#fdf0f5" stroke="#f3c3d6" stroke-width="1.4"/>
+        <circle cx="88" cy="290" r="13" fill="#e8467c"/><text x="88" y="294" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+        <text x="200" y="284" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">App 配合拉起微信</text>
+        <text x="200" y="304" text-anchor="middle" font-size="11.5" fill="#64748b">展示授权交互</text>
+      </g>
+
+      <g>
+        <rect x="748" y="310" width="224" height="80" rx="6" fill="#eafaf1" stroke="#bfe8d0" stroke-width="1.4"/>
+        <circle cx="748" cy="350" r="13" fill="#07a555"/><text x="748" y="354" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">3</text>
+        <text x="860" y="338" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">微信 · 授权页</text>
+        <text x="860" y="358" text-anchor="middle" font-size="11" fill="#64748b">关联收款账户</text>
+        <text x="860" y="376" text-anchor="middle" font-size="11" fill="#64748b">并开通免确认收款</text>
+      </g>
+
+      <g>
+        <polygon points="860,475 970,520 860,565 750,520" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+        <text x="860" y="514" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">用户是否点击</text>
+        <text x="860" y="534" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">「同意」？</text>
+      </g>
+
+      <rect x="955" y="760" width="100" height="52" rx="12" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.4"/>
+      <text x="1005" y="780" text-anchor="middle" font-size="11" font-weight="600" fill="#b91c1c">未完成授权</text>
+      <text x="1005" y="798" text-anchor="middle" font-size="10.5" fill="#b91c1c">不可免确认打款</text>
+
+      <g>
+        <rect x="748" y="630" width="224" height="72" rx="6" fill="#eafaf1" stroke="#bfe8d0" stroke-width="1.4"/>
+        <circle cx="748" cy="666" r="13" fill="#07a555"/><text x="748" y="670" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">4</text>
+        <text x="860" y="656" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">授权自动到账成功 · 完成页</text>
+        <text x="860" y="676" text-anchor="middle" font-size="11.5" fill="#64748b">自动到账长期生效</text>
+        <text x="860" y="692" text-anchor="middle" font-size="11.5" fill="#64748b">用户点击「完成」</text>
+      </g>
+
+      <g>
+        <rect x="408" y="760" width="224" height="64" rx="6" fill="#f1f4f8" stroke="#cbd5e1" stroke-width="1.4"/>
+        <circle cx="408" cy="792" r="13" fill="#475569"/><text x="408" y="796" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
+        <text x="520" y="786" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">保存关联 + 开通状态</text>
+        <text x="520" y="806" text-anchor="middle" font-size="11.5" fill="#64748b">增量 → 达标态</text>
+      </g>
+
+      <g>
+        <rect x="408" y="870" width="224" height="64" rx="6" fill="#f1f4f8" stroke="#cbd5e1" stroke-width="1.4"/>
+        <circle cx="408" cy="902" r="13" fill="#475569"/><text x="408" y="906" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">6</text>
+        <text x="520" y="896" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">同步账户管理页状态</text>
+        <text x="520" y="916" text-anchor="middle" font-size="11.5" fill="#64748b">展示为「已关联 · 已授权」</text>
+      </g>
+
+      <g>
+        <rect x="88" y="870" width="224" height="64" rx="6" fill="#fdf0f5" stroke="#f3c3d6" stroke-width="1.4"/>
+        <circle cx="88" cy="902" r="13" fill="#e8467c"/><text x="88" y="906" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">7</text>
+        <text x="200" y="896" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">App 展示状态已更新</text>
+        <text x="200" y="916" text-anchor="middle" font-size="11.5" fill="#64748b">已关联 · 已授权</text>
+      </g>
+
+      <rect x="90" y="995" width="220" height="40" rx="20" fill="#047857"/>
+      <text x="200" y="1020" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">结束 · 状态变为达标</text>
+
+      <text x="56" y="1065" font-size="12" fill="#64748b">下次状态判断命中「已关联 + 已授权」→ 执行策略 C。</text>
+      <text x="56" y="1088" font-size="12" fill="#64748b">若用户换绑到微信 B：对新微信重新成为增量，再次走策略 A。</text>
+    </svg>
+    </div>
+  </div>
+
+  <!-- ================= 策略 B + C：存量 / 达标 ================= -->
+  <div class="card">
+    <h2><span class="tag tag-stock">策略 B</span><span class="tag tag-ok">策略 C</span>存量补授权 · 达标直接打款</h2>
+    <p class="sub"><b>判断结果：已关联微信</b> → 再判断授权状态。未授权执行策略 B（收款中补授权）；已授权执行策略 C（免确认直接打款）。</p>
+    <div class="toolbar">
+      <button class="btn" onclick="downloadPNG('svg-bc', 1080, 1520, '策略BC-存量补授权与直接打款-v4.png')">下载 PNG</button>
+    </div>
+    <div class="svg-wrap">
+    <svg id="svg-bc" xmlns="http://www.w3.org/2000/svg" width="1080" height="1520" viewBox="0 0 1080 1520" font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">
+      <defs>
+        <marker id="arrBC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+        <marker id="arrGBC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+        <marker id="arrRBC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+      </defs>
+
+      <rect x="40" y="70" width="320" height="1430" fill="#fdf3f7"/>
+      <rect x="360" y="70" width="320" height="1430" fill="#f6f8fa"/>
+      <rect x="680" y="70" width="360" height="1430" fill="#f0faf4"/>
+      <line x1="360" y1="70" x2="360" y2="1500" stroke="#e2e8f0"/>
+      <line x1="680" y1="70" x2="680" y2="1500" stroke="#e2e8f0"/>
+      <rect x="40" y="70" width="1000" height="1430" fill="none" stroke="#dbe2ea"/>
+
+      <rect x="40" y="18" width="320" height="48" rx="10" fill="#e8467c"/>
+      <rect x="360" y="18" width="320" height="48" rx="10" fill="#475569"/>
+      <rect x="680" y="18" width="360" height="48" rx="10" fill="#07a555"/>
+      <text x="200" y="47" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">美柚 App（用户端）</text>
+      <text x="520" y="47" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">美柚服务端</text>
+      <text x="860" y="47" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">微信</text>
+
+      <rect x="56" y="90" width="10" height="10" rx="2" fill="#c2410c"/>
+      <text x="74" y="100" font-size="13" font-weight="700" fill="#334155">判断结果 · 已关联 → 按授权状态执行 B / C</text>
+
+      <path d="M200 152 V175" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+      <path d="M200 228 H520 V275" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+
+      <!-- C: 已授权 -->
+      <path d="M520 365 V430" fill="none" stroke="#059669" stroke-width="1.7" marker-end="url(#arrGBC)"/>
+      <text x="545" y="398" font-size="12" fill="#059669" font-weight="700">是 · 策略 C · 直接打款</text>
+      <path d="M632 462 H860 V520" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+      <text x="740" y="452" text-anchor="middle" font-size="11" fill="#64748b">调用微信打款</text>
+      <path d="M860 585 V650 H312" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrBC)"/>
+      <text x="560" y="642" text-anchor="middle" font-size="11" fill="#64748b">到账结果通知</text>
+      <path d="M200 680 V710" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+
+      <!-- B: 未授权 -->
+      <path d="M430 320 H55 V857 H408" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrRBC)"/>
+      <text x="68" y="560" font-size="12" fill="#dc2626" font-weight="700">否</text>
+      <text x="68" y="576" font-size="12" fill="#dc2626" font-weight="700">策略 B</text>
+      <text x="68" y="592" font-size="12" fill="#dc2626" font-weight="700">存量补授权</text>
+
+      <path d="M632 852 H750" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+      <text x="690" y="842" text-anchor="middle" font-size="11" fill="#64748b">拉起确认收款并授权页</text>
+      <path d="M860 884 V925" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+      <path d="M860 1020 V1140" fill="none" stroke="#059669" stroke-width="1.7" marker-end="url(#arrGBC)"/>
+      <text x="845" y="1085" text-anchor="end" font-size="12" fill="#059669" font-weight="700">是 · 勾选并确认收款</text>
+      <path d="M970 975 H1035 V1210" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrRBC)"/>
+      <text x="1045" y="1090" font-size="12" fill="#dc2626" font-weight="700">否</text>
+      <path d="M748 1177 H700 V1287 H632" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+      <text x="720" y="1230" text-anchor="middle" font-size="11" fill="#64748b">返回商家 · 同步状态</text>
+      <path d="M408 1287 H312" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+      <path d="M200 1325 V1355" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrBC)"/>
+
+      <rect x="130" y="112" width="140" height="40" rx="20" fill="#334155"/>
+      <text x="200" y="137" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">开 始</text>
+
+      <g>
+        <rect x="88" y="180" width="224" height="48" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+        <text x="200" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="#c2410c">判断结果</text>
+        <text x="200" y="218" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1e293b">已关联微信</text>
+      </g>
+
+      <g>
+        <polygon points="520,275 620,320 520,365 420,320" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+        <text x="520" y="314" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">是否已有</text>
+        <text x="520" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">自动到账授权？</text>
+      </g>
+
+      <g>
+        <rect x="408" y="430" width="224" height="64" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.4"/>
+        <circle cx="408" cy="462" r="13" fill="#047857"/><text x="408" y="466" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">C3</text>
+        <text x="520" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">发起打款（免确认）</text>
+        <text x="520" y="476" text-anchor="middle" font-size="11.5" fill="#64748b">达标用户 · 无需确认</text>
+      </g>
+
+      <g>
+        <rect x="748" y="520" width="224" height="64" rx="6" fill="#e7f6ee" stroke="#b5dfc8" stroke-width="1.4"/>
+        <circle cx="748" cy="552" r="13" fill="#07a555"/><text x="748" y="556" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">C4</text>
+        <text x="860" y="546" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">执行转账 · 资金入零钱</text>
+        <text x="860" y="566" text-anchor="middle" font-size="11.5" fill="#64748b">入账消息 · 无需确认</text>
+      </g>
+
+      <g>
+        <rect x="88" y="610" width="224" height="64" rx="6" fill="#fdf0f5" stroke="#f3c3d6" stroke-width="1.4"/>
+        <circle cx="88" cy="642" r="13" fill="#e8467c"/><text x="88" y="646" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">C5</text>
+        <text x="200" y="636" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">App 内到账通知</text>
+        <text x="200" y="656" text-anchor="middle" font-size="11.5" fill="#64748b">余额更新 · 提现完成</text>
+      </g>
+
+      <rect x="110" y="715" width="180" height="40" rx="20" fill="#047857"/>
+      <text x="200" y="740" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">结束 · 提现完成</text>
+
+      <g>
+        <rect x="408" y="825" width="224" height="64" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.4"/>
+        <circle cx="408" cy="857" r="13" fill="#c2410c"/><text x="408" y="861" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">B3</text>
+        <text x="520" y="851" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">发起收款中授权</text>
+        <text x="520" y="871" text-anchor="middle" font-size="11.5" fill="#64748b">存量用户补授权</text>
+      </g>
+
+      <g>
+        <rect x="748" y="820" width="224" height="64" rx="6" fill="#eafaf1" stroke="#bfe8d0" stroke-width="1.4"/>
+        <circle cx="748" cy="852" r="13" fill="#07a555"/><text x="748" y="856" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">B4</text>
+        <text x="860" y="846" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">确认收款并授权页</text>
+        <text x="860" y="866" text-anchor="middle" font-size="11" fill="#64748b">金额 · 转账类型 · 备注</text>
+      </g>
+
+      <g>
+        <polygon points="860,930 970,975 860,1020 750,975" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+        <text x="860" y="969" text-anchor="middle" font-size="12.5" font-weight="600" fill="#92400e">是否勾选免确认</text>
+        <text x="860" y="989" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">并确认收款？</text>
+      </g>
+
+      <rect x="970" y="1215" width="110" height="40" rx="20" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.4"/>
+      <text x="1025" y="1240" text-anchor="middle" font-size="11" font-weight="600" fill="#b91c1c">未授权，无法打款</text>
+
+      <g>
+        <rect x="748" y="1145" width="224" height="64" rx="6" fill="#eafaf1" stroke="#bfe8d0" stroke-width="1.4"/>
+        <circle cx="748" cy="1177" r="13" fill="#07a555"/><text x="748" y="1181" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">B5</text>
+        <text x="860" y="1171" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">收款成功 · 授权开通</text>
+        <text x="860" y="1191" text-anchor="middle" font-size="11.5" fill="#64748b">存量 → 达标</text>
+      </g>
+
+      <g>
+        <rect x="408" y="1255" width="224" height="64" rx="6" fill="#f1f4f8" stroke="#cbd5e1" stroke-width="1.4"/>
+        <circle cx="408" cy="1287" r="13" fill="#475569"/><text x="408" y="1291" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">B6</text>
+        <text x="520" y="1281" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">记录开通状态</text>
+        <text x="520" y="1301" text-anchor="middle" font-size="11.5" fill="#64748b">下次命中策略 C</text>
+      </g>
+
+      <g>
+        <rect x="88" y="1255" width="224" height="64" rx="6" fill="#fdf0f5" stroke="#f3c3d6" stroke-width="1.4"/>
+        <circle cx="88" cy="1287" r="13" fill="#e8467c"/><text x="88" y="1291" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">B7</text>
+        <text x="200" y="1281" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">提现成功 · 已开通自动到账</text>
+        <text x="200" y="1301" text-anchor="middle" font-size="11.5" fill="#64748b">下次提现无需再确认</text>
+      </g>
+
+      <rect x="110" y="1360" width="180" height="40" rx="20" fill="#047857"/>
+      <text x="200" y="1385" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">结束 · 开通并到账</text>
+    </svg>
+    </div>
+  </div>
+
+  <!-- ================= 规则与需求描述 ================= -->
+  <div class="card rules">
+    <h2>策略规则（v4）</h2>
+    <div class="rule-grid">
+      <div class="rule"><b>策略层边界</b>：只描述状态判断结果与执行流程，不描述用户点击了哪个按钮；UI 入口与策略解耦。</div>
+      <div class="rule"><b>统一策略，状态分流</b>：判断「是否关联 → 是否授权」，命中结果后执行 A / B / C。</div>
+      <div class="rule"><b>策略 A · 增量</b>：判断结果 = 未关联 → 执行关联顺带授权；成功后变为已关联 · 已授权。</div>
+      <div class="rule"><b>策略 B · 存量</b>：判断结果 = 已关联且未授权 → 执行收款中补授权；成功后变为达标。</div>
+      <div class="rule"><b>策略 C · 达标</b>：判断结果 = 已关联且已授权 → 执行免确认打款，微信直接入零钱。</div>
+      <div class="rule"><b>增量 ↔ 存量</b>：增量授权成功 → 达标；达标后换绑微信 B → 对新账户回到增量；微信侧解约 → 回到存量。</div>
+      <div class="rule"><b>拒绝授权</b>：明确失败态（未完成授权 / 未授权无法打款），不静默成功。</div>
+    </div>
+  </div>
+
+  <div class="card req">
+    <h2>需求描述（结构化 · v4）</h2>
+
+    <h3>1. 产品目标</h3>
+    <p>在微信提现链路落地「自动到账（免确认收款）」能力：对满足条件的用户，美柚发起打款后资金直接入微信零钱，用户无需每笔确认收款。</p>
+
+    <h3>2. 核心概念</h3>
+    <table>
+      <thead><tr><th>概念</th><th>定义</th><th>解决什么</th><th>状态值</th></tr></thead>
+      <tbody>
+        <tr><td><b>关联微信账户</b></td><td>将用户微信身份记为美柚提现收款账户</td><td>钱打给谁</td><td>已关联 / 未关联</td></tr>
+        <tr><td><b>授权自动到账</b></td><td>用户同意商家免确认收款</td><td>钱怎么到账</td><td>已授权 / 未授权</td></tr>
+        <tr><td><b>增量用户</b></td><td>判断结果为未关联（状态标签）</td><td>执行策略 A</td><td>未关联</td></tr>
+        <tr><td><b>存量用户</b></td><td>判断结果为已关联且未授权</td><td>执行策略 B</td><td>已关联 + 未授权</td></tr>
+        <tr><td><b>达标用户</b></td><td>判断结果为已关联且已授权</td><td>执行策略 C</td><td>已关联 + 已授权</td></tr>
+      </tbody>
+    </table>
+    <p>增量 / 存量不是永久人群划分，而是对<strong>当前状态</strong>的策略分类；状态变化后立即切换策略。</p>
+
+    <h3>3. 决策逻辑（仅状态判断）</h3>
+    <ul>
+      <li>判断①：是否已关联微信账户？<b>否</b> → 判断结果命中增量 → 执行 <code>策略 A</code></li>
+      <li>判断②：是否已授权自动到账？<b>否</b> → 判断结果命中存量 → 执行 <code>策略 B</code>；<b>是</b> → 执行 <code>策略 C</code></li>
+    </ul>
+    <p>上述判断与用户从哪个页面进入无关；同一判断结果对应同一套执行流程。</p>
+
+    <h3>4. 策略模块（判断结果 → 执行流程）</h3>
+    <p><b>策略 A · 判断结果：未关联</b></p>
+    <ul>
+      <li>执行：美柚发起关联顺带授权 → 微信授权页 → 用户同意 → 保存关联 + 开通状态 → 同步展示</li>
+      <li>异常：用户拒绝 → 未完成授权，不可免确认打款</li>
+      <li>状态结果：未关联 → 已关联 · 已授权（达标）</li>
+    </ul>
+    <p><b>策略 B · 判断结果：已关联 + 未授权</b></p>
+    <ul>
+      <li>执行：发起收款中授权 → 用户勾选免确认并确认收款 → 记录开通 → 完成本次打款/提现</li>
+      <li>异常：用户拒绝 → 未授权，无法打款</li>
+      <li>状态结果：存量 → 达标</li>
+    </ul>
+    <p><b>策略 C · 判断结果：已关联 + 已授权</b></p>
+    <ul>
+      <li>执行：美柚服务端发起免确认打款 → 微信执行转账入零钱 → App 到账通知</li>
+      <li>状态结果：达标态维持不变</li>
+    </ul>
+
+    <h3>5. 状态转化（策略关联）</h3>
+    <ul>
+      <li>增量 → 达标：策略 A 授权成功</li>
+      <li>存量 → 达标：策略 B 补授权成功</li>
+      <li>达标 → 增量：用户换绑关联微信 B（对新账户重新走策略 A）</li>
+      <li>达标 → 存量：用户在微信侧关闭自动到账授权（下次提现走策略 B）</li>
+    </ul>
+
+    <h3>6. 关键规则</h3>
+    <ul>
+      <li>R1：判断结果为未关联 → 必须执行策略 A，直至关联（及授权）完成或明确失败</li>
+      <li>R2：判断结果为已关联未授权 → 不可走策略 C；须执行策略 B 或返回失败态</li>
+      <li>R3：打款由美柚服务端发起，微信执行转账</li>
+      <li>R4：策略之间通过状态连通，不以「场景」隔离</li>
+      <li>R5：拒绝授权必须有明确失败态</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+function downloadPNG(svgId, w, h, filename) {
+  const svg = document.getElementById(svgId);
+  const xml = new XMLSerializer().serializeToString(svg);
+  const blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const scale = 2;
+    const c = document.createElement('canvas');
+    c.width = w * scale;
+    c.height = h * scale;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const a = document.createElement('a');
+    a.download = filename;
+    a.href = c.toDataURL('image/png');
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+</script>
+</body>
+</html>
